@@ -779,3 +779,52 @@ main{padding:var(--sp-6)}
 .menu-item { width:100%; text-align:left; padding:10px 12px; background:transparent; border:0; border-radius:8px; cursor:pointer; }
 .menu-item:hover { background:rgba(0,0,0,.05); }
 .menu-item.danger { color:#b00020; }
+
+
+/* ===== Light Theme Overrides ===== */
+:root {
+  /* Base palette */
+  --bg: #f8fafc;
+  --text: #0f172a;
+  --muted: #6b7280;
+  --surface: #ffffff;
+  --surface-2: #f2f4f7;
+  --border: #e5e7eb;
+
+  /* Accent */
+  --green-600: #22c55e;
+  --green-700: #16a34a;
+
+  /* Shapes & shadow */
+  --r-md: 10px;
+  --r-lg: 14px;
+  --shadow: 0 8px 24px rgba(2, 6, 23, 0.08);
+
+  /* Spacing scale */
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+}
+
+/* Global light background + text */
+html, body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Cards and UI surfaces */
+.card { background: var(--surface); border-color: var(--border); box-shadow: var(--shadow); }
+.nav { background: rgba(255,255,255,0.9); border-color: var(--border); }
+.rule { border-color: var(--border); }
+
+/* Inputs & buttons */
+.input { background: var(--surface); border-color: var(--border); color: var(--text); }
+.primary { background: var(--green-600); color: #fff; border: none; }
+.primary:hover { filter: brightness(0.98); }
+.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.label-file { background: var(--surface); border: 1px dashed var(--border); color: var(--text); }
+
+/* Minor elements */
+.validation-feedback { color: var(--muted); }
+.muted { color: var(--muted); }
