@@ -10,8 +10,8 @@ export function IdentifyPanel() {
     <label class="label-file" for="files">Add photos</label>
     <div class="preview-strip" id="preview"></div>
     <div style="display:flex; gap:8px; justify-content:center; margin-top:12px">
-      <button id="identify" class="btn primary">Identify now</button>
-      <button id="clear" class="btn">Clear</button>
+      <button id="identify" class="primary">Identify now</button>
+      <button id="clear" class="secondary">Clear</button>
     </div>
     <div id="feedback" aria-live="polite" class="validation-feedback"></div>
   `;

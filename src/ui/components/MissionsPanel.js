@@ -6,7 +6,7 @@ export function MissionsPanel() {
   sec.innerHTML = `
     <h2>Missions near you</h2>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
-      <button id="locate" class="btn">Get Location & Missions</button>
+      <button id="locate" class="secondary">Get Location & Missions</button>
     </div>
     <div id="list" class="form-grid" aria-live="polite">No missions yet.</div>
   `;
@@ -21,16 +21,15 @@ export function MissionsPanel() {
       const lon = pos.coords.longitude;
       list.textContent = "Loading missions…";
       const data = await fetchMissions({ lat, lon });
-      const missions = data?.missions || data || [];
-      if (!missions.length) { list.textContent = "No missions returned."; return; }
-      list.innerHTML = missions.map(m => `
+      const missions = Array.isArray(data?.missions) ? data.missions : (Array.isArray(data) ? data : []);
+      list.innerHTML = missions.length ? missions.map(m => `
         <div class="species-item">
           <div class="species-info">
             <p><strong>${m.name ?? "Unnamed mission"}</strong></p>
             <p class="muted">${m.description ?? ""}</p>
           </div>
         </div>
-      `).join("");
+      `).join("") : "No missions returned.";
     } catch (e) {
       list.textContent = e.message || "Location/mission error.";
     }

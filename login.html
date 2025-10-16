@@ -7,36 +7,17 @@
   <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body style="display:grid;place-items:center;min-height:100dvh">
-  <div class="card" style="width:min(92vw,360px)">
+  <div class="card" style="width:min(92vw,380px)">
     <h1>Welcome back</h1>
-    <form id="form" class="form-grid">
+    <form id="loginForm" class="form-grid">
       <input id="email" class="input" type="email" placeholder="Email" required />
       <input id="password" class="input" type="password" placeholder="Password" required />
-      <button class="btn primary" type="submit">Login</button>
+      <button class="primary" type="submit">Login</button>
     </form>
     <p class="muted">No account? <a href="./signup.html">Create one</a></p>
-    <div id="msg" class="validation-feedback" aria-live="polite"></div>
+    <div id="loginMessage" class="validation-feedback" aria-live="polite"></div>
   </div>
-  <script type="module">
-    import { auth } from "./src/auth/firebase.js";
-    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { redirectIfAuthed } from "./src/auth/guard.js";
-    redirectIfAuthed();
-    const form = document.getElementById("form");
-    const msg = document.getElementById("msg");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      msg.textContent = "Signing in…";
-      try {
-        const email = form.email.value.trim();
-        const pwd = form.password.value;
-        await signInWithEmailAndPassword(auth, email, pwd);
-        location.replace("./index.html");
-      } catch (err) {
-        console.error(err);
-        msg.textContent = err.message || String(err);
-      }
-    });
-  </script>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./login.js"></script>
 </body>
 </html>
