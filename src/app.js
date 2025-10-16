@@ -1,28 +1,25 @@
 import { Header } from "./ui/components/Header.js";
 import { IdentifyPanel } from "./ui/components/IdentifyPanel.js";
 import { MissionsPanel } from "./ui/components/MissionsPanel.js";
+import { listenUserLevel } from "./user/level.js";
 
-// Firebase auth imports (use the old working pattern: root-level firebase-config.js)
 import { auth } from "../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-
-function getStoredLevel() {
-  const v = Number(localStorage.getItem("userLevel"));
-  return Number.isFinite(v) && v > 0 ? v : 1;
-}
 
 function App(root) {
   root.innerHTML = "";
   root.classList.add("app-shell");
 
-  // Create header with placeholders; we'll update when auth state resolves
+  let stopLevel = () => {};
+
   const header = Header({
     user: null,
-    level: getStoredLevel(),
+    level: 1,
     progress: 0,
     onMenu: () => {},
     onLogout: async () => {
       try {
+        stopLevel();
         await signOut(auth);
         location.href = "./login.html";
       } catch (e) {
@@ -43,13 +40,10 @@ function App(root) {
 
   root.append(header, main, footer);
 
-  // Listen for auth changes and update header name
   onAuthStateChanged(auth, (user) => {
     header.setUser(user);
-    // OPTIONAL: if you store level per user elsewhere, update it here:
-    // header.setLevel(fetchLevelFor(user));
-    // For now, read from localStorage so the UI matches prior expectations.
-    header.setLevel(getStoredLevel());
+    if (stopLevel) stopLevel();
+    stopLevel = user ? listenUserLevel(user.uid, (lvl) => header.setLevel(lvl)) : (()=>{});
   });
 }
 

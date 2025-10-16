@@ -4,11 +4,11 @@ export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbariu
   root.innerHTML = `
     <div class="brandmark">🌿 PlantGo</div>
     <div class="user-area">
-      <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false">
+      <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
         <span class="level-badge">Lv. <span id="levelNumber">${level}</span></span>
       </button>
-      <div id="userMenu" class="menu" role="menu" hidden>
+      <div id="userMenu" class="menu" role="menu" style="display:none">
         <button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
       </div>
@@ -19,35 +19,27 @@ export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbariu
   const menu = root.querySelector("#userMenu");
   const levelEl = root.querySelector("#levelNumber");
 
-  function openMenu() {
-    menu.hidden = false;
-    btn.setAttribute("aria-expanded", "true");
-    document.addEventListener("click", outsideClose, { once: true });
-    document.addEventListener("keydown", escClose, { once: true });
-  }
-  function closeMenu() {
-    menu.hidden = true;
-    btn.setAttribute("aria-expanded", "false");
-  }
-  function outsideClose(e) {
-    if (!root.contains(e.target)) closeMenu();
-  }
-  function escClose(e) {
-    if (e.key === "Escape") closeMenu();
+  function toggleMenu(force) {
+    const willOpen = (force !== undefined) ? force : (menu.style.display === "none");
+    menu.style.display = willOpen ? "block" : "none";
+    btn.setAttribute("aria-expanded", String(willOpen));
   }
 
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    if (menu.hidden) openMenu(); else closeMenu();
+  btn.addEventListener("click", () => {
+    toggleMenu();
     (onMenu || (()=>{}))();
   });
 
+  document.addEventListener("click", (e) => {
+    if (!root.contains(e.target)) toggleMenu(false);
+  });
+
   root.querySelector("#menuLogout").addEventListener("click", () => {
-    closeMenu();
+    toggleMenu(false);
     (onLogout || (()=>{}))();
   });
   root.querySelector("#menuHerbarium").addEventListener("click", () => {
-    closeMenu();
+    toggleMenu(false);
     (onHerbarium || (()=>{}))();
   });
 
