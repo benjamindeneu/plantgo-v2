@@ -757,3 +757,14 @@ main{padding:var(--sp-6)}
 .form-grid{display:grid;gap:var(--sp-3)}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);backdrop-filter:saturate(120%) blur(6px)}
 .brandmark{font-weight:800}
+
+
+/* --- User menu --- */
+.user-area { position: relative; }
+.user-btn { display:flex; align-items:center; gap:10px; padding:8px 12px; border:1px solid var(--border); background:var(--surface); border-radius:999px; cursor:pointer; }
+.user-btn:hover { background: var(--surface-2, rgba(0,0,0,.03)); }
+.level-badge { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border:1px solid var(--border); border-radius:999px; font-size:12px; }
+.menu { position:absolute; right:0; top:calc(100% + 8px); min-width:180px; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow, 0 8px 24px rgba(0,0,0,.12)); padding:6px; z-index:50; }
+.menu-item { width:100%; text-align:left; padding:10px 12px; background:transparent; border:0; border-radius:8px; cursor:pointer; }
+.menu-item:hover { background:var(--surface-2, rgba(0,0,0,.05)); }
+.menu-item.danger { color: var(--red-700, #b00020); }
