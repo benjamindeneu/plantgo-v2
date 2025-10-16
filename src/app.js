@@ -1,3 +1,11 @@
+// Basic error surface to avoid silent white screens
+window.addEventListener('error', (e) => {
+  const el = document.getElementById('app');
+  if (!el) return;
+  const msg = (e.error && e.error.message) || e.message || String(e);
+  el.innerHTML = `<div style="padding:16px;border:1px solid #ef4444;background:#fef2f2;color:#991b1b;border-radius:8px;margin:16px;font-family:system-ui">⚠️ ${msg}</div>`;
+  console.error(e.error || e.message || e);
+});
 import { Header } from "./ui/components/Header.js";
 import { IdentifyPanel } from "./ui/components/IdentifyPanel.js";
 import { MissionsPanel } from "./ui/components/MissionsPanel.js";
