@@ -1,3 +1,4 @@
+console.log('[app] boot');
 // Basic error surfaces
 window.addEventListener('error', (e) => {
   const el = document.getElementById('app');
