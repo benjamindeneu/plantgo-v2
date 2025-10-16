@@ -21,6 +21,4 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export { app };
 
-
-// Ensure these are exported for the app:
 export { app, db, auth };
