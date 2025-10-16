@@ -1,10 +1,10 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Sign Up • PlantGo</title>
-  <link rel="stylesheet" href="./assets/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PlantGo • Sign Up</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body style="display:grid;place-items:center;min-height:100dvh">
   <div class="card" style="width:min(92vw,360px)">
@@ -13,19 +13,16 @@
       <input id="name" class="input" type="text" placeholder="Username" required />
       <input id="email" class="input" type="email" placeholder="Email" required />
       <input id="password" class="input" type="password" placeholder="Password" required />
-      <button class="primary" type="submit">Sign Up</button>
+      <button class="btn primary" type="submit">Sign Up</button>
     </form>
     <p class="muted">Already have an account? <a href="./login.html">Log in</a></p>
     <div id="msg" class="validation-feedback" aria-live="polite"></div>
   </div>
-
   <script type="module">
     import { auth } from "./src/auth/firebase.js";
     import { updateProfile, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { redirectIfAuthed } from "./src/auth/guard.js";
-
     redirectIfAuthed();
-
     const form = document.getElementById("form");
     const msg = document.getElementById("msg");
     form.addEventListener("submit", async (e) => {
@@ -40,7 +37,7 @@
         location.replace("./index.html");
       } catch (err) {
         console.error(err);
-        msg.textContent = err?.message || String(err);
+        msg.textContent = err.message || String(err);
       }
     });
   </script>

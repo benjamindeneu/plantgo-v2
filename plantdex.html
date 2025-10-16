@@ -12,5 +12,9 @@
     <h1>Your Discoveries</h1>
     <section class="card" id="discoveriesList">Connect your existing logic here.</section>
   </main>
+  <script type="module">
+    import { requireAuth } from "./src/auth/guard.js";
+    requireAuth();
+  </script>
 </body>
 </html>

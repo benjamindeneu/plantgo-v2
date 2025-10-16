@@ -1,7 +1,6 @@
 export function Modal({ title = "", content = "" }) {
   const overlay = document.createElement("div");
-  overlay.className = "modal show";
-  overlay.setAttribute("role", "dialog");
+  overlay.className = "modal";
   overlay.innerHTML = `
     <div class="modal-content">
       <button class="close" aria-label="Close">×</button>

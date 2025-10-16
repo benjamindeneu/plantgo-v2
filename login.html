@@ -1,34 +1,29 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Login • PlantGo</title>
-  <link rel="stylesheet" href="./assets/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PlantGo • Login</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
 </head>
 <body style="display:grid;place-items:center;min-height:100dvh">
   <div class="card" style="width:min(92vw,360px)">
     <h1>Welcome back</h1>
     <form id="form" class="form-grid">
-      <input id="email" class="input" type="email" placeholder="Email" required>
-      <input id="password" class="input" type="password" placeholder="Password" required>
-      <button class="primary" type="submit">Login</button>
+      <input id="email" class="input" type="email" placeholder="Email" required />
+      <input id="password" class="input" type="password" placeholder="Password" required />
+      <button class="btn primary" type="submit">Login</button>
     </form>
     <p class="muted">No account? <a href="./signup.html">Create one</a></p>
     <div id="msg" class="validation-feedback" aria-live="polite"></div>
   </div>
-
   <script type="module">
     import { auth } from "./src/auth/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
     import { redirectIfAuthed } from "./src/auth/guard.js";
-
-    // If already authed, go to app
     redirectIfAuthed();
-
     const form = document.getElementById("form");
     const msg = document.getElementById("msg");
-
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       msg.textContent = "Signing in…";
@@ -39,7 +34,7 @@
         location.replace("./index.html");
       } catch (err) {
         console.error(err);
-        msg.textContent = err?.message || String(err);
+        msg.textContent = err.message || String(err);
       }
     });
   </script>
