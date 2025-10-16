@@ -1,9 +1,9 @@
 import { auth } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import { onAuthChanged } from "./compat.js";
 
 export function requireAuth() {
   return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthChanged((user) => {
       if (!user) {
         const path = location.pathname.toLowerCase();
         const isAuthPage = path.endsWith("/login.html") || path.endsWith("/signup.html");
@@ -17,7 +17,7 @@ export function requireAuth() {
 
 export function redirectIfAuthed() {
   return new Promise((resolve) => {
-    onAuthStateChanged(auth, (user) => {
+    onAuthChanged((user) => {
       if (user) {
         const path = location.pathname.toLowerCase();
         const isAuthPage = path.endsWith("/login.html") || path.endsWith("/signup.html");

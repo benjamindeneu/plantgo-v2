@@ -1,1 +1,22 @@
-<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='stylesheet' href='./assets/styles.css'><title>Sign Up</title></head><body><div class='card'><h1>Sign Up</h1><form id='form' class='form-grid'><input id='name' class='input' placeholder='Username' required><input id='email' class='input' type='email' placeholder='Email' required><input id='password' class='input' type='password' placeholder='Password' required><button class='primary' type='submit'>Create account</button></form><div id='msg'></div></div><script type='module'>import { auth } from './src/auth/firebase.js';import { updateProfile, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js';import { redirectIfAuthed } from './src/auth/guard.js';redirectIfAuthed();const f=document.getElementById('form');const msg=document.getElementById('msg');f.addEventListener('submit',async(e)=>{e.preventDefault();msg.textContent='Creating…';try{const { user }=await createUserWithEmailAndPassword(auth,f.email.value.trim(),f.password.value);await updateProfile(user,{ displayName:f.name.value.trim() });location.href='./index.html';}catch(err){msg.textContent=err.message;}});</script></body></html>
+<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='stylesheet' href='./assets/styles.css'><title>Sign Up</title></head><body><div class='card'><h1>Sign Up</h1><form id='form' class='form-grid'><input id='name' class='input' placeholder='Username' required><input id='email' class='input' type='email' placeholder='Email' required><input id='password' class='input' type='password' placeholder='Password' required><button class='primary' type='submit'>Create account</button></form><div id='msg'></div></div><script type='module'>import { auth } from './src/auth/firebase.js';import { updateProfile, createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js';import { redirectIfAuthed } from './src/auth/guard.js';redirectIfAuthed();const f=document.getElementById('form');const msg=document.getElementById('msg');f.addEventListener('submit',async(e)=>{e.preventDefault();msg.textContent='Creating…';try{const { user }=await createUserWithEmailAndPassword(auth,f.email.value.trim(),f.password.value);await updateProfile(user,{ displayName:f.name.value.trim() });location.href='./index.html';}catch(err){msg.textContent=err.message;}});</script>
+  <script type="module">
+    import { createUserEmailPassword, updateUserProfile } from "./src/auth/compat.js";
+    import { redirectIfAuthed } from "./src/auth/guard.js";
+    redirectIfAuthed();
+    const form = document.getElementById("form");
+    const msg = document.getElementById("msg");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.textContent = "Creating account…";
+      try {
+        await createUserEmailPassword(form.email.value.trim(), form.password.value);
+        const name = form.name.value.trim();
+        if (name) await updateUserProfile({ displayName: name });
+        location.href = "./index.html";
+      } catch (err) {
+        msg.textContent = err.message || String(err);
+      }
+    });
+  </script>
+</body>
+</html>
