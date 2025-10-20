@@ -3,7 +3,7 @@ import { fetchMissions } from "../../api/plantgo.js";
 import { SpeciesCard } from "./SpeciesCard.js";
 
 // IMPORTANT: firebase-config is at the project root (not in src)
-import { auth, db } from "../../firebase-config.js";
+import { auth, db } from "../../../firebase-config.js";
 import {
   doc,
   getDoc,
