@@ -268,13 +268,13 @@ function pulseLevelUp(overlay) {
 
 function showBadge(container, badge) {
   return new Promise(r => {
+    requestAnimationFrame(() => {
+      node.classList.add("in");
+      setTimeout(r, 500);
+    });
     const node = document.createElement("div");
     node.className = "badge big";
     node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${badge.label}</span><span class="add">+${badge.bonus}</span>`;
     container.appendChild(node);
-    requestAnimationFrame(() => {
-      node.classList.add("in");
-      setTimeout(r, 1000);
-    });
   });
 }
