@@ -873,39 +873,28 @@ html, body {
   position: relative;
 }
 
+/* Wikipedia thumb on card */
+.species-image-container { position: relative; }
 .wiki-thumb {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 6px;
+  position: absolute; bottom: 8px; left: 8px;
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 6px;
   background: rgba(255,255,255,0.9);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 6px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--border); border-radius: 12px; padding: 6px; box-shadow: var(--shadow);
 }
-
-.wiki-label {
-  font-size: 11px;
-  color: var(--muted);
-  padding: 2px 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-
-.wiki-img-wrap {
-  width: 46px; height: 46px; border-radius: 8px; overflow: hidden;
-  display: grid; place-items: center;
-  background: var(--surface-2);
-}
-
+.wiki-label { font-size: 11px; color: var(--muted); padding: 2px 6px; border: 1px solid var(--border); border-radius: 999px; }
+.wiki-img-wrap { width: 46px; height: 46px; border-radius: 8px; overflow: hidden; display: grid; place-items: center; background: var(--surface-2); }
 .wiki-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .wiki-skeleton { width: 100%; height: 100%; background: linear-gradient(90deg,#eee,#f5f5f5,#eee); animation: sk 1.2s infinite; }
 @keyframes sk { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
 .wiki-missing { font-size: 10px; color: var(--muted); }
+
+/* Points badge & mission level */
+.species-actions { display:flex; align-items:center; gap:10px; margin-top:8px; }
+.mission-level { padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); }
+.common-points   { background:#eef7ff; color:#0f4c81; }
+.rare-points     { background:#f5efff; color:#4b2aad; }
+.epic-points     { background:#fff6ed; color:#9a3412; }
+.legendary-points{ background:#ecffe9; color:#166534; }
 
 .species-actions {
   display: flex; align-items: center; gap: 10px; margin-top: 8px;
