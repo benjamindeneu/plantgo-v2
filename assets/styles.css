@@ -980,3 +980,66 @@ html, body {
 /* Minor tweaks */
 .result-total { padding-top: 8px; border-top: 1px dashed var(--border); }
 
+
+/* Rotating loader */
+.spinner {
+  width: 28px; height: 28px;
+  border: 3px solid #e5e7eb; border-top-color: var(--green-600);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-top: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Center the user photos */
+.user-photos.center {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; align-items: center;
+  margin-bottom: 8px;
+}
+.user-photos .shot { width: 84px; height: 84px; border-radius: 12px; overflow: hidden; border:1px solid var(--border); background: var(--surface-2); }
+.user-photos .shot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* Observation badge that upgrades visually */
+.points-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: 999px; border: 1px solid var(--border);
+  font-weight: 700; box-shadow: var(--shadow);
+}
+.points-badge .label { font-size: 12px; opacity: .7; }
+.points-badge .value { font-size: 22px; }
+
+/* Reuse mission badge palette for dynamic states */
+.common-points   { background: #eef7ff; color:#0f4c81; border-color: #cfe6ff; }
+.rare-points     { background: #f5efff; color:#4b2aad; border-color: #e2d8ff; }
+.epic-points     { background: #fff6ed; color:#9a3412; border-color: #ffe1c7; }
+.legendary-points{ background: #ecffe9; color:#166534; border-color: #c7f6c0; }
+
+/* Bigger, prettier bonus badges */
+.badges.big { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.badge.big {
+  opacity:0; transform: translateY(10px) scale(.95) rotate(-1deg);
+  background:#fff; border:1px solid var(--border); border-radius: 18px;
+  padding: 10px 14px; font-weight: 800; box-shadow: var(--shadow);
+  display: inline-flex; gap: 8px; align-items:center;
+}
+.badge.big .icon { font-size: 18px; }
+.badge.big .txt { font-size: 14px; }
+.badge.big .add { font-size: 14px; opacity:.85; }
+.badge.big.in { 
+  opacity:1; transform: translateY(0) scale(1) rotate(0);
+  animation: popBadge .35s ease-out;
+}
+@keyframes popBadge {
+  0% { transform: translateY(10px) scale(.9); }
+  60%{ transform: translateY(-2px) scale(1.06); }
+  100%{ transform: translateY(0) scale(1); }
+}
+
+/* Level-up pulse already defined; give it a little glow */
+.result-modal .modal-content.result.levelup {
+  animation: levelPulse .8s ease;
+  box-shadow: 0 20px 60px rgba(16,185,129,.25);
+}
+
+/* Tidy result-head spacing */
+.result-head { display:flex; flex-direction:column; gap:6px; margin-bottom: 10px; }
