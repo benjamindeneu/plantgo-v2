@@ -25,6 +25,7 @@ export function ResultModal() {
 
       <div class="result-head">
         <h2 id="resultTitle">Identifying…</h2>
+        <div id="speciesNameLine" class="muted"></div>
         <!-- Classic indeterminate bar -->
         <div class="loading-track" id="loadingTrack" aria-hidden="true">
           <div class="loading-indeterminate"></div>
@@ -35,8 +36,8 @@ export function ResultModal() {
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-points">
-          <div id="obsBadge" class="points-badge common-points">
-            <span class="label">Observation</span>
+          <div class="muted" style="margin-bottom:6px;">Observation points:</div>
+          <div id="obsBadge" class="points-badge common-points" data-rarity="common-points">
             <span class="value">+<span id="pointsCounter">0</span></span>
           </div>
           <div class="details" id="pointsDetails"></div>
@@ -64,7 +65,7 @@ export function ResultModal() {
     async initLoading({ photos, currentTotalPoints }) {
       const { fromLevel, fromPct, nextLevel } = calcFromLevel(currentTotalPoints || 0);
       qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent = nextLevel;     // show current → next while loading
+      qs("#levelTo").textContent = nextLevel;     // current → next while loading
       qs("#levelToLabel").style.opacity = 0.9;
       qs("#levelProgress").style.width = `${fromPct}%`;
 
@@ -73,17 +74,26 @@ export function ResultModal() {
         `<div class="shot"><img src="${url}" alt="Your photo" loading="lazy"/></div>`
       ).join("");
 
+      // while loading
       qs("#resultTitle").textContent = "Identifying…";
-      qs("#loadingTrack").style.display = "block";           // show loading bar
-      qs("#badges").style.display = "none";                  // hide badges until result
+      qs("#speciesNameLine").textContent = "";
+      qs("#loadingTrack").style.display = "block";
+
+      // ensure initial rarity dataset present for pop effect
+      const obsBadge = qs("#obsBadge");
+      obsBadge.dataset.rarity = getRarity(0);
+      obsBadge.classList.add(obsBadge.dataset.rarity);
+
+      // hide badges until we have result
+      qs("#badges").style.display = "none";
     },
 
     async showResult({ identify, points, lat, lon, plantnetImageCode }) {
-      // Stop loader
       qs("#loadingTrack").style.display = "none";
 
       const speciesName = identify?.name || "Unknown species";
-      qs("#resultTitle").textContent = speciesName;
+      qs("#resultTitle").textContent = "New observation of :";
+      qs("#speciesNameLine").textContent = speciesName;
 
       // Current total for level animation
       const user = auth.currentUser;
@@ -99,6 +109,7 @@ export function ResultModal() {
       // Observation points (base) + details
       const baseTotal = Number(points?.total ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
+
       await animateObservation({
         total: baseTotal,
         detail,
@@ -107,12 +118,22 @@ export function ResultModal() {
         badgeEl: qs("#obsBadge"),
       });
 
-      // Mission bonus?
-      const missionHit = await isInMissionsList(speciesName);
-      const badgeQueue = [];
-      if (missionHit) badgeQueue.push({ kind: "mission", emoji: "🎯", label: "Mission species", bonus: 500 });
+      // After counting completes, add the rarity badge like mission cards
+      const rarityClass = getRarity(baseTotal);
+      const rarityLabel = rarityText(rarityClass);
+      const rarityBadge = document.createElement("div");
+      rarityBadge.className = `mission-level ${rarityClass}`;
+      rarityBadge.innerHTML = `<span class="label">${rarityLabel}</span>`;
+      // show it before other badges (pop in)
+      const badgesEl = qs("#badges");
+      badgesEl.style.display = "flex";
+      await showBadge(badgesEl, { emoji: "", label: rarityBadge.outerHTML, bonus: null, rawHTML: true });
 
-      // Save observation (+ discovery if new)
+      // Mission / Discovery badges
+      const missionHit = await isInMissionsList(speciesName);
+      const queue = [];
+      if (missionHit) queue.push({ kind: "mission", emoji: "🎯", label: "Mission species", bonus: 500 });
+
       let discoveryBonus = 0;
       if (user) {
         const { discoveryBonus: got } = await addObservationAndDiscovery({
@@ -128,13 +149,10 @@ export function ResultModal() {
         });
         discoveryBonus = got;
       }
-      if (discoveryBonus > 0) badgeQueue.push({ kind: "new", emoji: "🆕", label: "New species", bonus: 500 });
+      if (discoveryBonus > 0) queue.push({ kind: "new", emoji: "🆕", label: "New species", bonus: 500 });
 
-      // Reveal badges now (they were hidden during loading)
-      const badgesEl = qs("#badges");
-      badgesEl.style.display = "flex";
       let finalTotal = baseTotal;
-      for (const b of badgeQueue) {
+      for (const b of queue) {
         await showBadge(badgesEl, b);
         finalTotal += b.bonus;
       }
@@ -147,7 +165,7 @@ export function ResultModal() {
       const { fromLevel, fromPct } = calcFromLevel(currentTotal);
       const { toLevel, toPct }   = calcToLevel(currentTotal + finalTotal);
       qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent   = toLevel;     // final level value after scoring
+      qs("#levelTo").textContent   = toLevel;
       qs("#levelToLabel").style.opacity = toLevel > fromLevel ? 1 : 0.6;
       await animateProgress(qs("#levelProgress"), fromPct, toPct);
       if (toLevel > fromLevel) pulseLevelUp(overlay);
@@ -172,25 +190,35 @@ function calcToLevel(total) {
 }
 function clamp01(v) { return Math.max(0, Math.min(100, v)); }
 
+/**
+ * Animate points counting. Detail lines reveal faster and all are displayed by 70% of duration.
+ */
 async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl }) {
-  const entries = Object.entries(detail || {});
+  const entries = Object.entries(detail || []);
   detailsEl.innerHTML = "";
 
+  // keep your current speed; we only change distribution for reveals
   const duration = 1800;
   const start = performance.now();
   const ease = t => 1 - Math.pow(1 - t, 3);
 
-  const revealTimes = entries.map((_, i) => (i + 1) / (entries.length || 1) * duration);
+  // Distribute reveal times within the first 70% of the animation
+  const revealPortion = 0.7;
+  const revealTimes = entries.map((_, i) =>
+    (i + 1) / (entries.length || 1) * (duration * revealPortion)
+  );
   let revealed = 0;
 
   return new Promise(resolve => {
     function frame(ts) {
-      const t = Math.min(1, (ts - start) / duration);
+      const elapsed = ts - start;
+      const t = Math.min(1, elapsed / duration);
       const val = Math.round(total * ease(t));
       counterEl.textContent = String(val);
       upgradeBadgeBy(val, badgeEl);
 
-      while (revealed < revealTimes.length && (ts - start) >= revealTimes[revealed]) {
+      // reveal lines quickly up to 70%
+      while (revealed < revealTimes.length && elapsed >= revealTimes[revealed]) {
         const [k, v] = entries[revealed];
         const line = document.createElement("div");
         line.className = "detail-line";
@@ -199,8 +227,10 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
         revealed++;
       }
 
-      if (t < 1) requestAnimationFrame(frame);
-      else {
+      if (t < 1) {
+        requestAnimationFrame(frame);
+      } else {
+        // ensure all lines exist even if no entries or timing edge case
         for (; revealed < entries.length; revealed++) {
           const [k, v] = entries[revealed];
           const line = document.createElement("div");
@@ -234,28 +264,31 @@ function getRarity(val) {
   if (val >= 500)  return "rare-points";
   return "common-points";
 }
+function rarityText(cls) {
+  switch (cls) {
+    case "legendary-points": return "Legendary";
+    case "epic-points":      return "Epic";
+    case "rare-points":      return "Rare";
+    default:                 return "Common";
+  }
+}
 
 function upgradeBadgeBy(val, el) {
   const next = getRarity(val);
   const prev = el.dataset.rarity || "";
 
-  if (prev === next) return; // no change → no pop
+  if (prev === next) return;
 
-  // store new rarity
   el.dataset.rarity = next;
-
-  // swap classes to the new rarity
   el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
   el.classList.add(next);
 
-  // trigger a quick pop animation (restarts every upgrade)
+  // pop effect on rarity change
   el.classList.remove("points-pop");
-  // force reflow so the animation re-triggers
-  // eslint-disable-next-line no-unused-expressions
-  el.offsetHeight;
+  // force reflow
+  void el.offsetWidth;
   el.classList.add("points-pop");
 }
-
 
 function animateProgress(el, fromPct, toPct) {
   const duration = 900, start = performance.now();
@@ -287,15 +320,26 @@ function pulseLevelUp(overlay) {
   setTimeout(() => box.classList.remove("levelup"), 1200);
 }
 
+/**
+ * Show a badge with optional raw HTML label (for rarity badge).
+ * Keeps the previous visual "pop" animation.
+ */
 function showBadge(container, badge) {
   return new Promise(r => {
+    const node = document.createElement("div");
+    node.className = "badge big";
+
+    if (badge.rawHTML) {
+      // embed rendered markup (mission-level rarity pill)
+      node.innerHTML = badge.label;
+    } else {
+      node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${badge.label}</span>${badge.bonus != null ? `<span class="add">+${badge.bonus}</span>` : ""}`;
+    }
+
+    container.appendChild(node);
     requestAnimationFrame(() => {
       node.classList.add("in");
       setTimeout(r, 500);
     });
-    const node = document.createElement("div");
-    node.className = "badge big";
-    node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${badge.label}</span><span class="add">+${badge.bonus}</span>`;
-    container.appendChild(node);
   });
 }
