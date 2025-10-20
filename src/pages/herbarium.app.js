@@ -1,24 +1,17 @@
 // src/pages/herbarium.app.js
 
 import { Header } from "../ui/components/Header.js";
-import { SpeciesCard } from "../ui/components/SpeciesCard.js";
+import { HerbariumCard } from "../ui/components/HerbariumCard.js";
 import { listenUserLevel } from "../user/level.js";
 
-// IMPORTANT: firebase-config is at project root (NOT in src)
+// Firebase config is at project root
 import { auth, db } from "../../firebase-config.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import {
-  onAuthStateChanged,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  documentId,
+  collection, getDocs, query, orderBy, documentId
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
-// ----- Header (Herbarium variant: Main + Log out)
+// Header with “Main” + “Log out”
 const headerMount = document.getElementById("appHeader");
 const header = Header({
   user: null,
@@ -32,32 +25,21 @@ const header = Header({
 });
 headerMount.replaceWith(header);
 
-// ----- Load discoveries exactly as stored: users/{uid}/discoveries, alphabetical by doc ID
+// Load discoveries: users/{uid}/discoveries ordered alphabetically by doc ID (= speciesName)
 async function loadDiscoveries(uid) {
   const ref = collection(db, "users", uid, "discoveries");
-  const qy = query(ref, orderBy(documentId(), "asc")); // alphabetical (doc ID == speciesName)
+  const qy = query(ref, orderBy(documentId(), "asc"));
   const snap = await getDocs(qy);
   return snap.docs.map(d => {
-    // Doc ID == speciesName; fields include observationId, location, discoveredAt
     const data = d.data();
-    const speciesName = d.id; // same as data.speciesName per your schema
-
     return {
-      // SpeciesCard expects these:
-      name: speciesName,
-      common_name: "",       // not provided; leave empty
-      image_url: "",         // SpeciesCard will fetch Wikipedia image from `name`
-      points: { total: 0, detail: {} }, // not part of discoveries; keep neutral
-
-      // Keep the rest available if you want to use later (not used by SpeciesCard)
-      observationId: data.observationId,
-      location: data.location,
+      name: d.id,                    // doc id == speciesName
       discoveredAt: data.discoveredAt,
+      image_url: "",                 // we’ll let HerbariumCard fetch Wikipedia by name
     };
   });
 }
 
-// ----- Page boot
 const listEl = document.getElementById("discoveriesList");
 let stopLevel = () => {};
 
@@ -77,7 +59,7 @@ onAuthStateChanged(auth, async (user) => {
       listEl.textContent = "No saved discoveries yet.";
       return;
     }
-    for (const sp of entries) listEl.appendChild(SpeciesCard(sp));
+    for (const e of entries) listEl.appendChild(HerbariumCard(e));
   } catch (e) {
     console.error("[Herbarium] load error:", e);
     listEl.textContent = "Could not load your herbarium.";
