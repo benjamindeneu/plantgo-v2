@@ -1103,3 +1103,13 @@ html, body {
   box-shadow: 0 20px 60px rgba(16,185,129,.25);
 }
 
+/* Pop effect when the points badge upgrades rarity */
+.points-pop {
+  animation: pointsPop 420ms cubic-bezier(.2,.8,.2,1);
+}
+@keyframes pointsPop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.09); }
+  75%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}

@@ -228,13 +228,34 @@ function prettyKey(k) {
   return map[k] || k.replace(/[_-]+/g, " ").replace(/\b\w/g, m => m.toUpperCase());
 }
 
-function upgradeBadgeBy(val, el) {
-  el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
-  if (val >= 1500) el.classList.add("legendary-points");
-  else if (val >= 1000) el.classList.add("epic-points");
-  else if (val >= 500) el.classList.add("rare-points");
-  else el.classList.add("common-points");
+function getRarity(val) {
+  if (val >= 1500) return "legendary-points";
+  if (val >= 1000) return "epic-points";
+  if (val >= 500)  return "rare-points";
+  return "common-points";
 }
+
+function upgradeBadgeBy(val, el) {
+  const next = getRarity(val);
+  const prev = el.dataset.rarity || "";
+
+  if (prev === next) return; // no change → no pop
+
+  // store new rarity
+  el.dataset.rarity = next;
+
+  // swap classes to the new rarity
+  el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
+  el.classList.add(next);
+
+  // trigger a quick pop animation (restarts every upgrade)
+  el.classList.remove("points-pop");
+  // force reflow so the animation re-triggers
+  // eslint-disable-next-line no-unused-expressions
+  el.offsetHeight;
+  el.classList.add("points-pop");
+}
+
 
 function animateProgress(el, fromPct, toPct) {
   const duration = 900, start = performance.now();
