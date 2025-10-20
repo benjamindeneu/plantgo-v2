@@ -176,7 +176,7 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
   const entries = Object.entries(detail || {});
   detailsEl.innerHTML = "";
 
-  const duration = 1200;
+  const duration = 2400;
   const start = performance.now();
   const ease = t => 1 - Math.pow(1 - t, 3);
 
@@ -274,7 +274,7 @@ function showBadge(container, badge) {
     container.appendChild(node);
     requestAnimationFrame(() => {
       node.classList.add("in");
-      setTimeout(r, 300);
+      setTimeout(r, 1000);
     });
   });
 }
