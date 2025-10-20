@@ -176,7 +176,7 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
   const entries = Object.entries(detail || {});
   detailsEl.innerHTML = "";
 
-  const duration = 2400;
+  const duration = 1800;
   const start = performance.now();
   const ease = t => 1 - Math.pow(1 - t, 3);
 
