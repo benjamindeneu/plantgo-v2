@@ -1,6 +1,6 @@
 // src/ui/components/IdentifyPanel.js
 import { identifyPlant } from "../../api/plantgo.js";
-import { Modal } from "./Modal.js";
+import { ResultModal } from "./ResultModal.js";
 
 export function IdentifyPanel() {
   const wrap = document.createElement("section");
