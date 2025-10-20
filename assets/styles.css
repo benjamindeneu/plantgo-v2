@@ -1043,3 +1043,76 @@ html, body {
 
 /* Tidy result-head spacing */
 .result-head { display:flex; flex-direction:column; gap:6px; margin-bottom: 10px; }
+
+/* Classic indeterminate loading bar */
+.loading-track {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #eef2f7;
+  overflow: hidden;
+}
+.loading-indeterminate {
+  position: absolute;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(16,185,129,.2), rgba(16,185,129,.65), rgba(16,185,129,.2));
+  animation: indeterminate 1.2s ease-in-out infinite;
+  border-radius: 999px;
+}
+@keyframes indeterminate {
+  0% { left: -40%; width: 40%; }
+  50%{ left: 20%;  width: 60%; }
+  100%{ left: 100%; width: 40%; }
+}
+
+/* Center photos */
+.user-photos.center { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; margin: 2px 0 10px; }
+.user-photos .shot { width: 84px; height: 84px; border-radius:12px; overflow:hidden; border:1px solid var(--border); background: var(--surface-2); }
+.user-photos .shot img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Observation badge (evolving) */
+.points-badge {
+  display:inline-flex; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:999px; border:1px solid var(--border);
+  font-weight:700; box-shadow: var(--shadow);
+  margin-bottom: 10px; /* space so details don't overlap */
+}
+.points-badge .label { font-size:12px; opacity:.75; }
+.points-badge .value { font-size:22px; }
+
+/* Use the same palette as your mission badges */
+.common-points   { background:#eef7ff; color:#0f4c81; border-color:#cfe6ff; }
+.rare-points     { background:#f5efff; color:#4b2aad; border-color:#e2d8ff; }
+.epic-points     { background:#fff6ed; color:#9a3412; border-color:#ffe1c7; }
+.legendary-points{ background:#ecffe9; color:#166534; border-color:#c7f6c0; }
+
+/* Bigger, nicer bonus badges */
+.badges.big { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top: 12px; }
+.badge.big {
+  opacity:0; transform: translateY(10px) scale(.95) rotate(-1deg);
+  background:#fff; border:1px solid var(--border); border-radius:18px;
+  padding:10px 14px; font-weight:800; box-shadow: var(--shadow);
+  display:inline-flex; gap:8px; align-items:center;
+}
+.badge.big .icon { font-size:18px; }
+.badge.big .txt  { font-size:14px; }
+.badge.big .add  { font-size:14px; opacity:.85; }
+.badge.big.in { 
+  opacity:1; transform: translateY(0) scale(1) rotate(0);
+  animation: popBadge .35s ease-out;
+}
+@keyframes popBadge {
+  0% { transform: translateY(12px) scale(.9); }
+  60%{ transform: translateY(-2px) scale(1.06); }
+  100%{ transform: translateY(0) scale(1); }
+}
+
+/* Level-up pulse (already in your CSS; keep this glow) */
+.result-modal .modal-content.result.levelup {
+  animation: levelPulse .8s ease;
+  box-shadow: 0 20px 60px rgba(16,185,129,.25);
+}
+

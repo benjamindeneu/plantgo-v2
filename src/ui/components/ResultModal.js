@@ -12,7 +12,7 @@ export function ResultModal() {
     <div class="modal-content result">
       <button class="close" aria-label="Close">×</button>
 
-      <!-- TOP LEVEL BAR -->
+      <!-- LEVEL TOP -->
       <div class="level-wrap at-top">
         <div class="level-line">
           <span>Level <span id="levelFrom">1</span></span>
@@ -25,15 +25,16 @@ export function ResultModal() {
 
       <div class="result-head">
         <h2 id="resultTitle">Identifying…</h2>
-        <!-- Rotating loader instead of old bar -->
-        <div class="spinner" id="spinner" aria-label="Loading"></div>
+        <!-- Classic indeterminate bar -->
+        <div class="loading-track" id="loadingTrack" aria-hidden="true">
+          <div class="loading-indeterminate"></div>
+        </div>
       </div>
 
       <div class="result-body">
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-points">
-          <!-- Observation badge that upgrades vvv -->
           <div id="obsBadge" class="points-badge common-points">
             <span class="label">Observation</span>
             <span class="value">+<span id="pointsCounter">0</span></span>
@@ -41,7 +42,7 @@ export function ResultModal() {
           <div class="details" id="pointsDetails"></div>
         </div>
 
-        <div class="badges big" id="badges"></div>
+        <div class="badges big" id="badges" style="display:none"></div>
 
         <div class="result-total" id="finalTotalWrap" style="display:none">
           <div class="big">Total: <strong><span id="finalTotal">0</span></strong> pts</div>
@@ -61,28 +62,25 @@ export function ResultModal() {
     el: overlay,
 
     async initLoading({ photos, currentTotalPoints }) {
-      // Show real current level + next level while loading
       const { fromLevel, fromPct, nextLevel } = calcFromLevel(currentTotalPoints || 0);
       qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent = nextLevel;        // show “next” while loading
-      qs("#levelToLabel").style.opacity = 0.8;
+      qs("#levelTo").textContent = nextLevel;     // show current → next while loading
+      qs("#levelToLabel").style.opacity = 0.9;
       qs("#levelProgress").style.width = `${fromPct}%`;
 
-      // Photos (centered)
       const photosEl = qs("#userPhotos");
       photosEl.innerHTML = (photos || []).map(url =>
         `<div class="shot"><img src="${url}" alt="Your photo" loading="lazy"/></div>`
       ).join("");
 
       qs("#resultTitle").textContent = "Identifying…";
-      qs("#spinner").style.display = "inline-block";
-      qs(".result-body").style.opacity = "0.95";
+      qs("#loadingTrack").style.display = "block";           // show loading bar
+      qs("#badges").style.display = "none";                  // hide badges until result
     },
 
     async showResult({ identify, points, lat, lon, plantnetImageCode }) {
       // Stop loader
-      qs("#spinner").style.display = "none";
-      qs(".result-body").style.opacity = "1";
+      qs("#loadingTrack").style.display = "none";
 
       const speciesName = identify?.name || "Unknown species";
       qs("#resultTitle").textContent = speciesName;
@@ -114,7 +112,7 @@ export function ResultModal() {
       const badgeQueue = [];
       if (missionHit) badgeQueue.push({ kind: "mission", emoji: "🎯", label: "Mission species", bonus: 500 });
 
-      // Save observation (+ discovery if new) and increment totals
+      // Save observation (+ discovery if new)
       let discoveryBonus = 0;
       if (user) {
         const { discoveryBonus: got } = await addObservationAndDiscovery({
@@ -125,17 +123,19 @@ export function ResultModal() {
           plantnet_identify_score: Number(identify?.score ?? 0),
           gbif_id: identify?.gbif_id ?? null,
           pointsMap: detail,
-          total_points: baseTotal,      // base observation points only
-          extraBonus: missionHit ? 500 : 0, // include mission bonus in user.total_points
+          total_points: baseTotal,
+          extraBonus: missionHit ? 500 : 0,
         });
         discoveryBonus = got;
       }
       if (discoveryBonus > 0) badgeQueue.push({ kind: "new", emoji: "🆕", label: "New species", bonus: 500 });
 
-      // Show badges (bigger + nicer pop), accumulate total
+      // Reveal badges now (they were hidden during loading)
+      const badgesEl = qs("#badges");
+      badgesEl.style.display = "flex";
       let finalTotal = baseTotal;
       for (const b of badgeQueue) {
-        await showBadge(qs("#badges"), b);
+        await showBadge(badgesEl, b);
         finalTotal += b.bonus;
       }
 
@@ -143,12 +143,12 @@ export function ResultModal() {
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      // Level progress final animation
+      // Level progress final animation (and correct “next” → final)
       const { fromLevel, fromPct } = calcFromLevel(currentTotal);
-      const { toLevel, toPct } = calcToLevel(currentTotal + finalTotal);
+      const { toLevel, toPct }   = calcToLevel(currentTotal + finalTotal);
       qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent = toLevel;          // final level now
-      qs("#levelToLabel").style.opacity = toLevel > fromLevel ? 1 : 0.5;
+      qs("#levelTo").textContent   = toLevel;     // final level value after scoring
+      qs("#levelToLabel").style.opacity = toLevel > fromLevel ? 1 : 0.6;
       await animateProgress(qs("#levelProgress"), fromPct, toPct);
       if (toLevel > fromLevel) pulseLevelUp(overlay);
     }
@@ -188,8 +188,6 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
       const t = Math.min(1, (ts - start) / duration);
       const val = Math.round(total * ease(t));
       counterEl.textContent = String(val);
-
-      // upgrade observation badge class based on the live value
       upgradeBadgeBy(val, badgeEl);
 
       while (revealed < revealTimes.length && (ts - start) >= revealTimes[revealed]) {
@@ -251,14 +249,14 @@ function animateProgress(el, fromPct, toPct) {
   });
 }
 
-async function isInMissionsList(speciesName) {
+async function isInMissionsList(name) {
   try {
     const user = auth.currentUser;
     if (!user) return false;
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
     const list = snap.data()?.missions_list || [];
-    return list.some(m => (m?.name || m?.speciesName || "").toLowerCase() === speciesName.toLowerCase());
+    return list.some(m => (m?.name || m?.speciesName || "").toLowerCase() === name.toLowerCase());
   } catch { return false; }
 }
 
@@ -274,7 +272,6 @@ function showBadge(container, badge) {
     node.className = "badge big";
     node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${badge.label}</span><span class="add">+${badge.bonus}</span>`;
     container.appendChild(node);
-    // fancy pop
     requestAnimationFrame(() => {
       node.classList.add("in");
       setTimeout(r, 300);
