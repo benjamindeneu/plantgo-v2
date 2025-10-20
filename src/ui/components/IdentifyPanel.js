@@ -1,3 +1,4 @@
+// src/ui/components/IdentifyPanel.js
 import { identifyPlant } from "../../api/plantgo.js";
 import { Modal } from "./Modal.js";
 
@@ -7,11 +8,11 @@ export function IdentifyPanel() {
   wrap.innerHTML = `
     <h2>Identify a plant</h2>
     <input id="files" type="file" accept="image/*" capture="environment" multiple hidden>
-    <label class="label-file" for="files">Add photos</label>
+    <label class="label-file" for="files">Add photo(s)</label>
     <div class="preview-strip" id="preview"></div>
     <div style="display:flex; gap:8px; justify-content:center; margin-top:12px">
-      <button id="identify" class="primary">Identify now</button>
-      <button id="clear" class="secondary">Clear</button>
+      <button id="identify" class="primary" type="button">Identify now</button>
+      <button id="clear" class="secondary" type="button">Clear</button>
     </div>
     <div id="feedback" aria-live="polite" class="validation-feedback"></div>
   `;
@@ -19,13 +20,12 @@ export function IdentifyPanel() {
   const input = wrap.querySelector("#files");
   const preview = wrap.querySelector("#preview");
   const feedback = wrap.querySelector("#feedback");
-  const chosen = [];
+  let chosen = [];
 
   input.addEventListener("change", () => {
     preview.innerHTML = "";
-    chosen.length = 0;
-    for (const f of input.files) {
-      chosen.push(f);
+    chosen = Array.from(input.files || []);
+    for (const f of chosen) {
       const img = document.createElement("img");
       img.className = "species-image";
       img.style.width = "84px";
@@ -40,16 +40,41 @@ export function IdentifyPanel() {
   wrap.querySelector("#clear").addEventListener("click", () => {
     input.value = "";
     preview.innerHTML = "";
-    chosen.length = 0;
+    chosen = [];
     feedback.textContent = "";
   });
 
   wrap.querySelector("#identify").addEventListener("click", async () => {
-    if (!chosen.length) { feedback.textContent = "Please add at least one photo."; return; }
+    if (!chosen.length) {
+      feedback.textContent = "Please add at least one photo.";
+      return;
+    }
+
+    // The backend expects ONE file under "image".
+    // Use the first photo (same as your previous working logic).
+    const file = chosen[0];
+
+    feedback.textContent = "Fetching location…";
+    let lat, lon;
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+      );
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
+    } catch (e) {
+      feedback.textContent = "Location permission denied or unavailable.";
+      return;
+    }
+
     feedback.textContent = "Identifying…";
     try {
-      const result = await identifyPlant({ files: chosen });
-      const modal = Modal({ title: "Identification Results", content: `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>` });
+      const result = await identifyPlant({ file, lat, lon, model: "best" });
+      // Show JSON result in a modal for now (matches your earlier debug style)
+      const modal = Modal({
+        title: "Identification Results",
+        content: `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>`
+      });
       document.body.appendChild(modal);
       feedback.textContent = "Done.";
     } catch (e) {
@@ -61,5 +86,5 @@ export function IdentifyPanel() {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return str.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
