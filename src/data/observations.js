@@ -1,5 +1,5 @@
 // src/data/observations.js
-import { auth, db } from "../../../firebase-config.js";
+import { auth, db } from "../firebase-config.js";
 import {
   collection, addDoc, doc, getDoc, setDoc, updateDoc,
   serverTimestamp, GeoPoint, increment
