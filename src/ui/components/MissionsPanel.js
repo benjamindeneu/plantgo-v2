@@ -3,7 +3,7 @@ import { fetchMissions } from "../../api/plantgo.js";
 import { SpeciesCard } from "./SpeciesCard.js";
 
 // === Auth + Firestore (same pattern as your old app) ===
-import { auth, db } from "../../firebase-config.js";
+import { auth, db } from "../../../firebase-config.js";
 import {
   doc,
   getDoc
