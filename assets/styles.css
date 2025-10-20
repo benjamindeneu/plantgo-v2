@@ -937,3 +937,37 @@ html, body {
 @keyframes sk { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
 .wiki-missing { font-size: 10px; color: var(--muted); }
 
+
+/* ===== Result modal ===== */
+.result-modal .modal-content.result { overflow: hidden; }
+.result-head { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+.loading-strip { height:6px; background:#eef2f7; border-radius:999px; overflow:hidden; }
+.loading-bar { width:40%; height:100%; animation: loadmove 1s infinite; }
+@keyframes loadmove { 0%{transform:translateX(-100%)} 100%{transform:translateX(300%)} }
+
+.result-body { display:grid; gap:16px; }
+.result-points .big { font-size: 40px; font-weight: 800; letter-spacing: .5px; }
+.details { display:grid; gap:6px; margin-top:8px; }
+.detail-line { display:flex; justify-content:space-between; font-size:14px; background: var(--surface-2); border:1px solid var(--border); padding:6px 8px; border-radius:10px; }
+
+.level-wrap { display:grid; gap:8px; margin-top:8px; }
+.level-line { display:flex; justify-content:space-between; font-size:14px; color:var(--muted); }
+.progress-rail { height:10px; background:#eef2f7; border-radius:999px; overflow:hidden; }
+.progress-bar { height:100%; width:0%; background:linear-gradient(90deg, var(--green-600), var(--green-700)); transition: width .15s linear; }
+
+.badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.badge { opacity:0; transform: translateY(8px) scale(.98); transition: all .25s ease; background: #fff; border:1px solid var(--border); padding:6px 10px; border-radius:999px; box-shadow: var(--shadow); font-weight:600; }
+.badge.in { opacity:1; transform: translateY(0) scale(1); }
+
+.result-actions { display:flex; justify-content:center; margin-top:6px; }
+
+.result-modal .modal-content.result.levelup {
+  animation: levelPulse .8s ease;
+  position: relative;
+}
+@keyframes levelPulse {
+  0%{ transform: scale(1); box-shadow:none; }
+  40%{ transform: scale(1.02); box-shadow: 0 20px 60px rgba(0,0,0,.12); }
+  100%{ transform: scale(1); box-shadow:none; }
+}
+

@@ -45,40 +45,44 @@ export function IdentifyPanel() {
   });
 
   wrap.querySelector("#identify").addEventListener("click", async () => {
-    if (!chosen.length) {
-      feedback.textContent = "Please add at least one photo.";
-      return;
-    }
+    if (!chosen.length) { feedback.textContent = "Please add at least one photo."; return; }
 
-    // The backend expects ONE file under "image".
-    // Use the first photo (same as your previous working logic).
+    // Use the first image (same as your old backend)
     const file = chosen[0];
 
-    feedback.textContent = "Fetching location…";
-    let lat, lon;
+    // Create & show modal immediately (with loader)
+    const modal = ResultModal();
+    document.body.appendChild(modal.el);
+    modal.showLoading("Identifying…");
+
+    // Lock header progress (so live onSnapshot doesn't fight us)
+    const pb = document.getElementById("resultLevelProgressBar");
+    if (pb) pb.dataset.locked = "true";
+
+    // Get geolocation, then call API
     try {
+      feedback.textContent = "Fetching location…";
       const pos = await new Promise((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
       );
-      lat = pos.coords.latitude;
-      lon = pos.coords.longitude;
-    } catch (e) {
-      feedback.textContent = "Location permission denied or unavailable.";
-      return;
-    }
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
 
-    feedback.textContent = "Identifying…";
-    try {
+      feedback.textContent = "Identifying…";
       const result = await identifyPlant({ file, lat, lon, model: "best" });
-      // Show JSON result in a modal for now (matches your earlier debug style)
-      const modal = Modal({
-        title: "Identification Results",
-        content: `<pre>${escapeHtml(JSON.stringify(result, null, 2))}</pre>`
-      });
-      document.body.appendChild(modal);
+
+      await modal.showResult(result);
       feedback.textContent = "Done.";
     } catch (e) {
-      feedback.textContent = e.message;
+      feedback.textContent = e.message || "Identify failed";
+      // keep modal open but stop loader
+      try {
+        await modal.showResult({ identify: { name: "Error" }, points: { total: 0, detail: {} } });
+      } catch {}
+    } finally {
+      // Unlock progress bar updates from Firestore again
+      const pb2 = document.getElementById("resultLevelProgressBar");
+      if (pb2) pb2.dataset.locked = "false";
     }
   });
 
