@@ -1,18 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="color-scheme" content="light">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
   <title>Herbarium</title>
   <link rel="stylesheet" href="./assets/styles.css" />
-  <meta name="theme-color" content="#ffffff" />
 </head>
 <body class="app-shell">
-  <header class="nav"><div class="brandmark">🌿 PlantGo</div></header>
+  <header id="appHeader" class="nav"></header>
   <main>
     <h1>Your Discoveries</h1>
-    <section class="card" id="discoveriesList">Connect your existing logic here.</section>
+    <section class="card" id="discoveriesList"></section>
   </main>
+
+  <!-- Firebase root config + CDN libs -->
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
+
+  <!-- Header & page bootstrap -->
+  <script type="module" src="./src/pages/herbarium.app.js"></script>
+
+  <!-- Keep your ORIGINAL herbarium logic file here -->
+  <!-- If your working file is somewhere else, just point to it -->
+  <script type="module" src="./plantdex.js"></script>
 </body>
 </html>

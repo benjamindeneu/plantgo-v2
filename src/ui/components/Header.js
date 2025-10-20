@@ -1,4 +1,16 @@
-export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbarium }) {
+// src/ui/components/Header.js
+export function Header({
+  user,
+  level = 1,
+  progress = 0,
+  menuVariant = "main", // "main" | "herbarium"
+  onMenu,
+  onLogout,
+  onHerbarium,   // used in "main" variant
+  onBackHome     // used in "herbarium" variant
+}) {
+  const isHerbarium = menuVariant === "herbarium";
+
   const root = document.createElement("header");
   root.className = "nav";
   root.innerHTML = `
@@ -9,7 +21,11 @@ export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbariu
         <span class="level-badge">Lv. <span id="levelNumber">${level}</span></span>
       </button>
       <div id="userMenu" class="menu" role="menu" style="display:none">
-        <button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>
+        ${
+          isHerbarium
+            ? `<button class="menu-item" role="menuitem" id="menuHome">🏠 Main</button>`
+            : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
+        }
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
       </div>
     </div>
@@ -20,14 +36,14 @@ export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbariu
   const levelEl = root.querySelector("#levelNumber");
 
   function toggleMenu(force) {
-    const willOpen = (force !== undefined) ? force : (menu.style.display === "none");
+    const willOpen = force !== undefined ? force : menu.style.display === "none";
     menu.style.display = willOpen ? "block" : "none";
     btn.setAttribute("aria-expanded", String(willOpen));
   }
 
   btn.addEventListener("click", () => {
     toggleMenu();
-    (onMenu || (()=>{}))();
+    (onMenu || (() => {}))();
   });
 
   document.addEventListener("click", (e) => {
@@ -36,12 +52,20 @@ export function Header({ user, level=1, progress=0, onMenu, onLogout, onHerbariu
 
   root.querySelector("#menuLogout").addEventListener("click", () => {
     toggleMenu(false);
-    (onLogout || (()=>{}))();
+    (onLogout || (() => {}))();
   });
-  root.querySelector("#menuHerbarium").addEventListener("click", () => {
-    toggleMenu(false);
-    (onHerbarium || (()=>{}))();
-  });
+
+  if (isHerbarium) {
+    root.querySelector("#menuHome").addEventListener("click", () => {
+      toggleMenu(false);
+      (onBackHome || (() => {}))();
+    });
+  } else {
+    root.querySelector("#menuHerbarium").addEventListener("click", () => {
+      toggleMenu(false);
+      (onHerbarium || (() => {}))();
+    });
+  }
 
   // Public helpers
   root.setUser = (u) => {
