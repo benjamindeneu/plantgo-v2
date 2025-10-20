@@ -2,55 +2,53 @@
 import { fetchMissions } from "../../api/plantgo.js";
 import { SpeciesCard } from "./SpeciesCard.js";
 
-// === Auth + Firestore (same pattern as your old app) ===
-import { auth, db } from "../../../firebase-config.js";
+// IMPORTANT: firebase-config is at the project root (not in src)
+import { auth, db } from "../../firebase-config.js";
 import {
   doc,
-  getDoc
+  getDoc,
+  updateDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import {
-  onAuthStateChanged
+  onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-// Adjust this if your old code used a different freshness window
-const RECENT_HOURS = 24;
+const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 
-// Accepts millis, Firestore Timestamp (with .seconds), or ISO string
-function isRecent(ts, hours = RECENT_HOURS) {
-  if (!ts) return false;
-  let ms;
-  if (typeof ts === "number") ms = ts;
-  else if (typeof ts === "object" && typeof ts.seconds === "number") ms = ts.seconds * 1000;
-  else ms = Date.parse(ts);
-  if (!Number.isFinite(ms)) return false;
-  return (Date.now() - ms) <= hours * 60 * 60 * 1000;
+function toDate(ts) {
+  if (!ts) return null;
+  if (typeof ts?.toDate === "function") return ts.toDate();
+  if (typeof ts?.seconds === "number") return new Date(ts.seconds * 1000);
+  const d = new Date(ts);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
-async function tryRestoreLastMission(listEl) {
-  const user = auth.currentUser;
-  if (!user) return;
+function isFresh(ts, windowMs = THREE_HOURS_MS) {
+  const d = toDate(ts);
+  if (!d) return false;
+  return Date.now() - d.getTime() < windowMs;
+}
 
+function renderSpeciesList(listEl, missionsList = []) {
+  listEl.innerHTML = "";
+  if (!missionsList.length) {
+    listEl.textContent = "No missions yet.";
+    return;
+  }
+  for (const m of missionsList) listEl.appendChild(SpeciesCard(m));
+}
+
+async function saveSpeciesAndMissions(userRef, speciesList, missionsList) {
   try {
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-
-    // Match your old shape: user doc stores the last mission under 'last_mission'
-    const last = snap.data()?.last_mission;
-    if (!last) return;
-
-    // Expect a timestamp next to it (same name you used before, e.g. 'timestamp')
-    // If your field name differs, change 'timestamp' below to your original.
-    const ts = last.timestamp ?? snap.data()?.last_mission_timestamp;
-
-    if (isRecent(ts)) {
-      // Render exactly like before
-      listEl.innerHTML = "";
-      listEl.appendChild(SpeciesCard(last));
-    }
-  } catch (e) {
-    // Silent fail to avoid blocking the UI
-    console.error("[restore last mission]", e);
+    await updateDoc(userRef, {
+      species_list: speciesList || [],
+      missions_list: missionsList || [],
+      last_species_fetch: serverTimestamp(),
+    });
+    console.log("[Firestore] species_list + missions_list saved.");
+  } catch (error) {
+    console.error("[Firestore] Error saving species/missions:", error);
   }
 }
 
@@ -67,22 +65,35 @@ export function MissionsPanel() {
 
   const list = sec.querySelector("#list");
 
-  // === Restore last mission on page load, just like your old code ===
-  // Wait for auth, then attempt to render stored mission if it's fresh
+  // === Restore cached missions on load (your old behavior) ===
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       list.textContent = "Please log in.";
       return;
     }
-    list.textContent = "Loading your last mission…";
-    await tryRestoreLastMission(list);
-    // If nothing restored, leave a friendly default
-    if (!list.children.length) {
-      list.textContent = "No missions yet.";
+
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+      const data = snap.exists() ? snap.data() : {};
+
+      // last_species_fetch: Firestore Timestamp
+      if (isFresh(data.last_species_fetch)) {
+        console.log("[Cache] Using saved species and missions from Firestore");
+        const speciesList = data.species_list || [];
+        const missionsList = data.missions_list || [];
+        renderSpeciesList(list, missionsList);
+      } else {
+        console.log("[Fetch] No recent species fetch — user must fetch again (or auto-trigger after geolocation).");
+        list.textContent = "No missions yet. Use the button above.";
+      }
+    } catch (e) {
+      console.error("[Restore cached missions] Error:", e);
+      list.textContent = "Unable to load cached missions.";
     }
   });
 
-  // === Button to fetch fresh missions by location ===
+  // === Button: fetch by location, render, and SAVE to Firestore ===
   sec.querySelector("#locate").addEventListener("click", async () => {
     list.textContent = "Fetching location…";
     try {
@@ -98,19 +109,18 @@ export function MissionsPanel() {
       const missions = Array.isArray(data?.missions) ? data.missions
                       : (Array.isArray(data) ? data : []);
 
-      if (!missions.length) {
-        list.textContent = "No missions returned.";
-        return;
+      renderSpeciesList(list, missions);
+
+      // Save back to user doc like before
+      const user = auth.currentUser;
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+        // If your backend returns a separate species list, pass it here; otherwise keep empty.
+        const speciesList = []; // or map from `missions` if you used to derive it
+        await saveSpeciesAndMissions(userRef, speciesList, missions);
       }
-
-      list.innerHTML = "";
-      for (const sp of missions) list.appendChild(SpeciesCard(sp));
-
-      // If you want to **update** the last_mission again (like your old code),
-      // you likely did this elsewhere when a mission was selected/started.
-      // If you want it here, you can write missions[0] & a timestamp back to the user doc.
-      // (Not included since you asked only to restore on load.)
     } catch (e) {
+      console.error("[Locate/Fetch] Error:", e);
       list.textContent = e?.message || "Location/mission error.";
     }
   });
