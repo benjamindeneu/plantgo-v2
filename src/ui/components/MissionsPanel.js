@@ -35,11 +35,8 @@ export function MissionsPanel() {
         return;
       }
 
-      // Render species cards with plots
       list.innerHTML = "";
-      for (const sp of missions) {
-        list.appendChild(SpeciesCard(sp));
-      }
+      for (const sp of missions) list.appendChild(SpeciesCard(sp));
     } catch (e) {
       list.textContent = e?.message || "Location/mission error.";
     }

@@ -1,31 +1,13 @@
 // src/ui/components/SpeciesCard.js
 import { Modal } from "./Modal.js";
+import { fetchWikipediaImage } from "../wiki.js";
 
 /**
- * Mini horizontal bar (inline SVG)
- */
-function hBar({ value = 0, max = 100, label = "", format = v => `${v}`, accent = "#16a34a" }) {
-  const pct = Math.max(0, Math.min(100, (value / max) * 100));
-  return `
-    <div class="mini-chart">
-      <div class="mini-chart-head">
-        <span>${label}</span>
-        <span class="mini-chart-val">${format(value)}</span>
-      </div>
-      <svg class="mini-chart-svg" viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true">
-        <rect x="0" y="0" width="100" height="6" fill="#e5e7eb" rx="3" ry="3"></rect>
-        <rect x="0" y="0" width="${pct.toFixed(2)}" height="6" fill="${accent}" rx="3" ry="3"></rect>
-      </svg>
-    </div>
-  `;
-}
-
-/**
- * SpeciesCard
- * Expects a `species` object with (best-effort based on your v1):
- * - name, common_name
- * - image_url (or images[]), probability (0..1), rarity (0..100), distance_km, last_seen_days
- * - points.total and points.detail (object)
+ * SpeciesCard — old-style: hero image, wiki image (small), and a points badge button
+ * Expects:
+ *  - species.name (scientific) and species.common_name
+ *  - species.image_url | species.image | species.images[0] (optional)
+ *  - species.points.total (number), species.points.detail (object)  ← used for the button + modal
  */
 export function SpeciesCard(species) {
   const imgUrl =
@@ -34,72 +16,32 @@ export function SpeciesCard(species) {
     (Array.isArray(species.images) && species.images[0]) ||
     "";
 
-  const probability = Number(species.probability ?? species.score ?? 0); // 0..1
-  const rarity = Number(species.rarity ?? 0);                            // 0..100
-  const distance = Number(species.distance_km ?? species.distance ?? 0); // km
-  const lastSeenDays = Number(
-    species.last_seen_days ?? species.lastSeenDays ?? species.last_seen ?? 0
-  );
-  const totalPoints = Number(species.points?.total ?? 0);
-  const detailObj = species.points?.detail || {};
+  const sciName = species.name || species.scientific_name || "";
+  const commonName = species.common_name || "No common name";
 
-  // Level label based on total points (matches your old thresholds)
+  const totalPoints = Number(species.points?.total ?? 0);
   let missionLevel = "Common";
   let levelClass = "common-points";
   if (totalPoints >= 1500) { missionLevel = "Legendary"; levelClass = "legendary-points"; }
   else if (totalPoints >= 1000) { missionLevel = "Epic"; levelClass = "epic-points"; }
   else if (totalPoints >= 500) { missionLevel = "Rare"; levelClass = "rare-points"; }
 
-  // Inline mini charts
-  const chartsHTML = `
-    ${hBar({
-      value: Math.round(probability * 100),
-      max: 100,
-      label: "Confidence",
-      format: v => v + "%",
-      accent: "#16a34a"
-    })}
-    ${hBar({
-      value: Math.round(rarity),
-      max: 100,
-      label: "Rarity",
-      format: v => v + "/100",
-      accent: "#7c3aed"
-    })}
-    ${hBar({
-      // “Freshness” = inverted last seen (lower days → higher freshness)
-      value: Math.max(0, 100 - Math.min(100, lastSeenDays)),
-      max: 100,
-      label: "Freshness (recent obs.)",
-      format: () => (Number.isFinite(lastSeenDays) ? `${lastSeenDays}d ago` : "—"),
-      accent: "#0ea5e9"
-    })}
-    ${hBar({
-      // Map distance to a “nearer is better” score up to 25 km (feel free to tweak)
-      value: Math.max(0, 100 - Math.min(100, (distance / 25) * 100)),
-      max: 100,
-      label: "Distance",
-      format: () => (Number.isFinite(distance) ? `${distance.toFixed(1)} km` : "—"),
-      accent: "#f59e0b"
-    })}
-  `;
-
   const root = document.createElement("div");
   root.className = "species-item";
   root.innerHTML = `
-    <div class="mission-title">Mission: ${species.name}</div>
+    <div class="mission-title">Mission: ${sciName}</div>
     <div class="card-content">
       <div class="species-image-container">
-        ${imgUrl ? `<img class="species-image" src="${imgUrl}" alt="${species.name}" loading="lazy">` : ""}
+        ${imgUrl ? `<img class="species-image" src="${imgUrl}" alt="${sciName}" loading="lazy">` : ""}
+        <div class="wiki-thumb" aria-live="polite">
+          <span class="wiki-label">Wikipedia</span>
+          <div class="wiki-img-wrap"><div class="wiki-skeleton"></div></div>
+        </div>
       </div>
 
       <div class="species-info">
-        <p><strong>${species.common_name || "No common name"}</strong></p>
-        <p class="muted">${species.name}</p>
-
-        <div class="mini-chart-group">
-          ${chartsHTML}
-        </div>
+        <p><strong>${commonName}</strong></p>
+        <p class="muted">${sciName}</p>
 
         <div class="species-actions">
           <button class="points-btn ${levelClass}" type="button">${totalPoints} points</button>
@@ -109,9 +51,10 @@ export function SpeciesCard(species) {
     </div>
   `;
 
-  // Points breakdown modal
+  // Points breakdown modal (same behavior as your old version)
+  const detailObj = species.points?.detail || {};
   root.querySelector(".points-btn").addEventListener("click", () => {
-    let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
+    let detail = `<h2>Point details</h2><p><small>Mission: ${sciName}</small></p>`;
     if (detailObj && typeof detailObj === "object") {
       for (const key of Object.keys(detailObj)) {
         const label = key === "base" ? "Species observation" : key;
@@ -123,6 +66,16 @@ export function SpeciesCard(species) {
     const modal = Modal({ title: "Points", content: detail });
     document.body.appendChild(modal);
   });
+
+  // Load Wikipedia thumbnail
+  (async () => {
+    const wikiImg = await fetchWikipediaImage(sciName);
+    const wrap = root.querySelector(".wiki-img-wrap");
+    if (!wrap) return;
+    wrap.innerHTML = wikiImg
+      ? `<img src="${wikiImg}" alt="Wikipedia thumbnail for ${sciName}" loading="lazy">`
+      : `<div class="wiki-missing">No image</div>`;
+  })();
 
   return root;
 }
