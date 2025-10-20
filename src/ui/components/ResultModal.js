@@ -1,11 +1,9 @@
 // src/ui/components/ResultModal.js
-// Pretty, animated modal for identify results
-
-// Firebase (config is NOT in src)
 import { auth, db } from "../../../firebase-config.js";
 import {
-  doc, getDoc, collection, getDoc as getDocDirect
+  doc, getDoc, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { addObservationAndDiscovery } from "../../data/observations.js";
 
 export function ResultModal() {
   const overlay = document.createElement("div");
@@ -15,28 +13,36 @@ export function ResultModal() {
   overlay.innerHTML = `
     <div class="modal-content result">
       <button class="close" aria-label="Close">×</button>
+
+      <!-- Level at top -->
+      <div class="level-wrap at-top">
+        <div class="level-line">
+          <span>Level <span id="levelFrom">1</span></span>
+          <span id="levelToLabel">→ <span id="levelTo">1</span></span>
+        </div>
+        <div class="progress-rail">
+          <div class="progress-bar" id="levelProgress"></div>
+        </div>
+      </div>
+
       <div class="result-head">
         <h2 id="resultTitle">Identifying…</h2>
         <div class="loading-strip" id="loadingStrip"><div class="loading-bar"></div></div>
       </div>
 
       <div class="result-body">
+        <div class="user-photos" id="userPhotos"></div>
+
         <div class="result-points">
-          <div class="big">+<span id="pointsCounter">0</span> pts</div>
+          <div class="big"><span class="muted">Observation points </span>+<span id="pointsCounter">0</span></div>
           <div class="details" id="pointsDetails"></div>
         </div>
 
-        <div class="level-wrap">
-          <div class="level-line">
-            <span>Level <span id="levelFrom">1</span></span>
-            <span id="levelToLabel">→ <span id="levelTo">1</span></span>
-          </div>
-          <div class="progress-rail">
-            <div class="progress-bar" id="levelProgress"></div>
-          </div>
-        </div>
-
         <div class="badges" id="badges"></div>
+
+        <div class="result-total" id="finalTotalWrap" style="display:none">
+          <div class="big">Total: <strong><span id="finalTotal">0</span></strong> pts</div>
+        </div>
       </div>
 
       <div class="result-actions">
@@ -48,22 +54,49 @@ export function ResultModal() {
   overlay.querySelector(".close").addEventListener("click", () => overlay.remove());
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
 
-  // Public API
   return {
     el: overlay,
-    showLoading(title = "Identifying…") {
-      overlay.querySelector("#resultTitle").textContent = title;
+
+    // Initialize with current user level/progress and photo previews
+    async initLoading({ photos, currentTotalPoints }) {
+      const { fromLevel, fromPct } = calcFromLevel(currentTotalPoints || 0);
+      overlay.querySelector("#levelFrom").textContent = fromLevel;
+      overlay.querySelector("#levelTo").textContent = fromLevel;
+      overlay.querySelector("#levelToLabel").style.opacity = 0.5;
+      overlay.querySelector("#levelProgress").style.width = `${fromPct}%`;
+
+      // Photos
+      const photosEl = overlay.querySelector("#userPhotos");
+      photosEl.innerHTML = (photos || []).map(url => `
+        <div class="shot"><img src="${url}" alt="Your photo" loading="lazy"/></div>
+      `).join("");
+
+      overlay.querySelector("#resultTitle").textContent = "Identifying…";
       overlay.querySelector("#loadingStrip").style.display = "block";
-      overlay.querySelector(".result-body").style.opacity = "0.6";
+      overlay.querySelector(".result-body").style.opacity = "0.9";
     },
-    async showResult({ identify, points }) {
-      // Stop loader
+
+    /**
+     * Show full result flow:
+     * 1) Stop loader
+     * 2) Animate observation points & detail lines
+     * 3) Compute bonuses (mission/new), reveal badges (+500 each)
+     * 4) Save observation (+discovery if needed) and increment user's total_points
+     * 5) Animate level progress to final and pulse if level-up
+     */
+    async showResult({
+      identify,           // { name, gbif_id, score, raw }
+      points,             // { total, detail:{} }
+      lat, lon,           // needed to save observation
+      plantnetImageCode,  // extracted from raw
+      photoCount = 0,     // for possible future bonuses
+    }) {
       overlay.querySelector("#loadingStrip").style.display = "none";
       overlay.querySelector(".result-body").style.opacity = "1";
-
       const speciesName = identify?.name || "Unknown species";
+      overlay.querySelector("#resultTitle").textContent = speciesName;
 
-      // Read current total_points from Firestore to animate level properly
+      // Read user's current total points (for level animation)
       const user = auth.currentUser;
       let currentTotal = 0;
       if (user) {
@@ -74,112 +107,115 @@ export function ResultModal() {
         } catch {}
       }
 
-      // Points animation
+      // 2) Observation points animation (backend base points only)
+      const baseTotal = Number(points?.total ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
-      const lines = Object.entries(detail).map(([k, v]) => [prettyKey(k), Number(v) || 0]);
-      const total = Number(points?.total ?? 0);
-      const counterEl = overlay.querySelector("#pointsCounter");
-      const detailsEl = overlay.querySelector("#pointsDetails");
+      await animateObservation({ total: baseTotal, detail, counterEl: $("#pointsCounter"), detailsEl: $("#pointsDetails", overlay) });
 
-      // Clear text and set title
-      overlay.querySelector("#resultTitle").textContent = speciesName;
+      // 3) Compute badges (🎯 mission; 🆕 discovery)
+      const missionHit = await isInMissionsList(speciesName);
+      // Discovery will be determined/saved in step 4; for animation, queue it and reveal after saving.
+      const badgesEl = $("#badges", overlay);
+      const badgeQueue = [];
+      if (missionHit) badgeQueue.push({ kind: "mission", emoji: "🎯", label: "Mission species", bonus: 500 });
 
-      // Level animation prep
-      const { fromLevel, toLevel, fromPct, toPct } = calcLevelTransition(currentTotal, total);
+      // 4) Save observation & (if new) discovery; update user's total_points (includes bonuses)
+      let discoveryBonus = 0;
+      if (user) {
+        const { discoveryBonus: got } = await addObservationAndDiscovery({
+          userId: user.uid,
+          speciesName,
+          lat, lon,
+          plantnetImageCode,
+          plantnet_identify_score: Number(identify?.score ?? 0),
+          gbif_id: identify?.gbif_id ?? null,
+          pointsMap: detail,
+          total_points: baseTotal,
+          extraBonus: missionHit ? 500 : 0, // add mission bonus into user's total_points
+        });
+        discoveryBonus = got;
+      }
+      if (discoveryBonus > 0) badgeQueue.push({ kind: "new", emoji: "🆕", label: "New species", bonus: 500 });
 
-      overlay.querySelector("#levelFrom").textContent = fromLevel;
-      overlay.querySelector("#levelTo").textContent = toLevel;
-      overlay.querySelector("#levelToLabel").style.opacity = toLevel > fromLevel ? "1" : "0.5";
-      const progressEl = overlay.querySelector("#levelProgress");
-      progressEl.style.width = `${fromPct}%`;
+      // Reveal badges one by one and tally to final total
+      let finalTotal = baseTotal;
+      for (const b of badgeQueue) {
+        await showBadge(badgesEl, b);
+        finalTotal += b.bonus;
+      }
 
-      // Animate counter + reveal lines
-      await animatePoints({ total, lines, counterEl, detailsEl });
+      // Display final total
+      $("#finalTotal", overlay).textContent = String(finalTotal);
+      $("#finalTotalWrap", overlay).style.display = "block";
 
-      // Animate progress bar to final
-      await animateProgress(progressEl, fromPct, toPct);
+      // 5) Level progress from initial → after all bonuses
+      const afterTotal = currentTotal + finalTotal + 0; // we incremented user total via addObservationAndDiscovery already; animation just mirrors the end state
+      const { fromLevel, fromPct } = calcFromLevel(currentTotal);
+      const { toLevel, toPct } = calcToLevel(afterTotal);
+      $("#levelFrom", overlay).textContent = fromLevel;
+      $("#levelTo", overlay).textContent = toLevel;
+      $("#levelToLabel", overlay).style.opacity = toLevel > fromLevel ? 1 : 0.5;
+      await animateProgress($("#levelProgress", overlay), fromPct, toPct);
 
-      // Level-up pop
-      if (toLevel > fromLevel) levelUpBurst(overlay);
-
-      // Bonus badges (mission / new species)
-      const badgesEl = overlay.querySelector("#badges");
-      const bonuses = await computeBonuses(speciesName);
-      await animateBadges(badgesEl, bonuses);
+      if (toLevel > fromLevel) pulseLevelUp(overlay);
     }
   };
 }
 
 /* ---------- helpers ---------- */
+const $ = (sel, root = document) => root.querySelector(sel);
 
-function prettyKey(k) {
-  if (!k) return "points";
-  const map = {
-    base: "Species observation",
-    mission: "Mission bonus",
-    mission_bonus: "Mission bonus",
-    novelty: "New species bonus",
-    new_species: "New species bonus",
-  };
-  if (map[k]) return map[k];
-  return k.replace(/[_-]+/g, " ").replace(/\b\w/g, m => m.toUpperCase());
+function calcFromLevel(total) {
+  const L = Math.floor(1 + total / 11000);
+  const prev = (L - 1) * 11000, next = L * 11000;
+  const pct = Math.round(((total - prev) / (next - prev)) * 100);
+  return { fromLevel: L, fromPct: Math.max(0, Math.min(100, pct)) };
+}
+function calcToLevel(total) {
+  const L = Math.floor(1 + total / 11000);
+  const prev = (L - 1) * 11000, next = L * 11000;
+  const pct = Math.round(((total - prev) / (next - prev)) * 100);
+  return { toLevel: L, toPct: Math.max(0, Math.min(100, pct)) };
 }
 
-function calcLevelTransition(currentTotal, add) {
-  const LV = v => Math.floor(1 + v / 11000);
-  const fromLevel = LV(currentTotal);
-  const after = currentTotal + (add || 0);
-  const toLevel = LV(after);
-  const pct = (level, total) => {
-    const prev = (level - 1) * 11000;
-    const next = level * 11000;
-    const ratio = Math.max(0, Math.min(1, (total - prev) / (next - prev)));
-    return Math.round(ratio * 100);
-  };
-  const fromPct = pct(fromLevel, currentTotal);
-  const toPct   = pct(toLevel, after);
-  return { fromLevel, toLevel, fromPct, toPct };
-}
-
-async function animatePoints({ total, lines, counterEl, detailsEl }) {
-  // Count up total over ~1.2s regardless of size (eases feel)
+async function animateObservation({ total, detail, counterEl, detailsEl }) {
+  const entries = Object.entries(detail || {});
+  // Show detail lines as we count up
+  detailsEl.innerHTML = "";
   const duration = 1200;
   const start = performance.now();
   const ease = t => 1 - Math.pow(1 - t, 3);
-  const target = total;
 
-  // Reveal lines one by one spaced evenly across duration
-  detailsEl.innerHTML = "";
-  const lineSlots = lines.length || 1;
-  const revealTimes = lines.map((_, i) => (i + 1) / lineSlots * duration);
+  // schedule reveals
+  const revealTimes = entries.map((_, i) => (i + 1) / (entries.length || 1) * duration);
+  let revealed = 0;
 
   return new Promise(resolve => {
-    let revealed = 0;
     function frame(ts) {
       const t = Math.min(1, (ts - start) / duration);
-      const val = Math.round(target * ease(t));
+      const val = Math.round(total * ease(t));
       counterEl.textContent = String(val);
 
       while (revealed < revealTimes.length && (ts - start) >= revealTimes[revealed]) {
-        const [label, pts] = lines[revealed];
+        const [k, v] = entries[revealed];
         const line = document.createElement("div");
         line.className = "detail-line";
-        line.innerHTML = `<span>${label}</span><span>+${pts}</span>`;
+        line.innerHTML = `<span>${prettyKey(k)}</span><span>+${v}</span>`;
         detailsEl.appendChild(line);
         revealed++;
       }
 
       if (t < 1) requestAnimationFrame(frame);
       else {
-        // Ensure all lines visible
-        for (; revealed < lines.length; revealed++) {
-          const [label, pts] = lines[revealed];
+        // finalize
+        for (; revealed < entries.length; revealed++) {
+          const [k, v] = entries[revealed];
           const line = document.createElement("div");
           line.className = "detail-line";
-          line.innerHTML = `<span>${label}</span><span>+${pts}</span>`;
+          line.innerHTML = `<span>${prettyKey(k)}</span><span>+${v}</span>`;
           detailsEl.appendChild(line);
         }
-        counterEl.textContent = String(target);
+        counterEl.textContent = String(total);
         resolve();
       }
     }
@@ -187,68 +223,54 @@ async function animatePoints({ total, lines, counterEl, detailsEl }) {
   });
 }
 
+function prettyKey(k) {
+  if (!k) return "points";
+  const known = {
+    base: "Species observation",
+    mission: "Mission bonus",
+    mission_bonus: "Mission bonus",
+    novelty: "New species bonus",
+    new_species: "New species bonus",
+  };
+  return known[k] || k.replace(/[_-]+/g, " ").replace(/\b\w/g, m => m.toUpperCase());
+}
+
 function animateProgress(el, fromPct, toPct) {
-  const duration = 900;
-  const start = performance.now();
+  const duration = 900, start = performance.now();
   return new Promise(resolve => {
     function frame(ts) {
       const t = Math.min(1, (ts - start) / duration);
-      const cur = Math.round(fromPct + (toPct - fromPct) * (1 - Math.pow(1 - t, 2)));
-      el.style.width = `${cur}%`;
-      if (t < 1) requestAnimationFrame(frame);
-      else resolve();
+      const v = Math.round(fromPct + (toPct - fromPct) * (1 - Math.pow(1 - t, 2)));
+      el.style.width = `${v}%`;
+      if (t < 1) requestAnimationFrame(frame); else resolve();
     }
     requestAnimationFrame(frame);
   });
 }
 
-function levelUpBurst(overlay) {
-  // Simple tasteful pulse + confetti-like sparkles
-  overlay.querySelector(".modal-content.result").classList.add("levelup");
-  setTimeout(() => {
-    overlay.querySelector(".modal-content.result").classList.remove("levelup");
-  }, 1400);
-}
-
-async function computeBonuses(speciesName) {
-  const badges = [];
-
-  // Mission badge: if species in user's missions_list (cached earlier)
+async function isInMissionsList(speciesName) {
   try {
     const user = auth.currentUser;
-    if (user) {
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      const missions = snap.data()?.missions_list || [];
-      const found = missions.find(m => (m?.name || m?.speciesName || "").toLowerCase() === speciesName.toLowerCase());
-      if (found) badges.push({ kind: "mission", label: "Mission species", emoji: "🎯" });
-    }
-  } catch {}
-
-  // New species badge: if not in users/{uid}/discoveries
-  try {
-    const user = auth.currentUser;
-    if (user) {
-      const dref = doc(db, "users", user.uid, "discoveries", speciesName);
-      const dsnap = await getDocDirect(dref);
-      if (!dsnap.exists()) badges.push({ kind: "new", label: "New species", emoji: "🆕" });
-    }
-  } catch {}
-
-  return badges;
+    if (!user) return false;
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+    const missions = snap.data()?.missions_list || [];
+    return missions.some(m => (m?.name || m?.speciesName || "").toLowerCase() === speciesName.toLowerCase());
+  } catch { return false; }
 }
 
-async function animateBadges(container, badges) {
-  container.innerHTML = "";
-  for (const b of badges) {
+function pulseLevelUp(overlay) {
+  const box = overlay.querySelector(".modal-content.result");
+  box.classList.add("levelup");
+  setTimeout(() => box.classList.remove("levelup"), 1200);
+}
+
+function showBadge(container, badge) {
+  return new Promise(r => {
     const node = document.createElement("div");
     node.className = "badge";
-    node.textContent = `${b.emoji} ${b.label}`;
+    node.textContent = `${badge.emoji} ${badge.label}  +${badge.bonus}`;
     container.appendChild(node);
-    await wait(250);
-    node.classList.add("in");
-    await wait(200);
-  }
+    requestAnimationFrame(() => { node.classList.add("in"); setTimeout(r, 250); });
+  });
 }
-
-function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
