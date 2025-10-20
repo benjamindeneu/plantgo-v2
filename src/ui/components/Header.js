@@ -6,8 +6,8 @@ export function Header({
   menuVariant = "main", // "main" | "herbarium"
   onMenu,
   onLogout,
-  onHerbarium,   // used in "main" variant
-  onBackHome     // used in "herbarium" variant
+  onHerbarium,   // used in "main"
+  onBackHome     // used in "herbarium"
 }) {
   const isHerbarium = menuVariant === "herbarium";
 
@@ -67,13 +67,8 @@ export function Header({
     });
   }
 
-  // Public helpers
-  root.setUser = (u) => {
-    root.querySelector(".user-name").textContent = u?.displayName ?? "User";
-  };
-  root.setLevel = (lvl) => {
-    levelEl.textContent = String(lvl ?? 1);
-  };
+  root.setUser = (u) => { root.querySelector(".user-name").textContent = u?.displayName ?? "User"; };
+  root.setLevel = (lvl) => { levelEl.textContent = String(lvl ?? 1); };
 
   return root;
 }
