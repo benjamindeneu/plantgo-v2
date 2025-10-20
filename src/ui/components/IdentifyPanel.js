@@ -1,8 +1,11 @@
 // src/ui/components/IdentifyPanel.js
 import { identifyPlant } from "../../api/plantgo.js";
 import { ResultModal } from "./ResultModal.js";
+import { auth, db } from "../../../firebase-config.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 export function IdentifyPanel() {
+  // --- CREATE WRAPPER FIRST (prevents "wrap is not defined") ---
   const wrap = document.createElement("section");
   wrap.className = "general-validation card";
   wrap.innerHTML = `
@@ -17,11 +20,13 @@ export function IdentifyPanel() {
     <div id="feedback" aria-live="polite" class="validation-feedback"></div>
   `;
 
+  // --- LOCAL STATE / ELEMENTS ---
   const input = wrap.querySelector("#files");
   const preview = wrap.querySelector("#preview");
   const feedback = wrap.querySelector("#feedback");
   let chosen = [];
 
+  // --- FILE HANDLING ---
   input.addEventListener("change", () => {
     preview.innerHTML = "";
     chosen = Array.from(input.files || []);
@@ -44,14 +49,17 @@ export function IdentifyPanel() {
     feedback.textContent = "";
   });
 
-   wrap.querySelector("#identify").addEventListener("click", async () => {
-    if (!chosen.length) { feedback.textContent = "Please add at least one photo."; return; }
-    const file = chosen[0];
+  // --- IDENTIFY FLOW ---
+  wrap.querySelector("#identify").addEventListener("click", async () => {
+    if (!chosen.length) {
+      feedback.textContent = "Please add at least one photo.";
+      return;
+    }
 
-    // Build photo preview URLs for the modal
+    const file = chosen[0]; // backend expects a single "image" field
     const photoUrls = chosen.map(f => URL.createObjectURL(f));
 
-    // Get current total points BEFORE showing modal (for correct level display)
+    // Get current total points BEFORE showing the modal, to display the real level/progress while loading
     let currentTotal = 0;
     const user = auth.currentUser;
     if (user) {
@@ -59,33 +67,36 @@ export function IdentifyPanel() {
         const ref = doc(db, "users", user.uid);
         const snap = await getDoc(ref);
         currentTotal = Number(snap.data()?.total_points ?? 0);
-      } catch {}
+      } catch { /* noop */ }
     }
 
-    // Show modal immediately with loader + level from Firestore
+    // Show modal immediately (with loader & correct level)
     const modal = ResultModal();
     document.body.appendChild(modal.el);
     await modal.initLoading({ photos: photoUrls, currentTotalPoints: currentTotal });
 
-    // Get geolocation
+    // Geolocation
     let lat, lon;
     try {
       feedback.textContent = "Fetching location…";
       const pos = await new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 })
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true, timeout: 10000
+        })
       );
-      lat = pos.coords.latitude; lon = pos.coords.longitude;
+      lat = pos.coords.latitude;
+      lon = pos.coords.longitude;
     } catch {
       feedback.textContent = "Location permission denied or unavailable.";
       return;
     }
 
-    // Call API
+    // Call backend
     try {
       feedback.textContent = "Identifying…";
       const result = await identifyPlant({ file, lat, lon, model: "best" });
 
-      // Extract PlantNet image code from raw (best effort)
+      // Extract PlantNet image code (best effort from raw)
       const bestRaw = result?.identify?.raw || null;
       const plantnetImageCode =
         bestRaw?.images?.[0]?.id ||
@@ -93,7 +104,6 @@ export function IdentifyPanel() {
         bestRaw?.image?.id ||
         "";
 
-      // Stream the result to the modal (also saves observation & discovery, updates total)
       await modal.showResult({
         ...result,
         lat, lon,
@@ -108,8 +118,4 @@ export function IdentifyPanel() {
   });
 
   return wrap;
-}
-
-function escapeHtml(str) {
-  return str.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
