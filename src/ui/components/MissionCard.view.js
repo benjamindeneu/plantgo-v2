@@ -10,7 +10,7 @@ export function createMissionCardView({
   heroUrl = "",
   pointsTotal = 0,
   levelClass = "common-points",  // "common-points" | "rare-points" | "epic-points" | "legendary-points"
-  missionLevel = "Common",
+  missionLevel = "Common-points",
 }) {
   const root = document.createElement("div");
   // keeping class name to avoid CSS changes; you can rename to 'mission-item' later
