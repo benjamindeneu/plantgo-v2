@@ -1,6 +1,6 @@
 import { Header } from "./ui/components/Header.js";
-import { IdentifyPanel } from "./ui/components/IdentifyPanel.js";
-import { MissionsPanel } from "./ui/components/MissionsPanel.js";
+import { IdentifyPanel } from "./ui/components/IdentifyPanel.controller.js";
+import { MissionsPanel } from "./ui/components/MissionsPanel.controller.js";
 import { listenUserLevel } from "./user/level.js";
 
 import { auth } from "../firebase-config.js";
