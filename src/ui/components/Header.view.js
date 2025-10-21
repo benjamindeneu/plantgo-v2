@@ -1,14 +1,16 @@
-// src/ui/components/Header.js
-export function Header({
+// src/ui/components/Header.view.js
+
+/**
+ * Pure view for the header.
+ * - Renders the DOM
+ * - Manages visual toggle of the menu
+ * - Exposes event hooks for controller
+ */
+export function createHeaderView({
   user,
   level = 1,
-  progress = 0,
   menuVariant = "main", // "main" | "herbarium"
-  onMenu,
-  onLogout,
-  onHerbarium,   // used in "main"
-  onBackHome     // used in "herbarium"
-}) {
+} = {}) {
   const isHerbarium = menuVariant === "herbarium";
 
   const root = document.createElement("header");
@@ -34,41 +36,49 @@ export function Header({
   const btn = root.querySelector("#userBtn");
   const menu = root.querySelector("#userMenu");
   const levelEl = root.querySelector("#levelNumber");
+  const nameEl = root.querySelector(".user-name");
+  const primaryNavBtn = root.querySelector(isHerbarium ? "#menuHome" : "#menuHerbarium");
+  const logoutBtn = root.querySelector("#menuLogout");
+
+  // callbacks set by controller
+  let onMenuToggle = null;
+  let onPrimaryNav = null;
+  let onLogout = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
     menu.style.display = willOpen ? "block" : "none";
     btn.setAttribute("aria-expanded", String(willOpen));
+    if (onMenuToggle) onMenuToggle(willOpen);
   }
 
-  btn.addEventListener("click", () => {
-    toggleMenu();
-    (onMenu || (() => {}))();
-  });
-
+  // local UI wiring (no business logic)
+  btn.addEventListener("click", () => toggleMenu());
   document.addEventListener("click", (e) => {
     if (!root.contains(e.target)) toggleMenu(false);
   });
 
-  root.querySelector("#menuLogout").addEventListener("click", () => {
+  primaryNavBtn.addEventListener("click", () => {
     toggleMenu(false);
-    (onLogout || (() => {}))();
+    if (onPrimaryNav) onPrimaryNav();
   });
 
-  if (isHerbarium) {
-    root.querySelector("#menuHome").addEventListener("click", () => {
-      toggleMenu(false);
-      (onBackHome || (() => {}))();
-    });
-  } else {
-    root.querySelector("#menuHerbarium").addEventListener("click", () => {
-      toggleMenu(false);
-      (onHerbarium || (() => {}))();
-    });
-  }
+  logoutBtn.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onLogout) onLogout();
+  });
 
-  root.setUser = (u) => { root.querySelector(".user-name").textContent = u?.displayName ?? "User"; };
-  root.setLevel = (lvl) => { levelEl.textContent = String(lvl ?? 1); };
-
-  return root;
+  return {
+    element: root,
+    // view API for controller
+    setUser(u) {
+      nameEl.textContent = u?.displayName ?? "User";
+    },
+    setLevel(lvl) {
+      levelEl.textContent = String(lvl ?? 1);
+    },
+    setOnMenuToggle(cb) { onMenuToggle = cb; },
+    setOnPrimaryNav(cb) { onPrimaryNav = cb; },
+    setOnLogout(cb) { onLogout = cb; },
+  };
 }

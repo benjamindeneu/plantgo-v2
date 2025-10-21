@@ -1,6 +1,6 @@
 // src/pages/herbarium.app.js
 
-import { Header } from "../ui/components/Header.js";
+import { Header } from "../controllers/Header.controller.js";
 import { HerbariumCard } from "../ui/components/HerbariumCard.js";
 import { listenUserLevel } from "../user/level.js";
 

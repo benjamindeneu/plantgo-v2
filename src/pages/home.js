@@ -1,5 +1,5 @@
 // src/pages/home.js
-import { Header } from "../ui/components/Header.js";
+import { Header } from "../controllers/Header.controller.js";
 import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
 import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
 import { listenUserLevel } from "../user/level.js";
