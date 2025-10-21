@@ -1,5 +1,5 @@
 // src/ui/components/Herbarium.view.js
-import { HerbariumCard } from "./HerbariumCard.js";
+import { HerbariumCard } from "../../controllers/HerbariumCard.controller.js";
 
 function renderEntries(listEl, entries = []) {
   listEl.innerHTML = "";
