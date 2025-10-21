@@ -726,7 +726,7 @@ html {
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
-  padding: var(--sp-1);
+  /*padding: var(--sp-1);*/
   line-height: 1.55;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
