@@ -335,58 +335,7 @@ header {
   margin-bottom: var(--sp-3);
   color: var(--green-800);
 }
-.epic-points::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 60%, transparent 100%);
-  background-size: 250% 100%;
-  background-repeat: no-repeat;
-  animation: sheen-slide var(--sheen-speed, 4.0s) linear infinite;
-  mix-blend-mode: overlay;
-}
-.legendary-points::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 60%, transparent 100%);
-  background-size: 250% 100%;
-  background-repeat: no-repeat;
-  animation: sheen-slide var(--sheen-speed, 4.0s) linear infinite;
-  mix-blend-mode: overlay;
-}
-@keyframes sheen-slide{0% { background-position: -150% 0;} 30% { background-position: 150% 0;} 100% { background-position: 150% 0;}}
-.epic-points::before {
-  opacity: .12;
-  mix-blend-mode: multiply;
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%), radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%), radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%);
-  background-size: 4px 4px, 3px 3px, 5px 5px;
-  background-position: 10% 30%, 60% 70%, 80% 40%;
-  animation: sparkle-move 3s infinite ease-in-out;
-  pointer-events: none;
-  z-index: 2;
-}
-.legendary-points::before {
-  opacity: .12;
-  mix-blend-mode: multiply;
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%), radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%), radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%);
-  background-size: 4px 4px, 3px 3px, 5px 5px;
-  background-position: 10% 30%, 60% 70%, 80% 40%;
-  animation: sparkle-move 3s infinite ease-in-out;
-  pointer-events: none;
-  z-index: 2;
-}
-@keyframes sparkle-move{0%, 100% { opacity: 0; background-position: 10% 30%, 60% 70%, 80% 40%;} 50% { opacity: 1; background-position: 15% 25%, 65% 75%, 85% 35%;}}
+
 .beginner-level {
   background: linear-gradient(180deg, #4CAF50, #2f8e49);
 }
@@ -419,20 +368,6 @@ header {
 @keyframes fadeIn{from { opacity: 0; transform: translateY(-6px);} to { opacity: 1; transform: translateY(0);}}
 #modalConfetti {
   z-index: 1000;
-}
-@media (prefers-reduced-motion: reduce) {
-.epic-points::after {
-  animation: none;
-  opacity: 0;
-}
-.legendary-points::after {
-  animation: none;
-  opacity: 0;
-}
-* {
-  animation: none !important;
-  transition: none !important;
-}
 }
 @media (max-width: 768px) {
 body {
@@ -1119,6 +1054,27 @@ body {
 .points-badge .value {
   font-size: 22px;
 }
+
+/* Rarity chips — unified shape (no sparkles) */
+.common-points,
+.rare-points,
+.epic-points,
+.legendary-points {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Backgrounds (with solid fallbacks) */
 .common-points {
   background: linear-gradient(180deg, #9aa3a7, #7b8488);
   background-color: #7b8488;
@@ -1128,27 +1084,57 @@ body {
   background-color: #1e7fe0;
 }
 .epic-points {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 999px;
-  isolation: isolate;
-  clip-path: inset(0 round 999px);
-  contain: paint;
+  background: linear-gradient(180deg, #b46ad3, #9c27b0);
   background-color: #9c27b0;
 }
 .legendary-points {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 999px;
-  isolation: isolate;
-  clip-path: inset(0 round 999px);
-  contain: paint;
-  background-color: #FFD700;
+  background: linear-gradient(180deg, #ffe27a, #ffd54d);
+  background-color: #ffd54d;
 }
+
+/* Shiny sweep only (Epic + Legendary) */
+.epic-points::after,
+.legendary-points::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0) 40%,
+    rgba(255,255,255,.55) 50%,
+    rgba(255,255,255,0) 60%,
+    transparent 100%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: sheen-slide var(--sheen-speed, 4s) linear infinite;
+  mix-blend-mode: overlay;
+}
+
+/* Animation */
+@keyframes sheen-slide {
+  0%   { background-position: -150% 0; }
+  30%  { background-position: 150% 0; }
+  100% { background-position: 150% 0; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .epic-points::after,
+  .legendary-points::after {
+    animation: none;
+    opacity: 0;
+  }
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
 .badges.big {
   display: flex;
   gap: 12px;
@@ -1524,12 +1510,6 @@ input[type="file"] + label.label-file:active {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
-
-/* “rarity” chips keep the glam but cleaner */
-.common-points   { background: linear-gradient(180deg, #9aa3a7, #7b8488); }
-.rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
-.epic-points     { background: linear-gradient(180deg, #b46ad3, #9c27b0); }
-.legendary-points{ background: linear-gradient(180deg, #ffe27a, #ffd54d); }
 
 /* 11) Wiki thumb */
 .wiki-thumb {
