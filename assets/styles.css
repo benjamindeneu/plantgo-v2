@@ -1115,70 +1115,72 @@ html, body {
 }
 
 
-/* === Contrast fix: Add-picture button & Header user button (non-breaking) === */
+/* === FORCE OVERRIDES: Add-picture & User buttons === */
 
-/* 1) “Add picture” button (label-file)
-   Keep it light on hover/active so text stays readable and on-brand. */
-.label-file {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px dashed var(--border);
-  transition: background .2s var(--easing), color .2s var(--easing), border-color .2s var(--easing), box-shadow .2s var(--easing);
+/* Add-picture label (covers common patterns) */
+label.label-file,
+.input-wrap label.label-file,
+.container label.label-file,
+input[type="file"] + label.label-file {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px dashed var(--border) !important;
 }
-.label-file:hover {
-  background: var(--green-50);        /* light tint, not dark */
-  color: var(--text);                 /* keep contrast */
-  border-color: var(--green-300);
+label.label-file:hover,
+.input-wrap label.label-file:hover,
+.container label.label-file:hover,
+input[type="file"] + label.label-file:hover {
+  background: var(--green-50) !important;
+  color: var(--text) !important;
+  border-color: var(--green-300) !important;
 }
-.label-file:active {
-  background: var(--green-100);       /* slightly stronger, still light */
-  color: var(--text);
-  border-color: var(--green-400);
-}
-.label-file:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
-  outline-offset: 2px;
-  border-radius: var(--r-md);
+label.label-file:active,
+.input-wrap label.label-file:active,
+.container label.label-file:active,
+input[type="file"] + label.label-file:active {
+  background: var(--green-100) !important;
+  color: var(--text) !important;
+  border-color: var(--green-400) !important;
 }
 
-/* 2) Header user button
-   Ensure hover/active never flips to dark text on dark bg. Support both selectors you used. */
-.user-btn,
-#userBtn {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  transition: background .2s var(--easing), color .2s var(--easing), box-shadow .2s var(--easing), transform .2s var(--easing), border-color .2s var(--easing);
-}
-.user-btn:hover,
-#userBtn:hover {
-  background: var(--surface-2);       /* subtle light hover */
-  color: var(--text);
-  border-color: var(--border);
-}
-.user-btn:active,
-#userBtn:active {
-  transform: translateY(0);           /* avoid heavy “press down” look */
-  background: var(--surface-2);
-}
-.user-btn:focus-visible,
-#userBtn:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
-  outline-offset: 2px;
+/* Header user button (cover both .user-btn and #userBtn in header/nav) */
+header .nav .user-area .user-btn,
+.nav .user-area .user-btn,
+header #userBtn,
+.nav #userBtn {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border) !important;
   border-radius: 999px;
 }
-/* Optional: highlight when menu is open */
+header .nav .user-area .user-btn:hover,
+.nav .user-area .user-btn:hover,
+header #userBtn:hover,
+.nav #userBtn:hover {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+header .nav .user-area .user-btn:active,
+.nav .user-area .user-btn:active,
+header #userBtn:active,
+.nav #userBtn:active {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+}
+header .nav .user-area .user-btn:focus-visible,
+.nav .user-area .user-btn:focus-visible,
+header #userBtn:focus-visible,
+.nav #userBtn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+/* If you toggle an “open” state */
 .user-btn[aria-expanded="true"],
 #userBtn.menu-open {
-  background: var(--green-50);
-  border-color: var(--green-300);
+  background: var(--green-50) !important;
+  color: var(--text) !important;
+  border-color: var(--green-300) !important;
 }
-
-/* (Optional) dark-scheme tweaks, very gentle so it won’t affect light theme */
-@media (prefers-color-scheme: dark) {
-  .label-file:hover { background: #122015; color: #e7f6eb; border-color: #2f8e49; }
-  .label-file:active { background: #18301d; }
-  .user-btn:hover, #userBtn:hover { background: #18211b; }
-}
-
