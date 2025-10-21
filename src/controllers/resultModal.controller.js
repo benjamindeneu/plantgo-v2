@@ -1,4 +1,3 @@
-// src/controllers/resultModal.controller.js
 import { on } from "../utils/eventBus.js";
 import { getState } from "../state/store.js";
 import { nextLevelInfo } from "../domain/levels.js";
@@ -20,12 +19,8 @@ export function mountResultModal(root) {
     });
 
     const dialog = root.querySelector("#resultModal");
-    dialog?.querySelector("[data-close]")?.addEventListener("click", () => {
-      dialog.close();
-    });
-    dialog?.querySelector("[data-cta='continue']")?.addEventListener("click", () => {
-      dialog.close();
-    });
+    dialog?.querySelector("[data-close]")?.addEventListener("click", () => dialog.close());
+    dialog?.querySelector("[data-cta='continue']")?.addEventListener("click", () => dialog.close());
   }
 
   render();

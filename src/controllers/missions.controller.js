@@ -1,4 +1,3 @@
-// src/controllers/missions.controller.js
 import { getState, setState } from "../state/store.js";
 import { on } from "../utils/eventBus.js";
 import { MissionsPanelView } from "../ui/components/MissionsPanel.view.js";

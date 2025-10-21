@@ -1,4 +1,3 @@
-// src/domain/levels.js
 export function nextLevelInfo(points, thresholds) {
   const current = thresholds.filter(t => points >= t).slice(-1)[0] ?? 0;
   const next = thresholds.find(t => t > points) ?? current;

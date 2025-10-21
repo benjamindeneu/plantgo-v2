@@ -1,5 +1,4 @@
-// src/ui/components/IdentifyPanel.view.js
-// Pure presentational component for the identify flow: image upload, suggestions list, and CTA.
+// Pure presentational component for the identify flow
 export function IdentifyPanelView({ isLoading, photoPreview, suggestions }) {
   return `
     <section class="identify panel">

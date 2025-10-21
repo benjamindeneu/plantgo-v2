@@ -1,7 +1,7 @@
-// src/services/db.service.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
 import { getFirestore, doc, getDoc, setDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-import { firebaseConfig } from "./firebase-config.js";
+import * as _cfg from "./firebase-config.js";
+const firebaseConfig = _cfg.firebaseConfig ?? _cfg.default ?? _cfg;
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);

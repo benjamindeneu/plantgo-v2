@@ -1,4 +1,3 @@
-// src/ui/primitives/ProgressBar.view.js
 export function ProgressBar({ value = 0 }) {
   const pct = Math.round(Math.max(0, Math.min(1, value)) * 100);
   return `

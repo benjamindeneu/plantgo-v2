@@ -1,4 +1,3 @@
-// src/ui/components/Header.view.js
 export function HeaderView({ user }) {
   return `
     <nav class="nav">

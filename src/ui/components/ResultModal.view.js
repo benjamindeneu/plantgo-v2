@@ -1,4 +1,3 @@
-// src/ui/components/ResultModal.view.js
 import { ProgressBar } from "../primitives/ProgressBar.view.js";
 
 export function ResultModalView({ open, points, level, badges }) {

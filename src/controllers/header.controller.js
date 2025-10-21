@@ -1,4 +1,3 @@
-// src/controllers/header.controller.js
 import { getState, setState } from "../state/store.js";
 import { on } from "../utils/eventBus.js";
 import { HeaderView } from "../ui/components/Header.view.js";

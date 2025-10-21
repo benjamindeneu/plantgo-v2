@@ -1,4 +1,3 @@
-// src/domain/badges.js
 export function evaluateNewBadges(user, observations) {
   const unlocked = [];
   const speciesSet = new Set(observations.map(o => o.speciesId));

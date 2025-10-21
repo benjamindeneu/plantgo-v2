@@ -1,5 +1,4 @@
-// src/ui/components/MissionsPanel.view.js
-// Pure view for weekly/daily missions and progress.
+// View for missions list
 export function MissionsPanelView({ missions }) {
   return `
     <section class="missions panel">

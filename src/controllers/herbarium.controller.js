@@ -1,4 +1,3 @@
-// src/controllers/herbarium.controller.js
 import { getState } from "../state/store.js";
 import { HerbariumCardView } from "../ui/components/HerbariumCard.view.js";
 

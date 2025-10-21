@@ -1,30 +1,24 @@
 # PlantGo — Refactored (Views vs Logic)
 
-This refactor separates **visuals** from **functionality**:
+This refactor separates visuals from functionality.
 
-- `src/ui/**` — *pure views* (no Firebase or side effects)
-- `src/controllers/**` — *event glue* (listen to state and user events)
-- `src/services/**` — *Firebase & side-effects*
-- `src/domain/**` — *pure logic* (points, levels, badges)
-- `src/state/**` — lightweight store
-- `assets/styles.css` — your existing stylesheet
+- `src/ui/**` — pure views (no side effects)
+- `src/controllers/**` — UI logic and wiring
+- `src/services/**` — Firebase + side effects
+- `src/domain/**` — pure logic
+- `src/state/**` — simple state store
+- `assets/styles.css` — styles
+
+## Firebase config
+Place your config in `src/services/firebase-config.js`. Both of these are supported:
+```js
+// Option A (named)
+export const firebaseConfig = { /* ... */ };
+
+// Option B (default)
+export default { /* ... */ };
+```
+Controllers/services import using a resilient pattern that works for both.
 
 ## Run
-Open `index.html` with a static server (or Live Server).
-
-Hook your existing Identify/Missions logic by adding controllers + services without touching views.
-
-
-## Included components
-- Header (view/controller)
-- ResultModal (view/controller)
-- IdentifyPanel (view/controller)
-- MissionsPanel (view/controller)
-- Herbarium list + HerbariumCard (view/controller + view)
-- SpeciesCard (view)
-- Generic Modal (view + wiring helper)
-
-## Wiring
-- All Firebase access should go in `src/services/*`.
-- Views never import Firebase; controllers call services and update `setState(...)`.
-- Styling stays in `assets/styles.css`.
+Open `index.html` with a static server.

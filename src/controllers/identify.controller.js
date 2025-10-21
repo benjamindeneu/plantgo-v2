@@ -1,13 +1,9 @@
-// src/controllers/identify.controller.js
 import { getState, setState } from "../state/store.js";
 import { on } from "../utils/eventBus.js";
 import { IdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
-import { SpeciesCardView } from "../ui/components/SpeciesCard.view.js";
 import { computeObservationPoints } from "../domain/points.js";
 
-// Fake identify service (replace with model/API). Purely for demo.
 async function mockIdentifyFromPhoto(file) {
-  // simulate latency
   await new Promise(r => setTimeout(r, 600));
   return [
     { id: "bellis-perennis", name: "Bellis perennis", confidence: 0.92, photo: "https://picsum.photos/seed/bellis/400/300" },
@@ -25,7 +21,6 @@ export function mountIdentify(root) {
 
     root.innerHTML = IdentifyPanelView({ isLoading, photoPreview, suggestions });
 
-    // wire file input
     const fileInput = root.querySelector("[data-file]");
     fileInput?.addEventListener("change", async (e) => {
       const file = e.target.files?.[0];
@@ -36,7 +31,6 @@ export function mountIdentify(root) {
       setState({ ui: { ...getState().ui, identify: { ...getState().ui.identify, loading: false, suggestions: results } } });
     });
 
-    // choose suggestion
     root.querySelectorAll("[data-choose]")?.forEach(btn => {
       btn.addEventListener("click", (e) => {
         const id = e.currentTarget.getAttribute("data-choose");

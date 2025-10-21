@@ -1,4 +1,3 @@
-// src/ui/components/HerbariumCard.view.js
 export function HerbariumCardView({ speciesName, photoUrl, points }) {
   return `
     <article class="card herbarium">

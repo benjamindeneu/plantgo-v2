@@ -1,5 +1,4 @@
-// src/ui/components/Modal.view.js
-// Generic modal (dialog) with slot-like body and actions.
+// Generic modal view
 export function ModalView({ id = "modal", open = false, title = "Modal", body = "", actions = [] }) {
   return `
     <dialog id="${id}" class="modal"${open ? " open" : ""} aria-labelledby="${id}-title">

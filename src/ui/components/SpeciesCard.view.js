@@ -1,5 +1,4 @@
-// src/ui/components/SpeciesCard.view.js
-// Pure card for a species row/card. Useful in lists and results.
+// Reusable species card
 export function SpeciesCardView({ id, name, latinName, photoUrl, rarity, points }) {
   return `
     <article class="card species" data-species-id="${id}">

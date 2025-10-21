@@ -1,11 +1,10 @@
-// src/app.js
 import { setState } from "./state/store.js";
-import { on } from "./utils/eventBus.js";
 import { initHeader } from "./controllers/header.controller.js";
 import { mountResultModal } from "./controllers/resultModal.controller.js";
 import { mountHerbariumList } from "./controllers/herbarium.controller.js";
+import { mountIdentify } from "./controllers/identify.controller.js";
+import { mountMissions } from "./controllers/missions.controller.js";
 
-// Shell
 const appRoot = document.getElementById("app");
 appRoot.innerHTML = `
   <header id="appHeader" class="nav"></header>
@@ -18,21 +17,12 @@ appRoot.innerHTML = `
   <div id="overlayRoot"></div>
 `;
 
-// Mount header
 initHeader(document.getElementById("appHeader"));
-// Mount identify
-import { mountIdentify } from "./controllers/identify.controller.js";
-import { mountMissions } from "./controllers/missions.controller.js";
-// Mount identify
 mountIdentify(document.getElementById("identifyRoot"));
-// Mount missions
 mountMissions(document.getElementById("missionsRoot"));
-// Mount herbarium
 mountHerbariumList(document.getElementById("herbariumRoot"));
-// Mount modal
 mountResultModal(document.getElementById("overlayRoot"));
 
-// Example seed state (replace with real service calls)
 setState({
   ui: { missions: [
     { id: "m1", title: "Identify 3 species", desc: "Upload and confirm 3 distinct species.", points: 50, progress: 0.33, completed: false },
@@ -46,5 +36,3 @@ setState({
   ],
   ui: { resultModalOpen: true }
 });
-
-// In real app, wire auth + db services here and update state accordingly.
