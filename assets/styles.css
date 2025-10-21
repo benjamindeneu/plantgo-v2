@@ -370,9 +370,6 @@ header {
   z-index: 1000;
 }
 @media (max-width: 768px) {
-body {
-  padding: var(--sp-4);
-}
 .card-content {
   grid-template-columns: 110px 1fr;
   gap: var(--sp-3);
