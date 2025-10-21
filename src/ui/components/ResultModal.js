@@ -39,7 +39,7 @@ export function ResultModal() {
           <div class="muted" style="margin-bottom:6px; text-align:center;">Observation points:</div>
 
           <!-- Centered column: points badge on top, rarity badge below -->
-          <div class="points-stack" style="display:flex; flex-direction:column; align-items:center; gap:1px; margin-bottom:2px;">
+          <div class="points-stack" style="display:flex; flex-direction:column; align-items:center;">
             <div id="obsBadge"
                 class="points-badge common-points"
                 data-rarity="common-points"
