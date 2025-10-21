@@ -1366,7 +1366,6 @@ p { color: color-mix(in srgb, var(--text) 80%, var(--muted)); }
   border-radius: 16px;
   box-shadow: var(--shadow-md);
   border-color: color-mix(in srgb, var(--border) 70%, transparent);
-  background-color: var(--green-400);
 }
 .species-item:hover { box-shadow: var(--shadow-lg); }
 
