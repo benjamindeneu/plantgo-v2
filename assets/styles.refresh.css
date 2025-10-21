@@ -1,0 +1,213 @@
+/* =========================
+   PlantGo • Visual Refresh (overrides only)
+   Load AFTER your existing styles.css
+   ========================= */
+
+/* Tokens (non-breaking) */
+:root {
+  --radius-pill: 999px;
+  --shadow-lg: 0 16px 40px rgba(2,6,23,.14);
+  --shadow-md: 0 10px 24px rgba(2,6,23,.10);
+  --shadow-sm: 0 4px 14px rgba(2,6,23,.08);
+  --surface-tint: color-mix(in srgb, var(--surface) 88%, var(--green-50));
+}
+
+/* 1) App chrome */
+header,
+.nav {
+  backdrop-filter: saturate(125%) blur(8px);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+/* 2) Typography polish */
+h1,h2,h3 {
+  letter-spacing: .2px;
+}
+p { color: color-mix(in srgb, var(--text) 80%, var(--muted)); }
+
+/* 3) Cards */
+.card,
+.species-item,
+.herbarium-card,
+.modal-content {
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+}
+.species-item:hover { box-shadow: var(--shadow-lg); }
+
+/* 4) Buttons — unify look without changing your classes */
+button,
+.points-btn,
+.validate-species-btn,
+#userMenu button {
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: .2px;
+  background: linear-gradient(180deg, var(--green-600), var(--green-700));
+  box-shadow: 0 2px 0 rgba(0,0,0,0.06);
+}
+button:hover,
+.points-btn:hover,
+.validate-species-btn:hover,
+#userMenu button:hover {
+  filter: brightness(1.02);
+  transform: translateY(-1px);
+}
+button:active,
+.points-btn:active,
+.validate-species-btn:active,
+#userMenu button:active {
+  transform: translateY(0);
+  filter: brightness(.98);
+}
+
+/* Secondary / subtle buttons keep contrast */
+button.secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 5) “Add picture” label: fix highlight & readability */
+label.label-file,
+.input-wrap label.label-file,
+.container label.label-file,
+input[type="file"] + label.label-file {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px dashed var(--border);
+  box-shadow: var(--shadow-sm);
+}
+label.label-file:hover,
+.input-wrap label.label-file:hover,
+.container label.label-file:hover,
+input[type="file"] + label.label-file:hover {
+  background: var(--surface-tint);
+  border-color: var(--green-300);
+  color: var(--text);
+}
+label.label-file:active,
+.input-wrap label.label-file:active,
+.container label.label-file:active,
+input[type="file"] + label.label-file:active {
+  background: var(--green-50);
+  border-color: var(--green-400);
+}
+
+/* 6) User button/menu (keeps ids/classes) */
+#userBtn,
+.user-btn {
+  border-radius: var(--radius-pill) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm);
+}
+#userBtn:hover,
+.user-btn:hover { background: var(--surface-2) !important; }
+#userBtn.menu-open,
+.user-btn[aria-expanded="true"] {
+  background: var(--green-50) !important;
+  border-color: var(--green-300) !important;
+}
+#userMenu,
+.menu {
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+/* 7) Modals */
+.modal {
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, #000 28%, transparent);
+}
+.modal-content {
+  animation: modalIn .18s var(--easing);
+}
+
+/* 8) Species list layout */
+.card-content {
+  gap: 18px;
+}
+.species-image {
+  border-radius: 12px;
+}
+.species-info p { color: var(--text); }
+
+/* 9) Result modal: points + level rails */
+.result-head { gap: 8px; }
+.result-points .big {
+  font-size: 44px;
+  line-height: 1.05;
+}
+.detail-line {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.progress-rail,
+#resultModal #resultLevelProgressContainer {
+  background: color-mix(in srgb, var(--border) 80%, transparent) !important;
+}
+.progress-bar,
+#resultModal #resultLevelProgressBar {
+  background: linear-gradient(90deg, var(--green-600), var(--green-700)) !important;
+  transition: width .15s linear;
+}
+
+/* 10) Badges (points + level) */
+.level-badge {
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  box-shadow: var(--shadow-sm);
+  background: #1f2a22;
+}
+.points-badge {
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.badge,
+.badge.big {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+/* “rarity” chips keep the glam but cleaner */
+.common-points   { background: linear-gradient(180deg, #9aa3a7, #7b8488); }
+.rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
+.epic-points     { background: linear-gradient(180deg, #b46ad3, #9c27b0); }
+.legendary-points{ background: linear-gradient(180deg, #ffe27a, #ffd54d); }
+
+/* 11) Wiki thumb */
+.wiki-thumb {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-color: color-mix(in srgb, var(--border) 70%, transparent);
+  box-shadow: var(--shadow-md);
+}
+
+/* 12) Spinner: thinner & smoother */
+.spinner {
+  width: 26px; height: 26px; border-width: 3px;
+  border-top-color: var(--green-600);
+}
+
+/* 13) Micro-interactions: crisper */
+@keyframes modalIn { from { opacity:0; transform: translateY(8px) scale(.98);} to { opacity:1; transform: translateY(0) scale(1);} }
+.badge.in { transition: transform .2s, opacity .2s; }
+
+/* 14) Dark mode tune-up (non-destructive) */
+@media (prefers-color-scheme: dark) {
+  .card,
+  .species-item,
+  .herbarium-card,
+  .modal-content {
+    background: var(--surface);
+    border-color: color-mix(in srgb, var(--border) 50%, transparent);
+  }
+  label.label-file { background: var(--surface); }
+  .detail-line { background: color-mix(in srgb, var(--surface) 90%, #000); }
+}
