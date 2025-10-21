@@ -11,10 +11,17 @@
   <link rel="stylesheet" href="./assets/styles.css" />
   <meta name="theme-color" content="#ffffff" />
   <script type="module" src="./firebase-config.js"></script>
-  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="./src/pages/home.js"></script>
+  <header id="appHeader"></header>
+  <main class="app-shell">
+    <div id="identifyRoot"></div>
+    <hr class="rule" />
+    <div id="missionsRoot"></div>
+  </main>
+  <footer id="appFooter"></footer>
+
+  <script type="module" src="./src/pages/home.app.js"></script>
 </body>
 </html>
+
