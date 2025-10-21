@@ -39,7 +39,7 @@ export function ResultModal() {
           <div class="muted" style="margin-bottom:6px; text-align:center;">Observation points:</div>
 
           <!-- Centered column: points badge on top, rarity badge below -->
-          <div class="points-stack" style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:8px;">
+          <div class="points-stack" style="display:flex; flex-direction:column; align-items:center; gap:4px; margin-bottom:6px;">
             <div id="obsBadge"
                 class="points-badge common-points"
                 data-rarity="common-points"
@@ -127,7 +127,7 @@ export function ResultModal() {
         counterEl: qs("#pointsCounter"),
         detailsEl: qs("#pointsDetails"),
         badgeEl: qs("#obsBadge"),
-      });
+      }, { ease: "linear" }); // default linear (you can switch to "easeOut" later)
 
       // Show the rarity badge BELOW the points badge (centered)
       const rarityClass = getRarity(baseTotal);
@@ -174,14 +174,15 @@ export function ResultModal() {
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      // Level progress final animation (and correct “next” → final)
+      // Level progress final animation
       const { fromLevel, fromPct } = calcFromLevel(currentTotal);
       const { toLevel, toPct }   = calcToLevel(currentTotal + finalTotal);
-      qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent   = toLevel;
-      qs("#levelToLabel").style.opacity = toLevel > fromLevel ? 1 : 0.6;
-      await animateProgress(qs("#levelProgress"), fromPct, toPct);
-      if (toLevel > fromLevel) pulseLevelUp(overlay);
+      await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
+
+      // After animation, show final current → next (avoid going back to old current)
+      qs("#levelFrom").textContent = toLevel;        // final current level
+      qs("#levelTo").textContent   = toLevel + 1;    // next level number
+      qs("#levelToLabel").style.opacity = 0.9;
     }
   };
 }
@@ -202,18 +203,28 @@ function calcToLevel(total) {
   return { toLevel: L, toPct: clamp01(pct) };
 }
 function clamp01(v) { return Math.max(0, Math.min(100, v)); }
+function getEaseFn(name) {
+  switch ((name || "linear").toLowerCase()) {
+    case "easeout":
+    case "ease-out":
+      return t => 1 - Math.pow(1 - t, 3); // previous behavior
+    case "linear":
+    default:
+      return t => t;
+  }
+}
+
 
 /**
  * Animate points counting. Detail lines reveal faster and all are displayed by 70% of duration.
  */
-async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl }) {
+async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl }, options = {}) {
   const entries = Object.entries(detail || []);
   detailsEl.innerHTML = "";
 
-  // keep your current speed; we only change distribution for reveals
-  const duration = 1800;
+  const duration = 1800;      // keep your current speed
   const start = performance.now();
-  const ease = t => 1 - Math.pow(1 - t, 3);
+  const ease = getEaseFn(options.ease || "linear");  // <- now selectable
 
   // Distribute reveal times within the first 70% of the animation
   const revealPortion = 0.7;
@@ -230,7 +241,6 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
       counterEl.textContent = String(val);
       upgradeBadgeBy(val, badgeEl);
 
-      // reveal lines quickly up to 70%
       while (revealed < revealTimes.length && elapsed >= revealTimes[revealed]) {
         const [k, v] = entries[revealed];
         const line = document.createElement("div");
@@ -240,10 +250,8 @@ async function animateObservation({ total, detail, counterEl, detailsEl, badgeEl
         revealed++;
       }
 
-      if (t < 1) {
-        requestAnimationFrame(frame);
-      } else {
-        // ensure all lines exist even if no entries or timing edge case
+      if (t < 1) requestAnimationFrame(frame);
+      else {
         for (; revealed < entries.length; revealed++) {
           const [k, v] = entries[revealed];
           const line = document.createElement("div");
@@ -303,12 +311,14 @@ function upgradeBadgeBy(val, el) {
   el.classList.add("points-pop");
 }
 
-function animateProgress(el, fromPct, toPct) {
+function animateProgress(el, fromPct, toPct, options = {}) {
   const duration = 900, start = performance.now();
+  const ease = getEaseFn(options.ease || "linear");  // default linear
   return new Promise(res => {
     function frame(ts) {
       const t = Math.min(1, (ts - start) / duration);
-      const v = Math.round(fromPct + (toPct - fromPct) * (1 - Math.pow(1 - t, 2)));
+      const e = ease(t);
+      const v = Math.round(fromPct + (toPct - fromPct) * e);
       el.style.width = `${v}%`;
       if (t < 1) requestAnimationFrame(frame); else res();
     }
