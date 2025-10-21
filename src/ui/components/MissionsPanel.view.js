@@ -6,11 +6,7 @@ function renderSpeciesList(listEl, missionsList = []) {
     listEl.textContent = "No missions yet.";
     return;
   }
-  for (const m of missionsList) {
-    // If your API uses a different shape, adjust here:
-    // e.g., SpeciesCard(m.species) or SpeciesCard({ ...m, title: m.name })
-    listEl.appendChild(SpeciesCard(m));
-  }
+  for (const m of missionsList) listEl.appendChild(SpeciesCard(m));
 }
 
 export function createMissionsPanelView() {
@@ -21,14 +17,20 @@ export function createMissionsPanelView() {
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
       <button id="locate" class="secondary" type="button">Get Location & Missions</button>
     </div>
-    <div id="list" class="form-grid" aria-live="polite">Loading…</div>
+    <div id="status" aria-live="polite" class="validation-feedback"></div>
+    <div id="list" class="form-grid"></div>
   `;
+
+  const statusEl = sec.querySelector("#status");
   const list = sec.querySelector("#list");
   const locateBtn = sec.querySelector("#locate");
 
+  // optional: initial message
+  statusEl.textContent = " ";
+
   return {
     element: sec,
-    setStatus(text) { list.textContent = text ?? ""; },
+    setStatus(text) { statusEl.textContent = text ?? ""; },
     renderMissions(missions) { renderSpeciesList(list, missions); },
     onLocate(handler) { locateBtn.addEventListener("click", handler); },
   };
