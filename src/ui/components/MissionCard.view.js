@@ -28,7 +28,7 @@ export function createMissionCardView({
         <p class="muted">${sciName}</p>
 
         <div class="species-actions">
-          <button class="points-btn ${levelClass}" type="button">${pointsTotal} points\n${missionLevel}</button>
+          <button class="points-btn ${levelClass}" type="button">${pointsTotal} points<br>${missionLevel}</button>
         </div>
       </div>
     </div>
