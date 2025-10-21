@@ -40,24 +40,21 @@ export function MissionsPanel() {
 
   // Fetch by location → render immediately; save is best-effort in background
   view.onLocate(async () => {
-  // Show progress in the status area
-  view.setStatus("Fetching location…");
+    // this will clear the list, but will show "No missions yet." until data arrives
+    view.renderMissions([]);
+    view.setStatus("Fetching location…");
     try {
       const pos = await getCurrentPosition();
       view.setStatus("Loading missions…");
 
-      const user = auth.currentUser; // safe now that auth is established
+      const user = auth.currentUser;
       const missions = await loadAndMaybePersistMissions(
         user?.uid,
         { lat: pos.coords.latitude, lon: pos.coords.longitude }
       );
 
-      // Render immediately; do NOT clear status if setStatus writes to the list element
       view.renderMissions(missions);
-
-      // If (and only if) your view has a dedicated status element separate from the list,
-      // you may uncomment the next line:
-      // view.setStatus("");
+      // view.setStatus(""); // only if status is separate from the list
     } catch (e) {
       console.error("[MissionsPanel] Locate/Fetch error:", e);
       view.setStatus(e?.message || "Location/mission error.");
