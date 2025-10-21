@@ -1,4 +1,4 @@
-import { SpeciesCard } from "./SpeciesCard.js";
+import { MissionCard } from "../../controllers/MissionCard.controller.js";
 
 function renderSpeciesList(listEl, missionsList = []) {
   listEl.innerHTML = "";
@@ -6,7 +6,7 @@ function renderSpeciesList(listEl, missionsList = []) {
     listEl.textContent = "No missions yet.";
     return;
   }
-  for (const m of missionsList) listEl.appendChild(SpeciesCard(m));
+  for (const m of missionsList) listEl.appendChild(MissionCard(m));
 }
 
 export function createMissionsPanelView() {
