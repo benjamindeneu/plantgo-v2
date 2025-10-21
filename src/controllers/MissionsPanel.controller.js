@@ -1,7 +1,9 @@
+// src/controllers/MissionsPanel.controller.js
 import { createMissionsPanelView } from "../ui/components/MissionsPanel.view.js";
-import { getCurrentUser } from "../data/user.repo.js";
 import { getCurrentPosition } from "../data/geo.service.js";
 import { maybeLoadCachedMissions, loadAndMaybePersistMissions } from "../data/missions.repo.js";
+import { auth } from "../../firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 const THREE_HOURS_MS = 3 * 60 * 60 * 1000;
 const toDate = (ts) =>
@@ -17,33 +19,38 @@ const isFresh = (ts, win = THREE_HOURS_MS) => {
 export function MissionsPanel() {
   const view = createMissionsPanelView();
 
-  (async () => {
-    const user = await getCurrentUser();
-    if (!user) return view.setStatus("Please log in.");
-
+  // 🔑 React to auth state instead of reading auth.currentUser immediately
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      view.setStatus("Please log in.");
+      return;
+    }
     try {
       const { missions, fromCache } = await maybeLoadCachedMissions(user.uid, isFresh);
-      if (fromCache && missions.length) view.renderMissions(missions);
-      else view.setStatus("No missions yet. Use the button above.");
+      if (fromCache && missions.length) {
+        view.renderMissions(missions);
+      } else {
+        view.setStatus("No missions yet. Use the button above.");
+      }
     } catch (e) {
       console.error("[MissionsPanel] Cache load error:", e);
       view.setStatus("Unable to load cached missions.");
     }
-  })();
+  });
 
+  // Fetch by location → render immediately; save is best-effort in background
   view.onLocate(async () => {
     view.setStatus("Fetching location…");
     try {
       const pos = await getCurrentPosition();
       view.setStatus("Loading missions…");
 
-      const user = await getCurrentUser();
+      const user = auth.currentUser; // now safe, we’re inside an app that’s subscribed
       const missions = await loadAndMaybePersistMissions(
         user?.uid,
         { lat: pos.coords.latitude, lon: pos.coords.longitude }
       );
 
-      // ✅ render immediately regardless of save result
       view.renderMissions(missions);
       view.setStatus("");
     } catch (e) {
@@ -52,5 +59,6 @@ export function MissionsPanel() {
     }
   });
 
+  // (optional) You can expose unsubscribe if you ever need to clean up
   return view.element;
 }
