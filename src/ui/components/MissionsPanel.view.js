@@ -1,4 +1,3 @@
-// src/ui/components/MissionsPanel.view.js
 import { SpeciesCard } from "./SpeciesCard.js";
 
 function renderSpeciesList(listEl, missionsList = []) {
@@ -7,13 +6,13 @@ function renderSpeciesList(listEl, missionsList = []) {
     listEl.textContent = "No missions yet.";
     return;
   }
-  for (const m of missionsList) listEl.appendChild(SpeciesCard(m));
+  for (const m of missionsList) {
+    // If your API uses a different shape, adjust here:
+    // e.g., SpeciesCard(m.species) or SpeciesCard({ ...m, title: m.name })
+    listEl.appendChild(SpeciesCard(m));
+  }
 }
 
-/**
- * Pure view: creates the panel and exposes small helpers for the controller.
- * No auth/Firestore/network logic here.
- */
 export function createMissionsPanelView() {
   const sec = document.createElement("section");
   sec.className = "card";
@@ -24,22 +23,13 @@ export function createMissionsPanelView() {
     </div>
     <div id="list" class="form-grid" aria-live="polite">Loading…</div>
   `;
-
   const list = sec.querySelector("#list");
   const locateBtn = sec.querySelector("#locate");
 
-  const view = {
+  return {
     element: sec,
-    setStatus(text) {
-      list.textContent = text ?? "";
-    },
-    renderMissions(missions) {
-      renderSpeciesList(list, missions);
-    },
-    onLocate(handler) {
-      locateBtn.addEventListener("click", handler);
-    },
+    setStatus(text) { list.textContent = text ?? ""; },
+    renderMissions(missions) { renderSpeciesList(list, missions); },
+    onLocate(handler) { locateBtn.addEventListener("click", handler); },
   };
-
-  return view;
 }
