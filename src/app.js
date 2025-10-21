@@ -11,6 +11,8 @@ appRoot.innerHTML = `
   <header id="appHeader" class="nav"></header>
   <main id="appMain" class="container">
     <h1 class="h1">Welcome to PlantGo</h1>
+    <section id="identifyRoot"></section>
+    <section id="missionsRoot"></section>
     <section id="herbariumRoot"></section>
   </main>
   <div id="overlayRoot"></div>
@@ -18,6 +20,13 @@ appRoot.innerHTML = `
 
 // Mount header
 initHeader(document.getElementById("appHeader"));
+// Mount identify
+import { mountIdentify } from "./controllers/identify.controller.js";
+import { mountMissions } from "./controllers/missions.controller.js";
+// Mount identify
+mountIdentify(document.getElementById("identifyRoot"));
+// Mount missions
+mountMissions(document.getElementById("missionsRoot"));
 // Mount herbarium
 mountHerbariumList(document.getElementById("herbariumRoot"));
 // Mount modal
@@ -25,6 +34,11 @@ mountResultModal(document.getElementById("overlayRoot"));
 
 // Example seed state (replace with real service calls)
 setState({
+  ui: { missions: [
+    { id: "m1", title: "Identify 3 species", desc: "Upload and confirm 3 distinct species.", points: 50, progress: 0.33, completed: false },
+    { id: "m2", title: "Make 5 observations", desc: "Any species counts.", points: 75, progress: 0.2, completed: false },
+    { id: "m3", title: "Find a rare plant", desc: "Any observation with rarity ‘rare’.", points: 120, progress: 0, completed: false }
+  ] },
   user: { displayName: "Explorer", points: 180, newBadges: [{ id: "collector-10", name: "Collector (10 species)" }] },
   observations: [
     { speciesId: "sp1", speciesName: "Bellis perennis", photoUrl: "https://picsum.photos/seed/flower1/400/300", points: 15 },

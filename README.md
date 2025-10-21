@@ -13,3 +13,18 @@ This refactor separates **visuals** from **functionality**:
 Open `index.html` with a static server (or Live Server).
 
 Hook your existing Identify/Missions logic by adding controllers + services without touching views.
+
+
+## Included components
+- Header (view/controller)
+- ResultModal (view/controller)
+- IdentifyPanel (view/controller)
+- MissionsPanel (view/controller)
+- Herbarium list + HerbariumCard (view/controller + view)
+- SpeciesCard (view)
+- Generic Modal (view + wiring helper)
+
+## Wiring
+- All Firebase access should go in `src/services/*`.
+- Views never import Firebase; controllers call services and update `setState(...)`.
+- Styling stays in `assets/styles.css`.
