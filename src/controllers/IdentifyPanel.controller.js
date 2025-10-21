@@ -1,6 +1,6 @@
 // src/controllers/IdentifyPanel.controller.js
 import { identifyPlant } from "../api/plantgo.js";
-import { ResultModal } from "../ui/components/ResultModal.js";
+import { ResultModal } from "../controllers/ResultModal.controller.js";
 import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 import { getCurrentUser, getUserTotalPoints } from "../data/user.repo.js";
 import { getCurrentPosition } from "../data/geo.service.js";
