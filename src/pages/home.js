@@ -1,9 +1,10 @@
-import { Header } from "./ui/components/Header.js";
-import { IdentifyPanel } from "./ui/components/IdentifyPanel.controller.js";
-import { MissionsPanel } from "./ui/components/MissionsPanel.controller.js";
-import { listenUserLevel } from "./user/level.js";
+// src/pages/home.js
+import { Header } from "../ui/components/Header.js";
+import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
+import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
+import { listenUserLevel } from "../user/level.js";
 
-import { auth } from "../firebase-config.js";
+import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 function App(root) {
@@ -48,3 +49,4 @@ function App(root) {
 }
 
 App(document.getElementById("app"));
+export default App; // optional

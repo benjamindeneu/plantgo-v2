@@ -1,9 +1,9 @@
 // src/ui/components/IdentifyPanel.controller.js
-import { identifyPlant } from "../../api/plantgo.js";
-import { ResultModal } from "./ResultModal.js";
-import { createIdentifyPanelView } from "./IdentifyPanel.view.js";
+import { identifyPlant } from "../api/plantgo.js";
+import { ResultModal } from "../ui/components/ResultModal.js";
+import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 
-import { auth, db } from "../../../firebase-config.js";
+import { auth, db } from "../../firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 export function IdentifyPanel() {
