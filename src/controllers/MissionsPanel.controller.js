@@ -54,7 +54,7 @@ export function MissionsPanel() {
       );
 
       view.renderMissions(missions);
-      // view.setStatus(""); // only if status is separate from the list
+      view.setStatus("");
     } catch (e) {
       console.error("[MissionsPanel] Locate/Fetch error:", e);
       view.setStatus(e?.message || "Location/mission error.");
