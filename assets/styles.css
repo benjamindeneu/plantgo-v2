@@ -1370,9 +1370,10 @@ p { color: color-mix(in srgb, var(--text) 80%, var(--muted)); }
 .species-item:hover { box-shadow: var(--shadow-lg); }
 
 /* 4) Buttons — unify look without changing your classes */
-button,
-.points-btn,
-.validate-species-btn,
+/* Make the global button style skip rarity-tagged buttons */
+button:not(.common-points, .rare-points, .epic-points, .legendary-points),
+.points-btn:not(.common-points, .rare-points, .epic-points, .legendary-points),
+.validate-species-btn:not(.common-points, .rare-points, .epic-points, .legendary-points),
 #userMenu button {
   border-radius: 12px;
   font-weight: 700;
@@ -1380,6 +1381,7 @@ button,
   background: linear-gradient(180deg, var(--green-600), var(--green-700));
   box-shadow: 0 2px 0 rgba(0,0,0,0.06);
 }
+
 button:hover,
 .points-btn:hover,
 .validate-species-btn:hover,

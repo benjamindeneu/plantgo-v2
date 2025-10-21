@@ -60,10 +60,10 @@ export function MissionCard(species) {
 
 /* ------ helpers (logic) ------ */
 function getRarityFromPoints(totalPoints) {
-  if (totalPoints >= 1500) return { missionLevel: "legendary-points", levelClass: "legendary-points" };
-  if (totalPoints >= 1000) return { missionLevel: "epic-points",       levelClass: "epic-points" };
-  if (totalPoints >=  500) return { missionLevel: "rare-points",       levelClass: "rare-points" };
-  return { missionLevel: "common-points", levelClass: "common-points" };
+  if (totalPoints >= 1500) return { missionLevel: "Legendary", levelClass: "legendary-points" };
+  if (totalPoints >= 1000) return { missionLevel: "Epic",       levelClass: "epic-points" };
+  if (totalPoints >=  500) return { missionLevel: "Rare",       levelClass: "rare-points" };
+  return { missionLevel: "Common", levelClass: "common-points" };
 }
 function prettyKey(k) {
   const map = {
