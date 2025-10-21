@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="color-scheme" content="light">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PlantGo • Sign Up</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <meta name="theme-color" content="#ffffff" />
+</head>
+<body style="display:grid;place-items:center;min-height:100dvh">
+  <div class="card" style="width:min(92vw,420px)">
+    <h1>Create your account</h1>
+    <form id="signupForm" class="form-grid">
+      <input id="username" class="input" type="text" placeholder="Username" required />
+      <input id="email" class="input" type="email" placeholder="Email" required />
+      <input id="password" class="input" type="password" placeholder="Password" required />
+      <input id="confirmPassword" class="input" type="password" placeholder="Confirm Password" required />
+      <button class="primary" type="submit">Sign Up</button>
+    </form>
+    <p class="muted">Already have an account? <a href="./login.html">Log in</a></p>
+    <div id="signupMessage" class="validation-feedback" aria-live="polite"></div>
+  </div>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./signup.js"></script>
+</body>
+</html>

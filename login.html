@@ -1,13 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login | PlantGo</title>
-  <link rel="stylesheet" href="./assets/styles.css">
+  <meta name="color-scheme" content="light">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PlantGo • Login</title>
+  <link rel="stylesheet" href="./assets/styles.css" />
+  <meta name="theme-color" content="#ffffff" />
 </head>
-<body>
-  <div id="app"></div>
-  <script type="module" src="./src/app.js"></script>
+<body style="display:grid;place-items:center;min-height:100dvh">
+  <div class="card" style="width:min(92vw,380px)">
+    <h1>Welcome back</h1>
+    <form id="loginForm" class="form-grid">
+      <input id="email" class="input" type="email" placeholder="Email" required />
+      <input id="password" class="input" type="password" placeholder="Password" required />
+      <button class="primary" type="submit">Login</button>
+    </form>
+    <p class="muted">No account? <a href="./signup.html">Create one</a></p>
+    <div id="loginMessage" class="validation-feedback" aria-live="polite"></div>
+  </div>
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="./login.js"></script>
 </body>
 </html>
