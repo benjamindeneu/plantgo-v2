@@ -1113,3 +1113,72 @@ html, body {
   75%  { transform: scale(0.98); }
   100% { transform: scale(1); }
 }
+
+
+/* === Contrast fix: Add-picture button & Header user button (non-breaking) === */
+
+/* 1) “Add picture” button (label-file)
+   Keep it light on hover/active so text stays readable and on-brand. */
+.label-file {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px dashed var(--border);
+  transition: background .2s var(--easing), color .2s var(--easing), border-color .2s var(--easing), box-shadow .2s var(--easing);
+}
+.label-file:hover {
+  background: var(--green-50);        /* light tint, not dark */
+  color: var(--text);                 /* keep contrast */
+  border-color: var(--green-300);
+}
+.label-file:active {
+  background: var(--green-100);       /* slightly stronger, still light */
+  color: var(--text);
+  border-color: var(--green-400);
+}
+.label-file:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
+  outline-offset: 2px;
+  border-radius: var(--r-md);
+}
+
+/* 2) Header user button
+   Ensure hover/active never flips to dark text on dark bg. Support both selectors you used. */
+.user-btn,
+#userBtn {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: background .2s var(--easing), color .2s var(--easing), box-shadow .2s var(--easing), transform .2s var(--easing), border-color .2s var(--easing);
+}
+.user-btn:hover,
+#userBtn:hover {
+  background: var(--surface-2);       /* subtle light hover */
+  color: var(--text);
+  border-color: var(--border);
+}
+.user-btn:active,
+#userBtn:active {
+  transform: translateY(0);           /* avoid heavy “press down” look */
+  background: var(--surface-2);
+}
+.user-btn:focus-visible,
+#userBtn:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+/* Optional: highlight when menu is open */
+.user-btn[aria-expanded="true"],
+#userBtn.menu-open {
+  background: var(--green-50);
+  border-color: var(--green-300);
+}
+
+/* (Optional) dark-scheme tweaks, very gentle so it won’t affect light theme */
+@media (prefers-color-scheme: dark) {
+  .label-file:hover { background: #122015; color: #e7f6eb; border-color: #2f8e49; }
+  .label-file:active { background: #18301d; }
+  .user-btn:hover, #userBtn:hover { background: #18211b; }
+}
+
