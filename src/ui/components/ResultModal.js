@@ -35,16 +35,19 @@ export function ResultModal() {
       <div class="result-body">
         <div class="user-photos center" id="userPhotos"></div>
 
-        <div class="result-points center">
-          <div class="muted" style="margin-bottom:6px;">Observation points:</div>
+        <div class="result-points">
+          <div class="muted" style="margin-bottom:6px; text-align:center;">Observation points:</div>
 
-          <!-- Row with points badge + rarity badge side by side -->
-          <div class="points-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
-            <div id="obsBadge" class="points-badge common-points" data-rarity="common-points">
+          <!-- Centered column: points badge on top, rarity badge below -->
+          <div class="points-stack" style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:8px;">
+            <div id="obsBadge"
+                class="points-badge common-points"
+                data-rarity="common-points"
+                style="color:#fff;">
               <span class="value"><span id="pointsCounter">0</span></span>
             </div>
 
-            <!-- RARITY BADGE GOES HERE -->
+            <!-- Rarity badge appears here after animation -->
             <div id="rarityWrap" style="display:none;"></div>
           </div>
 
@@ -126,7 +129,7 @@ export function ResultModal() {
         badgeEl: qs("#obsBadge"),
       });
 
-      // After counting completes, show the rarity badge next to the points badge
+      // Show the rarity badge BELOW the points badge (centered)
       const rarityClass = getRarity(baseTotal);
       const rarityLabel = rarityText(rarityClass);
 
@@ -135,9 +138,9 @@ export function ResultModal() {
       rarityBadge.className = `mission-level ${rarityClass}`;
       rarityBadge.innerHTML = `<span class="label">${rarityLabel}</span>`;
 
-      // display inline next to points badge
       rarityWrap.style.display = "inline-flex";
       rarityWrap.appendChild(rarityBadge);
+
 
       // Mission / Discovery badges
       const missionHit = await isInMissionsList(speciesName);
