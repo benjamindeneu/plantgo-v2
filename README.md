@@ -1,10 +1,15 @@
-# PlantGo v2 scaffold (auth-compatible)
+# PlantGo — Refactored (Views vs Logic)
 
-- Two endpoints only (missions + identify) with a thin API wrapper in `src/api`.
-- Auth restored to your original working pattern:
-  - Root-level `firebase-config.js`
-  - `login.js` and `signup.js` unchanged (uses the same form IDs and flows)
-- Modern modular UI in `src/ui/components` (no framework lock-in).
+This refactor separates **visuals** from **functionality**:
+
+- `src/ui/**` — *pure views* (no Firebase or side effects)
+- `src/controllers/**` — *event glue* (listen to state and user events)
+- `src/services/**` — *Firebase & side-effects*
+- `src/domain/**` — *pure logic* (points, levels, badges)
+- `src/state/**` — lightweight store
+- `assets/styles.css` — your existing stylesheet
 
 ## Run
-Serve the folder with any static server (e.g., `npx serve`) and open `login.html` / `signup.html` / `index.html`.
+Open `index.html` with a static server (or Live Server).
+
+Hook your existing Identify/Missions logic by adding controllers + services without touching views.
