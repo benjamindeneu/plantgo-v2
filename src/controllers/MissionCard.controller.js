@@ -1,7 +1,7 @@
 // src/controllers/MissionCard.controller.js
 import { createMissionCardView } from "../ui/components/MissionCard.view.js";
 import { Modal } from "../ui/components/Modal.js";
-import { getWikipediaImage } from "../ui/wiki.js";
+import { getWikipediaImage } from "../data/wiki.service.js";
 
 /**
  * Drop-in replacement for SpeciesCard → MissionCard
