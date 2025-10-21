@@ -1,7 +1,7 @@
 // src/controllers/HerbariumCard.controller.js
 import { createHerbariumCardView } from "../ui/components/HerbariumCard.view.js";
 // wiki.js lives under /src/ui/ per your current imports
-import { getWikipediaImage } from "../ui/wiki.js";
+import { getWikipediaImage } from "../data/wiki.service.js";
 
 /**
  * Controller keeps the old API: HerbariumCard(props) -> HTMLElement
