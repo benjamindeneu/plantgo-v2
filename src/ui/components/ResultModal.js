@@ -37,9 +37,17 @@ export function ResultModal() {
 
         <div class="result-points">
           <div class="muted" style="margin-bottom:6px;">Observation points:</div>
-          <div id="obsBadge" class="points-badge common-points" data-rarity="common-points">
-            <span class="value">+<span id="pointsCounter">0</span></span>
+
+          <!-- Row with points badge + rarity badge side by side -->
+          <div class="points-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <div id="obsBadge" class="points-badge common-points" data-rarity="common-points">
+              <span class="value">+<span id="pointsCounter">0</span></span>
+            </div>
+
+            <!-- RARITY BADGE GOES HERE -->
+            <div id="rarityWrap" style="display:none;"></div>
           </div>
+
           <div class="details" id="pointsDetails"></div>
         </div>
 
@@ -118,16 +126,18 @@ export function ResultModal() {
         badgeEl: qs("#obsBadge"),
       });
 
-      // After counting completes, add the rarity badge like mission cards
+      // After counting completes, show the rarity badge next to the points badge
       const rarityClass = getRarity(baseTotal);
       const rarityLabel = rarityText(rarityClass);
+
+      const rarityWrap = qs("#rarityWrap");
       const rarityBadge = document.createElement("div");
       rarityBadge.className = `mission-level ${rarityClass}`;
       rarityBadge.innerHTML = `<span class="label">${rarityLabel}</span>`;
-      // show it before other badges (pop in)
-      const badgesEl = qs("#badges");
-      badgesEl.style.display = "flex";
-      await showBadge(badgesEl, { emoji: "", label: rarityBadge.outerHTML, bonus: null, rawHTML: true });
+
+      // display inline next to points badge
+      rarityWrap.style.display = "inline-flex";
+      rarityWrap.appendChild(rarityBadge);
 
       // Mission / Discovery badges
       const missionHit = await isInMissionsList(speciesName);
