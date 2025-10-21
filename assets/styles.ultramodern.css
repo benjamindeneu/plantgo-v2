@@ -1,0 +1,402 @@
+
+/* =======================================================================
+   PlantGo • Ultra‑Modern Visual System (Full Visual Redesign, no JS changes)
+   Version: 1.0
+   Notes:
+   - Keeps existing class/ID hooks used by your app (cards, modals, buttons, result modal, file label, etc.)
+   - Pure CSS redesign: fluid type, spacing scale, glass surfaces, better focus states, dark mode, A11y friendly.
+   ======================================================================= */
+
+/* -----------------------------
+   0) Modern CSS Reset
+   ----------------------------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+* { margin: 0; }
+html:focus-within { scroll-behavior: smooth; }
+html, body { height: 100%; }
+body { line-height: 1.5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+img, picture, video, canvas, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: anywhere; }
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+
+/* -----------------------------
+   1) Design Tokens (light)
+   ----------------------------- */
+:root {
+  /* Brand */
+  --brand-50:#effaf3; --brand-100:#d9f4e3; --brand-200:#b6e9cb; --brand-300:#83dcae;
+  --brand-400:#4fcd90; --brand-500:#2dbd75; --brand-600:#17a45f; --brand-700:#12824d; --brand-800:#0f6840; --brand-900:#0b4e31;
+
+  /* Semantic */
+  --ok:#16a34a; --warn:#f59e0b; --danger:#ef4444; --info:#0ea5e9;
+
+  /* Surface & text */
+  --bg: #0b1210;            /* subtle dark background gradient base */
+  --bg-2: #0e1614;
+  --surface: #0f1715;
+  --surface-2: #121c19;
+  --elev: rgba(255,255,255,.04);
+  --border: rgba(255,255,255,.10);
+  --text: #e8f1ee;
+  --muted: #a8bab5;
+  --muted-2: #7f918c;
+
+  /* FX */
+  --ring: color-mix(in srgb, var(--brand-400) 60%, transparent);
+  --shadow-1: 0 2px 10px rgba(0,0,0,.25);
+  --shadow-2: 0 10px 30px rgba(0,0,0,.35);
+  --shadow-3: 0 24px 80px rgba(0,0,0,.45);
+
+  /* Radii */
+  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 20px; --r-xl: 28px; --r-pill: 999px;
+
+  /* Spacing scale */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px;
+  --s-6: 24px; --s-7: 32px; --s-8: 40px; --s-9: 56px; --s-10: 72px;
+
+  /* Fluid type scale (clamp) */
+  --fs-xs: clamp(11px, .7vw, 12px);
+  --fs-sm: clamp(12px, .8vw, 14px);
+  --fs-md: clamp(14px, .95vw, 16px);
+  --fs-lg: clamp(18px, 1.4vw, 20px);
+  --fs-xl: clamp(22px, 2vw, 28px);
+  --fs-2xl: clamp(28px, 3vw, 40px);
+  --fs-3xl: clamp(36px, 4vw, 56px);
+
+  /* Transitions */
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --t-fast: .15s; --t-med: .25s; --t-slow: .45s;
+}
+
+/* -----------------------------
+   2) Global look
+   ----------------------------- */
+body {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(45,189,117,.15), transparent 60%),
+    radial-gradient(1200px 600px at 10% 110%, rgba(14,165,233,.12), transparent 60%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  color: var(--text);
+  font-size: var(--fs-md);
+}
+
+/* Text styles */
+h1 { font-size: var(--fs-3xl); letter-spacing: .2px; font-weight: 800; }
+h2 { font-size: var(--fs-2xl); font-weight: 800; }
+h3 { font-size: var(--fs-xl); font-weight: 700; }
+p  { color: var(--muted); }
+
+/* Links */
+a { color: var(--brand-400); text-underline-offset: 3px; }
+a:hover { color: var(--brand-300); }
+
+/* Focus ring (global) */
+:where(button, a, input, select, textarea, [role="button"], [tabindex]) {
+  outline: none;
+}
+:where(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  box-shadow: 0 0 0 3px var(--ring);
+  border-radius: var(--r-sm);
+}
+
+/* -----------------------------
+   3) Header & Nav
+   ----------------------------- */
+header, .nav, .app-header {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(10px) saturate(120%);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+}
+.app-header .brand, .logo { display:flex; align-items:center; gap: var(--s-3); }
+.app-header .brand .title { font-weight: 800; font-size: var(--fs-lg); }
+
+/* Profile / user button */
+#userBtn, .user-btn {
+  padding: 8px 12px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+}
+#userBtn:hover, .user-btn:hover { transform: translateY(-1px); }
+#userBtn[aria-expanded="true"], .user-btn[aria-expanded="true"] {
+  background: linear-gradient(180deg, rgba(45,189,117,.20), rgba(45,189,117,.08));
+  border-color: color-mix(in srgb, var(--brand-400) 50%, var(--border));
+}
+
+/* Dropdown menu */
+#userMenu, .menu {
+  margin-top: 8px;
+  min-width: 220px;
+  background: linear-gradient(180deg, rgba(19,30,27,.96), rgba(16,25,22,.96));
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-3);
+  overflow: hidden;
+}
+#userMenu button, .menu button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+}
+#userMenu button:hover, .menu button:hover { background: rgba(255,255,255,.04); }
+
+/* -----------------------------
+   4) Buttons
+   ----------------------------- */
+button, .btn, .points-btn, .validate-species-btn {
+  --bg1: var(--brand-500); --bg2: var(--brand-600);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 16px;
+  font-weight: 800; letter-spacing: .2px;
+  background: linear-gradient(180deg, var(--bg1), var(--bg2));
+  color: white;
+  border: 0;
+  border-radius: var(--r-sm);
+  box-shadow: 0 2px 0 rgba(0,0,0,.3), var(--shadow-1);
+  transition: transform var(--t-fast) var(--ease), filter var(--t-fast) var(--ease);
+  cursor: pointer;
+}
+button:hover, .btn:hover, .points-btn:hover, .validate-species-btn:hover { transform: translateY(-1px); filter: brightness(1.03); }
+button:active, .btn:active, .points-btn:active, .validate-species-btn:active { transform: translateY(0); filter: brightness(.96); }
+
+/* Subtle / secondary */
+button.secondary, .btn.secondary {
+  --bg1: rgba(255,255,255,.04); --bg2: rgba(255,255,255,.02);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+}
+
+/* Ghost */
+.btn.ghost { background: transparent; border: 1px dashed var(--border); color: var(--muted); }
+.btn.ghost:hover { border-color: color-mix(in srgb, var(--brand-400) 40%, var(--border)); color: var(--text); }
+
+/* Icon-only */
+.btn.icon { padding: 10px; border-radius: var(--r-pill); width: 40px; height: 40px; }
+
+/* -----------------------------
+   5) Inputs & File Upload
+   ----------------------------- */
+input[type="text"], input[type="search"], input[type="number"], input[type="email"],
+textarea, select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+input:focus, textarea:focus, select:focus { border-color: color-mix(in srgb, var(--brand-400) 40%, var(--border)); }
+
+/* File label (keeps your .label-file hook) */
+label.label-file,
+.input-wrap label.label-file,
+.container label.label-file,
+input[type="file"] + label.label-file {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  border: 1.5px dashed var(--border);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+}
+label.label-file:hover { border-color: color-mix(in srgb, var(--brand-400) 40%, var(--border)); }
+
+/* -----------------------------
+   6) Cards & Lists
+   ----------------------------- */
+.card, .species-item, .herbarium-card, .wiki-thumb {
+  background: linear-gradient(180deg, rgba(24,36,32,.9), rgba(18,27,24,.9));
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-2);
+  overflow: hidden;
+}
+.card:hover, .species-item:hover, .herbarium-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-3); }
+.card .card-header { padding: var(--s-6); border-bottom: 1px solid var(--border); }
+.card .card-content, .species-item .content { padding: var(--s-6); display: grid; gap: var(--s-5); }
+
+/* Species image mask */
+.species-image, .thumb, .wiki-thumb img {
+  border-radius: var(--r-md);
+}
+/* Grid helpers */
+.grid { display: grid; gap: var(--s-6); }
+.grid.cols-2 { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.grid.cols-3 { grid-template-columns: repeat(3, minmax(0,1fr)); }
+@media (max-width: 900px) { .grid.cols-3 { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 640px) { .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+
+/* -----------------------------
+   7) Modals
+   ----------------------------- */
+.modal {
+  position: fixed; inset: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, black 50%, transparent);
+  backdrop-filter: blur(8px);
+  padding: var(--s-8);
+  animation: modalFade var(--t-slow) var(--ease);
+}
+.modal-content {
+  width: min(920px, 96vw);
+  background: linear-gradient(180deg, rgba(24,36,32,.96), rgba(18,27,24,.96));
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-3);
+  overflow: clip;
+  transform-origin: 50% 58%;
+  animation: modalPop var(--t-slow) var(--ease);
+}
+@keyframes modalFade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes modalPop { from { transform: translateY(10px) scale(.98); } to { transform: translateY(0) scale(1); } }
+
+/* -----------------------------
+   8) Result Modal (Points & Levels)
+   ----------------------------- */
+.result-head { display:flex; align-items:flex-end; justify-content:space-between; gap: var(--s-5); padding: var(--s-6) var(--s-6) 0; }
+.result-points .big { font-size: clamp(40px, 6vw, 64px); font-weight: 900; line-height: 1; color: white; }
+.detail-line { display:flex; align-items:center; justify-content:space-between; gap: var(--s-4); padding: var(--s-4) var(--s-6); border-top:1px solid var(--border); }
+
+/* Progress */
+.progress-rail, #resultModal #resultLevelProgressContainer {
+  width: 100%; height: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.progress-bar, #resultModal #resultLevelProgressBar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--brand-400), var(--brand-600));
+  transition: width .18s linear;   /* linear by default */
+}
+
+/* Badges */
+.level-badge, .points-badge, .badge, .badge.big {
+  display: inline-flex; align-items:center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: var(--shadow-1);
+  color: var(--text);
+  font-weight: 700;
+}
+.badge.big { padding: 10px 14px; }
+
+/* Rarity color chips */
+.common-points   { background: linear-gradient(180deg, #9aa3a7, #7b8488); color:#0d1412; }
+.rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
+.epic-points     { background: linear-gradient(180deg, #b46ad3, #9c27b0); }
+.legendary-points{ background: linear-gradient(180deg, #ffe27a, #ffd54d); color:#0d1412; }
+
+/* -----------------------------
+   9) Tables & Pills
+   ----------------------------- */
+.table { width:100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px 14px; border-bottom:1px solid var(--border); }
+.pill { display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:var(--r-pill); background:rgba(255,255,255,.06); border:1px solid var(--border); }
+
+/* -----------------------------
+   10) Loaders & Skeletons
+   ----------------------------- */
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid rgba(255,255,255,.12); border-top-color: var(--brand-500); animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+.skeleton { position: relative; overflow: hidden; background: rgba(255,255,255,.06); border-radius: var(--r-sm); }
+.skeleton::after { content:""; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); transform: translateX(-100%); animation: skeleton 1.2s infinite; }
+@keyframes skeleton { to { transform: translateX(100%) } }
+
+/* -----------------------------
+   11) Toasts
+   ----------------------------- */
+.toast {
+  position: fixed; right: 16px; bottom: 16px; z-index: 60;
+  display:flex; align-items:center; gap:12px;
+  padding: 12px 14px; border-radius: var(--r-md);
+  background: linear-gradient(180deg, rgba(19,30,27,.96), rgba(16,25,22,.96));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-2);
+}
+.toast.ok { border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+.toast.warn { border-color: color-mix(in srgb, var(--warn) 40%, var(--border)); }
+.toast.danger { border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+
+/* -----------------------------
+   12) Tabs
+   ----------------------------- */
+.tabs { display:flex; gap: 8px; border-bottom:1px solid var(--border); }
+.tab { padding:10px 14px; border-radius: var(--r-pill); cursor: pointer; color: var(--muted); }
+.tab[aria-selected="true"] { color: white; background: rgba(255,255,255,.06); border:1px solid var(--border); }
+
+/* -----------------------------
+   13) Utilities
+   ----------------------------- */
+.container { width: min(1200px, 92vw); margin-inline: auto; }
+.center { display:grid; place-items:center; }
+.mt-6{ margin-top: var(--s-6); } .mb-6{ margin-bottom: var(--s-6); }
+.gap-4{ gap: var(--s-4); } .gap-6{ gap: var(--s-6); }
+
+/* -----------------------------
+   14) High-contrast / Accessibility
+   ----------------------------- */
+@media (prefers-contrast: more) {
+  :root { --border: rgba(255,255,255,.3); }
+  a { text-decoration: underline; }
+  button, .btn { box-shadow: none; }
+}
+
+/* -----------------------------
+   15) Light Theme (optional)
+   ----------------------------- */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg:#f7fbf9; --bg-2:#eef6f2; --surface:#ffffff; --surface-2:#f3f8f5;
+    --text:#0f1916; --muted:#3a4a46; --muted-2:#5b6a66;
+    --border: rgba(2,6,23,.12);
+    --ring: color-mix(in srgb, var(--brand-400) 55%, transparent);
+  }
+  body {
+    background:
+      radial-gradient(1200px 600px at 100% -10%, rgba(14,165,233,.10), transparent 60%),
+      radial-gradient(1200px 600px at -10% 110%, rgba(45,189,117,.12), transparent 60%),
+      linear-gradient(180deg, var(--bg), var(--bg-2));
+  }
+  .card, .species-item, .herbarium-card, .wiki-thumb {
+    background: linear-gradient(180deg, #ffffff, #f7fbf9);
+    box-shadow: 0 10px 30px rgba(2,6,23,.06);
+  }
+  .modal { background: color-mix(in srgb, #0b1210 35%, transparent); }
+  .modal-content { background: linear-gradient(180deg, #ffffff, #f7fbf9); }
+}
+
+/* -----------------------------
+   16) Backwards-compat hooks for your app
+   (selectors lifted from your existing code paths)
+   ----------------------------- */
+
+/* Species list layout compatibility */
+.card-content { display: grid; gap: var(--s-5); }
+.species-info p { color: var(--muted); }
+
+/* Result modal specific IDs */
+#resultModal .result-head { gap: var(--s-4); }
+#resultModal .detail-line { background: transparent; }
+
+/* Keep any old classes looking coherent */
+.badge.in { transition: transform var(--t-med) var(--ease), opacity var(--t-med) var(--ease); }
