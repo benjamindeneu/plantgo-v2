@@ -1062,7 +1062,7 @@ body {
   justify-content: center;
   gap: 8px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: 12px;
   position: relative;
   overflow: hidden;
   isolation: isolate;
