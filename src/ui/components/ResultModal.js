@@ -44,7 +44,7 @@ export function ResultModal() {
                 class="points-badge common-points"
                 data-rarity="common-points"
                 style="color:#fff;">
-              <span class="value"><span id="pointsCounter">0</span></span>
+                <span class="value"><span id="pointsCounter">0</span></span>
             </div>
 
             <!-- Rarity badge appears here after animation -->
