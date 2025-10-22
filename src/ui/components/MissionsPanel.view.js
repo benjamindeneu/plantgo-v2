@@ -13,9 +13,9 @@ export function createMissionsPanelView() {
   const sec = document.createElement("section");
   sec.className = "card";
   sec.innerHTML = `
-    <h1>Missions near you</h1>
+    <h1>Your missions</h1>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
-      <button id="locate" class="secondary" type="button">Get Location & Missions</button>
+      <button id="locate" class="secondary" type="button">Refresh Missions</button>
     </div>
     <div id="status" aria-live="polite" class="validation-feedback"></div>
     <div id="list" class="form-grid"></div>

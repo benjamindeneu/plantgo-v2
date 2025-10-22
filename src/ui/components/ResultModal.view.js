@@ -1,5 +1,3 @@
-// src/ui/components/ResultModal.view.js
-
 export function createResultModalView() {
   const overlay = document.createElement("div");
   overlay.className = "modal show result-modal";
@@ -41,7 +39,8 @@ export function createResultModalView() {
                 <span class="value"><span id="pointsCounter">0</span></span>
             </div>
 
-            <div id="rarityWrap" style="display:none;"></div>
+            <!-- Removed rarity/second badge. We'll inject Level line here at the end. -->
+            <div id="inlineLevel" style="display:none; margin-top:6px; text-align:center;" class="muted"></div>
           </div>
 
           <div class="details" id="pointsDetails"></div>
@@ -149,6 +148,12 @@ export function createResultModalView() {
     return { toLevel: L, toPct: clamp01(pct) };
   }
 
+  function setInlineLevel(level) {
+    const el = qs("#inlineLevel");
+    el.textContent = `Level ${level}`;
+    el.style.display = "block";
+  }
+
   /* ---------- public view API ---------- */
   return {
     el: overlay,
@@ -173,6 +178,11 @@ export function createResultModalView() {
       obsBadge.dataset.rarity = getRarity(0);
       obsBadge.classList.add(obsBadge.dataset.rarity);
       qs("#badges").style.display = "none";
+
+      // Hide inline level until we’re done.
+      const inlineLevel = qs("#inlineLevel");
+      inlineLevel.style.display = "none";
+      inlineLevel.textContent = "";
     },
 
     /**
@@ -191,40 +201,36 @@ export function createResultModalView() {
       title.textContent = "New observation of :";
       speciesLine.textContent = speciesName || "Unknown species";
 
-      // animate observation points + detail lines
+      // Animate observation points + detail lines (keeps rarity classes in sync)
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },
         { ease: "linear" }
       );
 
-      // rarity badge under points badge
-      const rarityClass = getRarity(baseTotal);
-      const rarityWrap = qs("#rarityWrap");
-      const rarityBadge = document.createElement("div");
-      rarityBadge.className = `mission-level ${rarityClass}`;
-      rarityBadge.innerHTML = `<span class="label">${rarityText(rarityClass)}</span>`;
-      rarityWrap.style.display = "inline-flex";
-      rarityWrap.appendChild(rarityBadge);
+      // (Removed rarity/second badge entirely)
 
-      // mission/discovery badges
+      // Mission/discovery badges
       if (badges && badges.length) {
         badgesEl.style.display = "block";
         for (const b of badges) await showBadge(badgesEl, b);
       }
 
-      // final total
+      // Final total
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      // level progress animation (from current to current+final)
+      // Level progress animation (from current to current+final)
       const { fromPct } = calcFromLevel(currentTotalBefore);
       const { toLevel, toPct } = calcToLevel(currentTotalBefore + finalTotal);
       await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
 
-      // update labels
+      // Update labels at top
       qs("#levelFrom").textContent = toLevel;
       qs("#levelTo").textContent = toLevel + 1;
       qs("#levelToLabel").style.opacity = 0.9;
+
+      // NEW: show "Level N" under the points counter (same display, new line)
+      setInlineLevel(toLevel);
     },
   };
 
@@ -245,7 +251,7 @@ export function createResultModalView() {
         const t = Math.min(1, elapsed / duration);
         const val = Math.round(total * ease(t));
         counterEl.textContent = String(val);
-        upgradeBadgeBy(val, badgeEl);
+        upgradeBadgeBy(val, badgeEl); // keeps common/rare/epic/legendary classes current
 
         while (revealed < revealTimes.length && elapsed >= revealTimes[revealed]) {
           const [k, v] = entries[revealed];
