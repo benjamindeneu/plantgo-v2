@@ -5,8 +5,6 @@ export function createResultModalView() {
 
   overlay.innerHTML = `
     <div class="modal-content result">
-      <button class="close" aria-label="Close">×</button>
-
       <!-- LEVEL TOP -->
       <div class="level-wrap at-top">
         <div class="level-line">
@@ -38,9 +36,6 @@ export function createResultModalView() {
                 data-rarity="common-points">
                 <span class="value"><span id="pointsCounter">0</span></span>
             </div>
-
-            <!-- Removed rarity/second badge. We'll inject Level line here at the end. -->
-            <div id="inlineLevel" style="display:none; margin-top:6px; text-align:center;" class="muted"></div>
           </div>
 
           <div class="details" id="pointsDetails"></div>
@@ -76,6 +71,8 @@ export function createResultModalView() {
     };
     return map[k] || k.replace(/[_-]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
   };
+
+  // rarity helpers
   const getRarity = (val) => (val >= 1500 ? "legendary-points" :
                                val >= 1000 ? "epic-points" :
                                val >= 500  ? "rare-points" : "common-points");
@@ -94,17 +91,24 @@ export function createResultModalView() {
         return (t) => t;
     }
   }
+
+  function setBadgeRarityClass(el, rarity) {
+    // Always remove and re-add to ensure CSS takes effect
+    el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
+    el.dataset.rarity = rarity;
+    el.classList.add(rarity);
+  }
+
   function upgradeBadgeBy(val, el) {
     const next = getRarity(val);
     const prev = el.dataset.rarity || "";
     if (prev === next) return;
-    el.dataset.rarity = next;
-    el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
-    el.classList.add(next);
+    setBadgeRarityClass(el, next);
     el.classList.remove("points-pop");
     void el.offsetWidth; // reflow
     el.classList.add("points-pop");
   }
+
   function animateProgress(el, fromPct, toPct, options = {}) {
     const duration = 900, start = performance.now();
     const ease = getEaseFn(options.ease || "linear");
@@ -119,6 +123,7 @@ export function createResultModalView() {
       requestAnimationFrame(frame);
     });
   }
+
   function showBadge(container, badge) {
     return new Promise((r) => {
       const node = document.createElement("div");
@@ -135,6 +140,7 @@ export function createResultModalView() {
       });
     });
   }
+
   function calcFromLevel(total) {
     const L = Math.floor(1 + total / 11000);
     const prev = (L - 1) * 11000, next = L * 11000;
@@ -146,12 +152,6 @@ export function createResultModalView() {
     const prev = (L - 1) * 11000, next = L * 11000;
     const pct = Math.round(((total - prev) / (next - prev)) * 100);
     return { toLevel: L, toPct: clamp01(pct) };
-  }
-
-  function setInlineLevel(level) {
-    const el = qs("#inlineLevel");
-    el.textContent = `Level ${level}`;
-    el.style.display = "block";
   }
 
   /* ---------- public view API ---------- */
@@ -174,15 +174,11 @@ export function createResultModalView() {
       qs("#speciesNameLine").textContent = "";
       qs("#loadingTrack").style.display = "block";
 
+      // Ensure starting rarity class is applied (so color shows immediately)
       const obsBadge = qs("#obsBadge");
-      obsBadge.dataset.rarity = getRarity(0);
-      obsBadge.classList.add(obsBadge.dataset.rarity);
-      qs("#badges").style.display = "none";
+      setBadgeRarityClass(obsBadge, "common-points");
 
-      // Hide inline level until we’re done.
-      const inlineLevel = qs("#inlineLevel");
-      inlineLevel.style.display = "none";
-      inlineLevel.textContent = "";
+      qs("#badges").style.display = "none";
     },
 
     /**
@@ -194,6 +190,7 @@ export function createResultModalView() {
       const speciesLine = qs("#speciesNameLine");
       const badgeEl = qs("#obsBadge");
       const counterEl = qs("#pointsCounter");
+      const valueWrapper = counterEl.parentElement; // .value
       const detailsEl = qs("#pointsDetails");
       const badgesEl = qs("#badges");
 
@@ -207,7 +204,12 @@ export function createResultModalView() {
         { ease: "linear" }
       );
 
-      // (Removed rarity/second badge entirely)
+      // After the counter is done, inject rarity label under the number within the SAME badge
+      const rarityClass = getRarity(baseTotal);
+      const rarityLabel = rarityText(rarityClass);
+      setBadgeRarityClass(badgeEl, rarityClass); // ensure final class is on
+      // avoid duplicating label if re-used
+      valueWrapper.innerHTML = `<span id="pointsCounter">${counterEl.textContent}</span><br><span class="rarity-label">${rarityLabel}</span>`;
 
       // Mission/discovery badges
       if (badges && badges.length) {
@@ -228,9 +230,6 @@ export function createResultModalView() {
       qs("#levelFrom").textContent = toLevel;
       qs("#levelTo").textContent = toLevel + 1;
       qs("#levelToLabel").style.opacity = 0.9;
-
-      // NEW: show "Level N" under the points counter (same display, new line)
-      setInlineLevel(toLevel);
     },
   };
 

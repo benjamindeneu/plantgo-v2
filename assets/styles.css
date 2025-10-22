@@ -1501,11 +1501,6 @@ input[type="file"] + label.label-file:active {
   box-shadow: var(--shadow-sm);
   background: #1f2a22;
 }
-.points-badge {
-  border-radius: var(--radius-pill);
-  background: var(--surface);
-  border: 1px solid var(--border);
-}
 .badge,
 .badge.big {
   background: var(--surface);
