@@ -267,10 +267,10 @@ input[type="file"] {
   margin: 4px 0;
 }
 .close {
-  position: absolute;
-  margin: 0;
-  right: 14px;
-  top: 10px;
+  position: static;         /* no absolute */
+  margin: 0 0 0 auto;       /* push to the right */
+  justify-self: end;        /* align to the right edge of the grid cell */
+  align-self: start;        /* align to the top */
   color: var(--muted);
   font-size: 28px;
   font-weight: 700;
@@ -278,14 +278,12 @@ input[type="file"] {
   line-height: 1;
   border-radius: var(--r-sm);
 }
-.close:hover {
-  color: var(--text);
-  background: var(--bg);
-}
+.close:hover,
 .close:focus {
   color: var(--text);
   background: var(--bg);
 }
+
 header {
   display: flex;
   justify-content: space-between;
