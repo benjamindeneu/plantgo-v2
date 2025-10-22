@@ -11,6 +11,6 @@ export function Modal({ title = "", content = "" }) {
       </div>
     </div>`;
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
-  overlay.querySelector(".close").addEventListener("click", () => overlay.remove());
+  //overlay.querySelector(".close").addEventListener("click", () => overlay.remove());
   return overlay;
 }
