@@ -53,8 +53,6 @@ export function createResultModalView() {
       </div>
     </div>
   `;
-
-  overlay.querySelector(".close").addEventListener("click", () => overlay.remove());
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
 
   const qs = (sel) => overlay.querySelector(sel);
