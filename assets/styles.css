@@ -250,14 +250,24 @@ input[type="file"] {
 .modal-content {
   background: var(--surface);
   margin: 0 auto;
-  padding: var(--sp-6);
+  padding: var(--sp-3);
   border: 1px solid var(--border);
   width: min(92vw, 480px);
   border-radius: var(--r-lg);
   text-align: center;
   box-shadow: var(--shadow);
   animation: modalIn var(--duration) var(--easing);
+
+  /* new */
+  display: grid;
+  grid-template-columns: 1fr auto; /* content | close */
+  gap: var(--sp-3);
 }
+/* Make all children except the close span full width (keeps your layout) */
+.modal-content > :not(.close) {
+  grid-column: 1 / -1;
+}
+
 @keyframes modalIn{from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);}}
 .modal-content h2 {
   margin-bottom: var(--sp-3);
@@ -266,11 +276,19 @@ input[type="file"] {
 .modal-content p {
   margin: 4px 0;
 }
+/* Close button: square, top-right, not full width */
 .close {
-  position: static;         /* no absolute */
-  margin: 0 0 0 auto;       /* push to the right */
-  justify-self: end;        /* align to the right edge of the grid cell */
-  align-self: start;        /* align to the top */
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: end;
+
+  display: inline-grid;       /* prevents full-width stretch */
+  place-items: center;        /* centers the “×” inside */
+  width: 36px;
+  height: 36px;
+
+  margin: 0;
   color: var(--muted);
   font-size: 28px;
   font-weight: 700;
@@ -278,6 +296,7 @@ input[type="file"] {
   line-height: 1;
   border-radius: var(--r-sm);
 }
+
 .close:hover,
 .close:focus {
   color: var(--text);
