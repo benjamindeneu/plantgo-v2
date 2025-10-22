@@ -37,8 +37,7 @@ export function createResultModalView() {
           <div class="points-stack" style="display:flex; flex-direction:column; align-items:center;">
             <div id="obsBadge"
                 class="points-badge common-points"
-                data-rarity="common-points"
-                style="color:#fff;">
+                data-rarity="common-points">
                 <span class="value"><span id="pointsCounter">0</span></span>
             </div>
 
