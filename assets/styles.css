@@ -709,7 +709,7 @@ body {
   border: 0;
   height: 1px;
   background: var(--border);
-  margin: var(--sp-6) 0;
+  margin: var(--sp-3) 0;
   border-color: var(--border);
 }
 .input {

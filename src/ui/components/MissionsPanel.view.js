@@ -13,7 +13,7 @@ export function createMissionsPanelView() {
   const sec = document.createElement("section");
   sec.className = "card";
   sec.innerHTML = `
-    <h2>Missions near you</h2>
+    <h1>Missions near you</h1>
     <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
       <button id="locate" class="secondary" type="button">Get Location & Missions</button>
     </div>

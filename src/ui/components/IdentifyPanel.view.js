@@ -10,7 +10,7 @@ export function createIdentifyPanelView() {
   const wrap = document.createElement("section");
   wrap.className = "general-validation card";
   wrap.innerHTML = `
-    <h2>Identify a plant</h2>
+    <h1>Identify a plant</h1>
     <input id="files" type="file" accept="image/*" capture="environment" multiple hidden>
     <label class="label-file" for="files">Add photo(s)</label>
     <div class="preview-strip" id="preview"></div>
