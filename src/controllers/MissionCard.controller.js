@@ -9,7 +9,7 @@ import { getWikipediaImage } from "../data/wiki.service.js";
  */
 export function MissionCard(species) {
   const sciName = species.name || species.scientific_name || "";
-  const commonName = species.common_name || "No common name";
+  const commonName = species.vernacular_name || "No common name";
 
   const heroUrl =
     species.image_url ||
