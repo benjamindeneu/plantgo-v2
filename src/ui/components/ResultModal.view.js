@@ -19,12 +19,14 @@ export function createResultModalView() {
       <div class="result-head">
         <h2 id="resultTitle">Identifying…</h2>
         <div id="speciesNameLine" class="muted"></div>
+        <div id="speciesVernacularNameLine" class="muted"></div>
         <div class="loading-track" id="loadingTrack" aria-hidden="true">
           <div class="loading-indeterminate"></div>
         </div>
       </div>
 
       <div class="result-body">
+        <h4>Your observation:</h4>
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-points">
@@ -170,6 +172,7 @@ export function createResultModalView() {
 
       qs("#resultTitle").textContent = "Identifying…";
       qs("#speciesNameLine").textContent = "";
+      qs("#speciesVernacularNameLine").textContent = "";
       qs("#loadingTrack").style.display = "block";
 
       // Ensure starting rarity class is applied (so color shows immediately)
@@ -182,10 +185,11 @@ export function createResultModalView() {
     /**
      * Pure UI: needs already computed data.
      */
-    async showResultUI({ speciesName, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
+    async showResultUI({ speciesName, speciesVernacularName, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
+      const speciesVernacularLine = qs("#speciesNameLine");
       const badgeEl = qs("#obsBadge");
       const counterEl = qs("#pointsCounter");
       const valueWrapper = counterEl.parentElement; // .value
@@ -195,6 +199,7 @@ export function createResultModalView() {
       loading.style.display = "none";
       title.textContent = "New observation of :";
       speciesLine.textContent = speciesName || "Unknown species";
+      speciesVernacularLine.textContent = speciesVernacularName || "Unknown species";
 
       // Animate observation points + detail lines (keeps rarity classes in sync)
       await animateObservation(
