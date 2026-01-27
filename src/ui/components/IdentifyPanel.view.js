@@ -4,6 +4,7 @@
  * Pure view for the Identify panel.
  * - Builds DOM
  * - Handles visual preview of selected files
+ * - Accumulates multiple file selections
  * - Emits user interactions to the controller via callbacks
  */
 export function createIdentifyPanelView() {
@@ -32,25 +33,49 @@ export function createIdentifyPanelView() {
   let identifyCb = null;
   let clearCb = null;
 
+  // --- internal accumulated state ---
+  let selectedFiles = [];
+
   function renderPreview(files = []) {
     preview.innerHTML = "";
-    for (const f of files) {
+
+    for (const file of files) {
       const img = document.createElement("img");
       img.className = "species-image";
       img.style.width = "84px";
       img.style.height = "84px";
       img.style.objectFit = "cover";
-      img.src = URL.createObjectURL(f);
+      img.src = URL.createObjectURL(file);
       preview.appendChild(img);
     }
-    feedback.textContent = files.length ? `${files.length} photo(s) ready.` : "";
+
+    feedback.textContent = files.length
+      ? `${files.length} photo(s) ready.`
+      : "";
+  }
+
+  function fileKey(file) {
+    return `${file.name}|${file.size}|${file.lastModified}`;
   }
 
   // View-internal: reflect file input changes & notify controller
   input.addEventListener("change", () => {
-    const files = Array.from(input.files || []);
-    renderPreview(files);
-    if (filesChangeCb) filesChangeCb(files);
+    const newFiles = Array.from(input.files || []);
+    const existing = new Set(selectedFiles.map(fileKey));
+
+    for (const file of newFiles) {
+      const key = fileKey(file);
+      if (!existing.has(key)) {
+        selectedFiles.push(file);
+        existing.add(key);
+      }
+    }
+
+    renderPreview(selectedFiles);
+    if (filesChangeCb) filesChangeCb(selectedFiles);
+
+    // Allow re-selecting the same file later
+    input.value = "";
   });
 
   btnIdentify.addEventListener("click", () => {
@@ -58,7 +83,7 @@ export function createIdentifyPanelView() {
   });
 
   btnClear.addEventListener("click", () => {
-    // Reset visuals
+    selectedFiles = [];
     input.value = "";
     renderPreview([]);
     if (clearCb) clearCb();
@@ -66,16 +91,20 @@ export function createIdentifyPanelView() {
 
   return {
     element: wrap,
+
     // View APIs the controller can use:
     setFeedback(text) {
       feedback.textContent = text ?? "";
     },
+
     onFilesChange(cb) {
       filesChangeCb = cb;
     },
+
     onIdentify(cb) {
       identifyCb = cb;
     },
+
     onClear(cb) {
       clearCb = cb;
     },
