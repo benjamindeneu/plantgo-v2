@@ -189,7 +189,7 @@ export function createResultModalView() {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
-      const speciesVernacularLine = qs("#speciesNameLine");
+      const speciesVernacularLine = qs("#speciesVernacularNameLine");
       const badgeEl = qs("#obsBadge");
       const counterEl = qs("#pointsCounter");
       const valueWrapper = counterEl.parentElement; // .value
@@ -199,7 +199,7 @@ export function createResultModalView() {
       loading.style.display = "none";
       title.textContent = "New observation of :";
       speciesLine.textContent = speciesName || "Unknown species";
-      speciesVernacularLine.textContent = speciesVernacularName || "Unknown species";
+      speciesVernacularLine.textContent = speciesVernacularName || "No common name";
 
       // Animate observation points + detail lines (keeps rarity classes in sync)
       await animateObservation(

@@ -24,7 +24,7 @@ export function ResultModal() {
     async showResult({ identify, points, lat, lon, plantnetImageCode }) {
       // ----- prepare data (logic) -----
       const speciesName = identify?.name || "Unknown species";
-      const speciesVernacularName = identify?.vernacularName || "Unknown species";
+      const speciesVernacularName = identify?.vernacularName || "No common name";
       const baseTotal = Number(points?.total ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
