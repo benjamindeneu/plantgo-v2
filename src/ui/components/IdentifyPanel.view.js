@@ -19,7 +19,7 @@ export function createIdentifyPanelView() {
     <div class="user-photos center" id="preview"></div>
 
     <div id="actions" style="display:none; gap:8px; justify-content:center; margin-top:12px">
-      <button id="identify" class="primary" type="button">Identify now</button>
+      <button id="identify" class="primary" type="button">Identify</button>
       <button id="clear" class="secondary" type="button">Clear</button>
     </div>
 
