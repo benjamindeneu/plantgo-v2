@@ -26,7 +26,7 @@ export function createResultModalView() {
       </div>
 
       <div class="result-body">
-        <h4>Your observation:</h4>
+        <div>Your observation:</div>
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-points">
