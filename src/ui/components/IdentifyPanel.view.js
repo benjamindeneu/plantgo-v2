@@ -58,8 +58,8 @@ export function createIdentifyPanelView() {
     label.innerHTML = `
       <span class="add-shot-inner" aria-hidden="true">
         <span class="add-shot-icon">
-          <svg viewBox="0 0 24 24" width="28" height="28">
-            <path fill="currentColor" d="M9 4.5c.4-.7 1.1-1.1 1.9-1.1h2.2c.8 0 1.5.4 1.9 1.1l.7 1.2H18c1.7 0 3 1.3 3 3v8c0 1.7-1.3 3-3 3H6c-1.7 0-3-1.3-3-3v-8c0-1.7 1.3-3 3-3h2.3L9 4.5z"/>
+          <svg viewBox="0 0 24 24" width="28" height="28" focusable="false" aria-hidden="true">
+            <path fill="currentColor" d="M9 4.5c.4-.7 1.1-1.1 1.9-1.1h2.2c.8 0 1.5.4 1.9 1.1l.7 1.2H18c1.7 0 3 1.3 3 3v8c0 1.7-1.3 3-3 3H6c-1.7 0-3-1.3-3-3v-8c0-1.7 1.3-3 3-3h2.3L9 4.5zm3 12.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4z"/>
           </svg>
         </span>
         <span class="add-shot-plus">+</span>
@@ -68,6 +68,7 @@ export function createIdentifyPanelView() {
 
     return label;
   }
+
 
   function renderPreview(files = []) {
     preview.innerHTML = "";

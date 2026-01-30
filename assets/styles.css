@@ -656,17 +656,31 @@ header, .nav{
   object-fit: cover;
   display: block;
 }
-.user-photos .add-shot {
-  display: grid;
+.user-photos .shot.label-file.add-shot {
+  display: grid;     /* replaces inline-flex from .label-file */
   place-items: center;
-  padding: 0;          /* override text-button padding */
-  text-align: center;
+  padding: 0;        /* removes label-file padding that breaks the square */
+  gap: 0;            /* removes label-file gap */
 }
-/* Inner layout only */
+
+/* stack icon and plus */
 .user-photos .add-shot-inner {
   display: grid;
   place-items: center;
   gap: 2px;
+}
+
+/* only icon/plus green; keep label-file text color intact */
+.user-photos .add-shot-icon,
+.user-photos .add-shot-plus {
+  color: var(--green-400);
+}
+
+.user-photos .add-shot-plus {
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 1;
+  margin-top: -2px;
 }
 
 .preview-strip{
