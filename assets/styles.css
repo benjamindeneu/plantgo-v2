@@ -624,6 +624,29 @@ header, .nav{
 }
 
 /* ---------- 11) UTILITIES ---------- */
+.user-photos.center {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  margin: 2px 0 10px;
+}
+.user-photos .shot {
+  width: 84px;
+  height: 84px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+.user-photos .shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 .preview-strip{
   display:flex;
   gap:8px;
