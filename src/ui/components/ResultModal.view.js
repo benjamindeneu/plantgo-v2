@@ -16,18 +16,18 @@ export function createResultModalView() {
         </div>
       </div>
 
-      <div class="result-head">
-        <h2 id="resultTitle">Identifying…</h2>
-        <div id="speciesNameLine" class="muted"></div>
-        <div id="speciesVernacularNameLine" class="muted"></div>
-        <div class="loading-track" id="loadingTrack" aria-hidden="true">
-          <div class="loading-indeterminate"></div>
-        </div>
-      </div>
-
       <div class="result-body">
         <div>Your observation:</div>
         <div class="user-photos center" id="userPhotos"></div>
+
+        <div class="result-head">
+          <h2 id="resultTitle">Identifying…</h2>
+          <div id="speciesNameLine" class="muted"></div>
+          <div id="speciesVernacularNameLine" class="muted"></div>
+          <div class="loading-track" id="loadingTrack" aria-hidden="true">
+            <div class="loading-indeterminate"></div>
+          </div>
+        </div>
 
         <div class="result-points">
           <div class="muted" style="margin-bottom:6px; text-align:center;">Observation points:</div>
