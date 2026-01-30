@@ -12,9 +12,11 @@ export function createIdentifyPanelView() {
   wrap.className = "general-validation card";
   wrap.innerHTML = `
     <h1>Identify a plant</h1>
+
     <input id="files" type="file" accept="image/*" capture="environment" multiple hidden>
-    <label class="label-file" for="files">Add photo(s)</label>
-    <div class="preview-strip" id="preview"></div>
+
+    <!-- Preview strip becomes the main "add photo" UI -->
+    <div class="user-photos center" id="preview"></div>
 
     <div id="actions" style="display:none; gap:8px; justify-content:center; margin-top:12px">
       <button id="identify" class="primary" type="button">Identify now</button>
@@ -43,28 +45,57 @@ export function createIdentifyPanelView() {
     actions.style.display = isVisible ? "flex" : "none";
   }
 
+  function fileKey(file) {
+    return `${file.name}|${file.size}|${file.lastModified}`;
+  }
+
+  function createAddTile() {
+    // Use a button for accessibility (keyboard + semantics)
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "shot add-shot";
+    btn.setAttribute("aria-label", "Add photo");
+    btn.innerHTML = `
+      <span class="add-shot-inner" aria-hidden="true">
+        <span class="add-shot-icon">
+          <!-- Simple camera icon as inline SVG; uses currentColor -->
+          <svg viewBox="0 0 24 24" width="28" height="28" role="img" focusable="false" aria-hidden="true">
+            <path fill="currentColor" d="M9 4.5c.4-.7 1.1-1.1 1.9-1.1h2.2c.8 0 1.5.4 1.9 1.1l.7 1.2H18c1.7 0 3 1.3 3 3v8c0 1.7-1.3 3-3 3H6c-1.7 0-3-1.3-3-3v-8c0-1.7 1.3-3 3-3h2.3L9 4.5zm3 14.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0-2a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+          </svg>
+        </span>
+        <span class="add-shot-plus">+</span>
+      </span>
+    `;
+
+    // Clicking the tile opens the file picker
+    btn.addEventListener("click", () => {
+      input.click();
+    });
+
+    return btn;
+  }
+
   function renderPreview(files = []) {
     preview.innerHTML = "";
 
+    // Render selected images as tiles
     for (const file of files) {
+      const tile = document.createElement("div");
+      tile.className = "shot";
+
       const img = document.createElement("img");
-      img.className = "species-image";
-      img.style.width = "84px";
-      img.style.height = "84px";
-      img.style.objectFit = "cover";
+      img.alt = "Selected plant photo";
       img.src = URL.createObjectURL(file);
-      preview.appendChild(img);
+
+      tile.appendChild(img);
+      preview.appendChild(tile);
     }
 
-    // Remove the temporary debug text about how many photos are selected
-    // (keep feedback for controller-driven messages only)
-    // Optionally clear feedback when user changes selection:
-    // feedback.textContent = "";
-    setActionsVisible(files.length > 0);
-  }
+    // Render the add-tile as the "next slot"
+    preview.appendChild(createAddTile());
 
-  function fileKey(file) {
-    return `${file.name}|${file.size}|${file.lastModified}`;
+    // Actions visible only when >= 1 photo
+    setActionsVisible(files.length > 0);
   }
 
   function clearSelection({ notify = true } = {}) {
@@ -74,7 +105,7 @@ export function createIdentifyPanelView() {
     if (notify && clearCb) clearCb();
   }
 
-  // View-internal: reflect file input changes & notify controller
+  // Accumulate file selections (avoid duplicates)
   input.addEventListener("change", () => {
     const newFiles = Array.from(input.files || []);
     const existing = new Set(selectedFiles.map(fileKey));
@@ -97,12 +128,10 @@ export function createIdentifyPanelView() {
   btnIdentify.addEventListener("click", () => {
     if (!selectedFiles.length) return;
 
-    // Snapshot for safety (controller can ignore the argument if it doesn't use it)
     const filesSnapshot = selectedFiles.slice();
-
     if (identifyCb) identifyCb(filesSnapshot);
 
-    // Clear the field right after submitting identification (your request)
+    // Clear after submit (your earlier request)
     clearSelection({ notify: false });
   });
 
@@ -110,13 +139,12 @@ export function createIdentifyPanelView() {
     clearSelection({ notify: true });
   });
 
-  // Ensure initial hidden state
-  setActionsVisible(false);
+  // Initial render: show only the add-tile centered
+  renderPreview([]);
 
   return {
     element: wrap,
 
-    // View APIs the controller can use:
     setFeedback(text) {
       feedback.textContent = text ?? "";
     },
