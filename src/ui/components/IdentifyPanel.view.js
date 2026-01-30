@@ -15,16 +15,19 @@ export function createIdentifyPanelView() {
     <input id="files" type="file" accept="image/*" capture="environment" multiple hidden>
     <label class="label-file" for="files">Add photo(s)</label>
     <div class="preview-strip" id="preview"></div>
-    <div style="display:flex; gap:8px; justify-content:center; margin-top:12px">
+
+    <div id="actions" style="display:none; gap:8px; justify-content:center; margin-top:12px">
       <button id="identify" class="primary" type="button">Identify now</button>
       <button id="clear" class="secondary" type="button">Clear</button>
     </div>
+
     <div id="feedback" aria-live="polite" class="validation-feedback"></div>
   `;
 
   const input = wrap.querySelector("#files");
   const preview = wrap.querySelector("#preview");
   const feedback = wrap.querySelector("#feedback");
+  const actions = wrap.querySelector("#actions");
   const btnIdentify = wrap.querySelector("#identify");
   const btnClear = wrap.querySelector("#clear");
 
@@ -35,6 +38,10 @@ export function createIdentifyPanelView() {
 
   // --- internal accumulated state ---
   let selectedFiles = [];
+
+  function setActionsVisible(isVisible) {
+    actions.style.display = isVisible ? "flex" : "none";
+  }
 
   function renderPreview(files = []) {
     preview.innerHTML = "";
@@ -49,13 +56,22 @@ export function createIdentifyPanelView() {
       preview.appendChild(img);
     }
 
-    feedback.textContent = files.length
-      ? `${files.length} photo(s) ready.`
-      : "";
+    // Remove the temporary debug text about how many photos are selected
+    // (keep feedback for controller-driven messages only)
+    // Optionally clear feedback when user changes selection:
+    // feedback.textContent = "";
+    setActionsVisible(files.length > 0);
   }
 
   function fileKey(file) {
     return `${file.name}|${file.size}|${file.lastModified}`;
+  }
+
+  function clearSelection({ notify = true } = {}) {
+    selectedFiles = [];
+    input.value = "";
+    renderPreview([]);
+    if (notify && clearCb) clearCb();
   }
 
   // View-internal: reflect file input changes & notify controller
@@ -79,15 +95,23 @@ export function createIdentifyPanelView() {
   });
 
   btnIdentify.addEventListener("click", () => {
-    if (identifyCb) identifyCb();
+    if (!selectedFiles.length) return;
+
+    // Snapshot for safety (controller can ignore the argument if it doesn't use it)
+    const filesSnapshot = selectedFiles.slice();
+
+    if (identifyCb) identifyCb(filesSnapshot);
+
+    // Clear the field right after submitting identification (your request)
+    clearSelection({ notify: false });
   });
 
   btnClear.addEventListener("click", () => {
-    selectedFiles = [];
-    input.value = "";
-    renderPreview([]);
-    if (clearCb) clearCb();
+    clearSelection({ notify: true });
   });
+
+  // Ensure initial hidden state
+  setActionsVisible(false);
 
   return {
     element: wrap,
