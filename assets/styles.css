@@ -625,13 +625,13 @@ header, .nav{
 
 /* ---------- 11) UTILITIES ---------- */
 .user-photos.center {
-  margin-bottom: 8px;
+  /*margin-bottom: 8px;*/
   display: flex;
-  gap: 10px;
+  gap: 5px;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  margin: 2px 0 10px;
+  margin: 2px 0 2px;
 }
 .user-photos .shot {
   width: 84px;
