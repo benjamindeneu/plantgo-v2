@@ -50,29 +50,23 @@ export function createIdentifyPanelView() {
   }
 
   function createAddTile() {
-    // Use a button for accessibility (keyboard + semantics)
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "shot add-shot";
-    btn.setAttribute("aria-label", "Add photo");
-    btn.innerHTML = `
+    const label = document.createElement("label");
+    label.className = "shot label-file add-shot";
+    label.setAttribute("for", "files");
+    label.setAttribute("aria-label", "Add photo");
+
+    label.innerHTML = `
       <span class="add-shot-inner" aria-hidden="true">
         <span class="add-shot-icon">
-          <!-- Simple camera icon as inline SVG; uses currentColor -->
-          <svg viewBox="0 0 24 24" width="28" height="28" role="img" focusable="false" aria-hidden="true">
-            <path fill="currentColor" d="M9 4.5c.4-.7 1.1-1.1 1.9-1.1h2.2c.8 0 1.5.4 1.9 1.1l.7 1.2H18c1.7 0 3 1.3 3 3v8c0 1.7-1.3 3-3 3H6c-1.7 0-3-1.3-3-3v-8c0-1.7 1.3-3 3-3h2.3L9 4.5zm3 14.2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0-2a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+          <svg viewBox="0 0 24 24" width="28" height="28">
+            <path fill="currentColor" d="M9 4.5c.4-.7 1.1-1.1 1.9-1.1h2.2c.8 0 1.5.4 1.9 1.1l.7 1.2H18c1.7 0 3 1.3 3 3v8c0 1.7-1.3 3-3 3H6c-1.7 0-3-1.3-3-3v-8c0-1.7 1.3-3 3-3h2.3L9 4.5z"/>
           </svg>
         </span>
         <span class="add-shot-plus">+</span>
       </span>
     `;
 
-    // Clicking the tile opens the file picker
-    btn.addEventListener("click", () => {
-      input.click();
-    });
-
-    return btn;
+    return label;
   }
 
   function renderPreview(files = []) {

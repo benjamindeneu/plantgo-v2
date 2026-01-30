@@ -656,25 +656,19 @@ header, .nav{
   object-fit: cover;
   display: block;
 }
-/* "Add photo" tile */
 .user-photos .add-shot {
-  cursor: pointer;
   display: grid;
   place-items: center;
-  padding: 0;
+  padding: 0;          /* override text-button padding */
+  text-align: center;
 }
+/* Inner layout only */
 .user-photos .add-shot-inner {
   display: grid;
   place-items: center;
   gap: 2px;
-  color: var(--green, #2e7d32); /* uses your green if you have a variable */
 }
-.user-photos .add-shot-plus {
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 700;
-  margin-top: -2px;
-}
+
 .preview-strip{
   display:flex;
   gap:8px;
