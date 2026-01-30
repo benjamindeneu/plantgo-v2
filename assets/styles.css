@@ -624,6 +624,15 @@ header, .nav{
 }
 
 /* ---------- 11) UTILITIES ---------- */
+.brand {
+  text-align: center;
+  margin-top: var(--sp-6);
+}
+.brand img {
+  max-width: 180px;
+  opacity: .9;
+}
+
 .user-photos.center {
   /*margin-bottom: 8px;*/
   display: flex;
