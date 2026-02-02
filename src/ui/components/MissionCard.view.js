@@ -1,54 +1,77 @@
 // src/ui/components/MissionCard.view.js
+import { t } from "../../language/i18n.js";
 
-/**
- * Visual-only MissionCard.
- * Expects normalized props so the view stays dumb.
- */
 export function createMissionCardView({
   sciName,
   commonName,
   heroUrl = "",
   pointsTotal = 0,
-  levelClass = "common-points",  // "common-points" | "rare-points" | "epic-points" | "legendary-points"
+  levelClass = "common-points",
   missionLevel = "Common",
 }) {
   const root = document.createElement("div");
-  // keeping class name to avoid CSS changes; you can rename to 'mission-item' later
   root.className = "species-item";
 
   root.innerHTML = `
-    <div class="mission-title">Mission: ${sciName}</div>
+    <div class="mission-title" id="missionTitle"></div>
+
     <div class="card-content">
-      <div class="herbarium-img">
-        ${heroUrl ? `<img class="species-image" src="${heroUrl}" alt="${sciName}" loading="lazy">` : `<div class="wiki-skeleton"></div>`}
+      <div class="herbarium-img" id="imgWrap">
+        ${
+          heroUrl
+            ? `<img class="species-image" src="${heroUrl}" alt="${escapeHtml(sciName)}" loading="lazy">`
+            : `<div class="wiki-skeleton"></div>`
+        }
       </div>
 
       <div class="species-info">
-        <p><strong>${commonName}</strong></p>
-        <p class="muted">${sciName}</p>
+        <p><strong id="commonName">${escapeHtml(commonName)}</strong></p>
+        <p class="muted" id="sciName">${escapeHtml(sciName)}</p>
 
         <div class="species-actions">
-          <button class="points-btn ${levelClass}" type="button">${pointsTotal} points<br>${missionLevel}</button>
+          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
         </div>
       </div>
     </div>
   `;
 
-  const wikiWrap = root.querySelector(".herbarium-img");
-  const pointsBtn = root.querySelector(".points-btn");
+  const missionTitleEl = root.querySelector("#missionTitle");
+  const imgWrap = root.querySelector("#imgWrap");
+  const pointsBtn = root.querySelector("#pointsBtn");
 
-  // callbacks set by controller
   let onPoints = null;
   pointsBtn.addEventListener("click", () => { if (onPoints) onPoints(); });
+
+  function refreshI18n() {
+    if (missionTitleEl) {
+      missionTitleEl.textContent = `${t("missions.card.missionPrefix")} ${sciName}`;
+    }
+    if (pointsBtn) {
+      pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
+    }
+  }
+
+  refreshI18n();
 
   return {
     element: root,
     setWikiImage(url) {
-      if (!wikiWrap) return;
-      wikiWrap.innerHTML = url
-        ? `<img src="${url}" alt="Wikipedia thumbnail for ${sciName}" loading="lazy">`
-        : `<div class="wiki-missing">No image</div>`;
+      if (!imgWrap) return;
+      imgWrap.innerHTML = url
+        ? `<img src="${url}" alt="${escapeHtml(sciName)}" loading="lazy">`
+        : `<div class="wiki-missing">${escapeHtml(t("missions.card.noImage"))}</div>`;
     },
     onPointsClick(cb) { onPoints = cb; },
+    refreshI18n,
   };
+}
+
+function escapeHtml(s) {
+  const str = String(s ?? "");
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

@@ -43,7 +43,7 @@
   "herbarium.status.loading": "Chargement de votre herbier…",
   "herbarium.status.loadFailed": "Impossible de charger votre herbier.",
 
-  "herbarium.card.noImage": "Image manquante",
+  "herbarium.card.noImage": "Aucune image",
   "herbarium.card.unknownDate": "—",
 
   "identify.title": "Identifier une plante",
@@ -67,5 +67,24 @@
   "missions.status.fetchingLocation": "Récupération de la localisation…",
   "missions.status.loading": "Chargement des missions…",
   "missions.status.cacheError": "Impossible de charger les missions en cache.",
-  "missions.status.locateError": "Erreur de localisation ou de mission."
+  "missions.status.locateError": "Erreur de localisation ou de mission.",
+
+  "missions.card.missionPrefix": "Mission :",
+  "missions.card.noCommonName": "Pas de nom commun",
+  "missions.card.points": "points",
+  "missions.card.common": "Commun",
+  "missions.card.rare": "Rare",
+  "missions.card.epic": "Épique",
+  "missions.card.legendary": "Légendaire",
+
+  "missions.card.pointsTitle": "Points",
+  "missions.card.pointsDetails": "Détail des points",
+  "missions.card.noBreakdown": "Aucun détail disponible.",
+  "missions.card.wikiThumbAlt": "Vignette Wikipédia pour {name}",
+  "missions.card.noImage": "Aucune image",
+
+  "points.distance": "Observations GBIF à proximité (20 km)",
+  "points.numberObs": "Nombre d’observations sur GBIF",
+  "points.modelUncertainty": "Incertitude du modèle de distribution",
+  "points.baseObs": "Observation de plante"
 }

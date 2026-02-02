@@ -67,5 +67,24 @@
   "missions.status.fetchingLocation": "Fetching location…",
   "missions.status.loading": "Loading missions…",
   "missions.status.cacheError": "Unable to load cached missions.",
-  "missions.status.locateError": "Location/mission error."
+  "missions.status.locateError": "Location/mission error.",
+
+  "missions.card.missionPrefix": "Mission:",
+  "missions.card.noCommonName": "No common name",
+  "missions.card.points": "points",
+  "missions.card.common": "Common",
+  "missions.card.rare": "Rare",
+  "missions.card.epic": "Epic",
+  "missions.card.legendary": "Legendary",
+
+  "missions.card.pointsTitle": "Points",
+  "missions.card.pointsDetails": "Point details",
+  "missions.card.noBreakdown": "No breakdown available.",
+  "missions.card.wikiThumbAlt": "Wikipedia thumbnail for {name}",
+  "missions.card.noImage": "No image",
+
+  "points.distance": "Nearby GBIF observations (20 km)",
+  "points.numberObs": "Number of observations on GBIF",
+  "points.modelUncertainty": "Distribution model uncertainty",
+  "points.baseObs": "Plant observation"
 }
