@@ -1,22 +1,32 @@
 // signup.js
-import { 
-  createUserWithEmailAndPassword, 
-  updateProfile, 
-  sendEmailVerification 
+import {
+  createUserWithEmailAndPassword,
+  updateProfile,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
 import { auth, db } from "./firebase-config.js";
 import { doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
-document.getElementById('signupForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
+import { initI18n, t } from "./src/language/i18n.js";
 
-  const username = document.getElementById('username').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value;
-  const confirmPassword = document.getElementById('confirmPassword').value;
+// Init translations first (same as login)
+await initI18n();
+
+const form = document.getElementById("signupForm");
+const messageEl = document.getElementById("signupMessage");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  messageEl.textContent = "";
+
+  const username = document.getElementById("username").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const confirmPassword = document.getElementById("confirmPassword").value;
 
   if (password !== confirmPassword) {
-    document.getElementById('signupMessage').textContent = "Passwords do not match.";
+    messageEl.textContent = t("signup.error.passwordMismatch");
     return;
   }
 
@@ -24,36 +34,33 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     // Create a new user with email and password
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    
+
     // Set the display name to the chosen username
     await updateProfile(user, { displayName: username });
-    
+
     // Create a Firestore document for the new user
-    await setDoc(doc(db, 'users', user.uid), {
+    await setDoc(doc(db, "users", user.uid), {
       name: username,
       email: email,
       total_points: 0
     });
-    
+
     try {
       // Attempt to send the email verification
       await sendEmailVerification(user);
-      
+
       // Inform the user and remove the signup form
-      document.getElementById('signupMessage').textContent = "A verification email has been sent. Please check your inbox.";
-      document.getElementById('signupForm').remove();
-      
+      messageEl.textContent = t("signup.success.verificationSent");
+      form.remove();
     } catch (emailError) {
-      // If email sending fails, remove the created user
+      // If email sending fails, remove the created user and firestore doc
       await user.delete();
-      
-      // Optionally, remove the Firestore document as well
-      await deleteDoc(doc(db, 'users', user.uid));
-      
-      document.getElementById('signupMessage').textContent = "Failed to send verification email";
+      await deleteDoc(doc(db, "users", user.uid));
+
+      messageEl.textContent = t("signup.error.verificationFailed");
     }
-    
   } catch (error) {
-    document.getElementById('signupMessage').textContent = error.message;
+    // If you want this translated too, we can map Firebase error codes like you did in login
+    messageEl.textContent = error?.message || "Signup failed.";
   }
 });

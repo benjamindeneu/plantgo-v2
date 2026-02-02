@@ -15,6 +15,7 @@
   "login.error.wrongPassword": "Mot de passe incorrect.",
   "login.error.generic": "Échec de la connexion. Veuillez réessayer.",
 
+  "signup.pageTitle": "PlantGo • Inscription",
   "signup.title": "Créer votre compte",
   "signup.username": "Nom d’utilisateur",
   "signup.email": "Adresse e-mail",
@@ -22,5 +23,8 @@
   "signup.confirm": "Confirmer le mot de passe",
   "signup.button": "S’inscrire",
   "signup.haveAccount": "Vous avez déjà un compte ?",
-  "signup.login": "Se connecter"
+  "signup.login": "Se connecter",
+  "signup.error.passwordMismatch": "Les mots de passe ne correspondent pas.",
+  "signup.success.verificationSent": "Un e-mail de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",
+  "signup.error.verificationFailed": "L’envoi de l’e-mail de vérification a échoué."
 }

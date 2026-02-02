@@ -15,6 +15,7 @@
   "login.error.wrongPassword": "Incorrect password.",
   "login.error.generic": "Login failed. Please try again.",
 
+  "signup.pageTitle": "PlantGo • Sign Up",
   "signup.title": "Create your account",
   "signup.username": "Username",
   "signup.email": "Email",
@@ -22,5 +23,8 @@
   "signup.confirm": "Confirm Password",
   "signup.button": "Sign Up",
   "signup.haveAccount": "Already have an account?",
-  "signup.login": "Log in"
+  "signup.login": "Log in",
+  "signup.error.passwordMismatch": "Passwords do not match.",
+  "signup.success.verificationSent": "A verification email has been sent. Please check your inbox.",
+  "signup.error.verificationFailed": "Failed to send verification email."
 }
