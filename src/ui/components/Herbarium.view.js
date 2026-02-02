@@ -23,17 +23,17 @@ export function createHerbariumView() {
   const statusEl = sec.querySelector("#herbariumStatus");
   const listEl = sec.querySelector("#discoveriesList");
 
-  // keep last entries so we can re-render empty label on language change
+  // keep last entries so we can re-render on language change
   let lastEntries = [];
 
   function refreshI18n() {
-    // If empty, we want the empty message to update language
-    if (!lastEntries.length) renderEntries(listEl, lastEntries);
+    // re-render list so dates / "no image" / empty state get translated
+    renderEntries(listEl, lastEntries);
   }
 
+  // ✅ one global listener (no per-card listeners)
   document.addEventListener("i18n:changed", () => {
-    view.refreshI18n();
-    renderEntries(lastEntries);
+    refreshI18n();
   });
 
   return {
@@ -51,7 +51,6 @@ export function createHerbariumView() {
       renderEntries(listEl, lastEntries);
     },
 
-    // controller can call this after setLanguage(...)
     refreshI18n,
   };
 }
