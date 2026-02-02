@@ -86,5 +86,26 @@
   "points.distance": "Observations GBIF à proximité (20 km)",
   "points.numberObs": "Nombre d’observations sur GBIF",
   "points.modelUncertainty": "Incertitude du modèle de distribution",
-  "points.baseObs": "Observation de plante"
+  "points.baseObs": "Observation de plante",
+
+  "result.level": "Niveau",
+  "result.yourObservation": "Votre observation :",
+  "result.identifying": "Identification en cours…",
+  "result.newObservationOf": "Nouvelle observation de :",
+  "result.unknownSpecies": "Espèce inconnue",
+  "result.noCommonName": "Nom vernaculaire inconnu",
+  "result.yourPhotoAlt": "Votre photo",
+
+  "result.observationPoints": "Points d’observation :",
+  "result.total": "Total :",
+  "result.ptsShort": "pts",
+  "result.done": "Terminé",
+
+  "result.rarity.common": "Commun",
+  "result.rarity.rare": "Rare",
+  "result.rarity.epic": "Épique",
+  "result.rarity.legendary": "Légendaire",
+
+  "result.badge.missionSpecies": "Espèce de mission",
+  "result.badge.newSpecies": "Nouvelle espèce"
 }

@@ -1,3 +1,6 @@
+// src/ui/components/ResultModal.view.js
+import { t } from "../../language/i18n.js";
+
 export function createResultModalView() {
   const overlay = document.createElement("div");
   overlay.className = "modal show result-modal";
@@ -8,7 +11,7 @@ export function createResultModalView() {
       <!-- LEVEL TOP -->
       <div class="level-wrap at-top">
         <div class="level-line">
-          <span>Level <span id="levelFrom">1</span></span>
+          <span><span data-i18n="result.level">Level</span> <span id="levelFrom">1</span></span>
           <span id="levelToLabel">→ <span id="levelTo">2</span></span>
         </div>
         <div class="progress-rail">
@@ -17,11 +20,11 @@ export function createResultModalView() {
       </div>
 
       <div class="result-body">
-        <div>Your observation:</div>
+        <div data-i18n="result.yourObservation">Your observation:</div>
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-head">
-          <h2 id="resultTitle">Identifying…</h2>
+          <h2 id="resultTitle" data-i18n="result.identifying">Identifying…</h2>
           <div id="speciesNameLine" class="muted"></div>
           <div id="speciesVernacularNameLine" class="muted"></div>
           <div class="loading-track" id="loadingTrack" aria-hidden="true">
@@ -30,7 +33,9 @@ export function createResultModalView() {
         </div>
 
         <div class="result-points">
-          <div class="muted" style="margin-bottom:6px; text-align:center;">Observation points:</div>
+          <div class="muted" style="margin-bottom:6px; text-align:center;" data-i18n="result.observationPoints">
+            Observation points:
+          </div>
 
           <div class="points-stack" style="display:flex; flex-direction:column; align-items:center;">
             <div id="obsBadge"
@@ -46,54 +51,49 @@ export function createResultModalView() {
         <div class="badges big" id="badges" style="display:none"></div>
 
         <div class="result-total" id="finalTotalWrap" style="display:none">
-          <div class="big">Total: <strong><span id="finalTotal">0</span></strong> pts</div>
+          <div class="big">
+            <span data-i18n="result.total">Total:</span>
+            <strong><span id="finalTotal">0</span></strong>
+            <span data-i18n="result.ptsShort">pts</span>
+          </div>
         </div>
       </div>
 
       <div class="result-actions">
-        <button class="primary" id="doneBtn" type="button">Done</button>
+        <button class="primary" id="doneBtn" type="button" data-i18n="result.done">Done</button>
       </div>
     </div>
   `;
-  overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
 
+  overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
   const qs = (sel) => overlay.querySelector(sel);
 
   /* ---------- helpers (visual only) ---------- */
   const clamp01 = (v) => Math.max(0, Math.min(100, v));
-  const prettyKey = (k) => {
-    const map = {
-      base: "Species observation",
-      mission: "Mission bonus",
-      mission_bonus: "Mission bonus",
-      novelty: "New species bonus",
-      new_species: "New species bonus",
-    };
-    return map[k] || k.replace(/[_-]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
-  };
 
   // rarity helpers
   const getRarity = (val) => (val >= 1500 ? "legendary-points" :
                                val >= 1000 ? "epic-points" :
                                val >= 500  ? "rare-points" : "common-points");
+
   const rarityText = (cls) =>
-    cls === "legendary-points" ? "Legendary" :
-    cls === "epic-points"      ? "Epic" :
-    cls === "rare-points"      ? "Rare" : "Common";
+    cls === "legendary-points" ? t("result.rarity.legendary") :
+    cls === "epic-points"      ? t("result.rarity.epic") :
+    cls === "rare-points"      ? t("result.rarity.rare") :
+                                 t("result.rarity.common");
 
   function getEaseFn(name) {
     switch ((name || "linear").toLowerCase()) {
       case "easeout":
       case "ease-out":
-        return (t) => 1 - Math.pow(1 - t, 3);
+        return (tt) => 1 - Math.pow(1 - tt, 3);
       case "linear":
       default:
-        return (t) => t;
+        return (tt) => tt;
     }
   }
 
   function setBadgeRarityClass(el, rarity) {
-    // Always remove and re-add to ensure CSS takes effect
     el.classList.remove("common-points", "rare-points", "epic-points", "legendary-points");
     el.dataset.rarity = rarity;
     el.classList.add(rarity);
@@ -105,7 +105,7 @@ export function createResultModalView() {
     if (prev === next) return;
     setBadgeRarityClass(el, next);
     el.classList.remove("points-pop");
-    void el.offsetWidth; // reflow
+    void el.offsetWidth;
     el.classList.add("points-pop");
   }
 
@@ -114,11 +114,11 @@ export function createResultModalView() {
     const ease = getEaseFn(options.ease || "linear");
     return new Promise((res) => {
       function frame(ts) {
-        const t = Math.min(1, (ts - start) / duration);
-        const e = ease(t);
+        const tt = Math.min(1, (ts - start) / duration);
+        const e = ease(tt);
         const v = Math.round(fromPct + (toPct - fromPct) * e);
         el.style.width = `${v}%`;
-        if (t < 1) requestAnimationFrame(frame); else res();
+        if (tt < 1) requestAnimationFrame(frame); else res();
       }
       requestAnimationFrame(frame);
     });
@@ -128,11 +128,11 @@ export function createResultModalView() {
     return new Promise((r) => {
       const node = document.createElement("div");
       node.className = "badge big";
-      if (badge.rawHTML) {
-        node.innerHTML = badge.label;
-      } else {
-        node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${badge.label}</span>${badge.bonus != null ? `<span class="add">+${badge.bonus}</span>` : ""}`;
-      }
+
+      // badge.label should already be translated by controller
+      if (badge.rawHTML) node.innerHTML = badge.label;
+      else node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${escapeHtml(badge.label)}</span>${badge.bonus != null ? `<span class="add">+${badge.bonus}</span>` : ""}`;
+
       container.appendChild(node);
       requestAnimationFrame(() => {
         node.classList.add("in");
@@ -154,9 +154,40 @@ export function createResultModalView() {
     return { toLevel: L, toPct: clamp01(pct) };
   }
 
+  // Update static UI labels + existing detail line labels (no animation restart)
+  function refreshI18n() {
+    // data-i18n elements handled globally by setLanguage()
+    // But these are dynamic inserts we must update ourselves:
+
+    // Update rarity label if present
+    const badgeEl = qs("#obsBadge");
+    const rarityCls = badgeEl?.dataset?.rarity;
+    if (rarityCls) {
+      const valueEl = badgeEl.querySelector(".value");
+      const counter = badgeEl.querySelector("#pointsCounter");
+      const rarityLabelEl = badgeEl.querySelector(".rarity-label");
+      if (valueEl && counter && rarityLabelEl) {
+        rarityLabelEl.textContent = rarityText(rarityCls);
+      } else if (valueEl && counter && !rarityLabelEl) {
+        // if value wrapper exists but label wasn't injected yet, do nothing
+      }
+    }
+
+    // Update existing detail lines' labels, if we stored keys in dataset
+    qs("#pointsDetails")?.querySelectorAll(".detail-line[data-k]").forEach((line) => {
+      const k = line.getAttribute("data-k");
+      const labelSpan = line.querySelector("span");
+      if (labelSpan && k) labelSpan.textContent = t(k);
+    });
+  }
+
+  document.addEventListener("i18n:changed", refreshI18n);
+
   /* ---------- public view API ---------- */
   return {
     el: overlay,
+
+    refreshI18n,
 
     async initLoading({ photos, currentTotalPoints }) {
       const { fromLevel, fromPct, nextLevel } = calcFromLevel(currentTotalPoints || 0);
@@ -167,24 +198,22 @@ export function createResultModalView() {
 
       const photosEl = qs("#userPhotos");
       photosEl.innerHTML = (photos || [])
-        .map((url) => `<div class="shot"><img src="${url}" alt="Your photo" loading="lazy"/></div>`)
+        .map((url) => `<div class="shot"><img src="${url}" alt="${escapeHtml(t("result.yourPhotoAlt"))}" loading="lazy"/></div>`)
         .join("");
 
-      qs("#resultTitle").textContent = "Identifying…";
+      qs("#resultTitle").textContent = t("result.identifying");
       qs("#speciesNameLine").textContent = "";
       qs("#speciesVernacularNameLine").textContent = "";
       qs("#loadingTrack").style.display = "block";
 
-      // Ensure starting rarity class is applied (so color shows immediately)
       const obsBadge = qs("#obsBadge");
       setBadgeRarityClass(obsBadge, "common-points");
 
       qs("#badges").style.display = "none";
+      qs("#finalTotalWrap").style.display = "none";
+      qs("#pointsDetails").innerHTML = "";
     },
 
-    /**
-     * Pure UI: needs already computed data.
-     */
     async showResultUI({ speciesName, speciesVernacularName, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
@@ -197,49 +226,48 @@ export function createResultModalView() {
       const badgesEl = qs("#badges");
 
       loading.style.display = "none";
-      title.textContent = "New observation of :";
-      speciesLine.textContent = speciesName || "Unknown species";
-      speciesVernacularLine.textContent = speciesVernacularName || "No common name";
+      title.textContent = t("result.newObservationOf");
 
-      // Animate observation points + detail lines (keeps rarity classes in sync)
+      speciesLine.textContent = speciesName || t("result.unknownSpecies");
+      speciesVernacularLine.textContent = speciesVernacularName || t("result.noCommonName");
+
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },
         { ease: "linear" }
       );
 
-      // After the counter is done, inject rarity label under the number within the SAME badge
       const rarityClass = getRarity(baseTotal);
       const rarityLabel = rarityText(rarityClass);
-      setBadgeRarityClass(badgeEl, rarityClass); // ensure final class is on
-      // avoid duplicating label if re-used
-      valueWrapper.innerHTML = `<span id="pointsCounter">${counterEl.textContent}</span><br><span class="rarity-label">${rarityLabel}</span>`;
+      setBadgeRarityClass(badgeEl, rarityClass);
 
-      // Mission/discovery badges
+      valueWrapper.innerHTML = `<span id="pointsCounter">${escapeHtml(counterEl.textContent)}</span><br><span class="rarity-label">${escapeHtml(rarityLabel)}</span>`;
+
       if (badges && badges.length) {
         badgesEl.style.display = "block";
         for (const b of badges) await showBadge(badgesEl, b);
       }
 
-      // Final total
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      // Level progress animation (from current to current+final)
       const { fromPct } = calcFromLevel(currentTotalBefore);
       const { toLevel, toPct } = calcToLevel(currentTotalBefore + finalTotal);
       await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
 
-      // Update labels at top
       qs("#levelFrom").textContent = toLevel;
       qs("#levelTo").textContent = toLevel + 1;
       qs("#levelToLabel").style.opacity = 0.9;
+
+      // make sure any translated dynamic labels are correct
+      refreshI18n();
     },
   };
 
   // ----- local to view -----
   function animateObservation({ total, detail, counterEl, detailsEl, badgeEl }, options = {}) {
-    const entries = Object.entries(detail || []);
+    const entries = Object.entries(detail || {});
     detailsEl.innerHTML = "";
+
     const duration = 1800;
     const start = performance.now();
     const ease = getEaseFn(options.ease || "linear");
@@ -250,27 +278,29 @@ export function createResultModalView() {
     return new Promise((resolve) => {
       function frame(ts) {
         const elapsed = ts - start;
-        const t = Math.min(1, elapsed / duration);
-        const val = Math.round(total * ease(t));
+        const tt = Math.min(1, elapsed / duration);
+        const val = Math.round(total * ease(tt));
         counterEl.textContent = String(val);
-        upgradeBadgeBy(val, badgeEl); // keeps common/rare/epic/legendary classes current
+        upgradeBadgeBy(val, badgeEl);
 
         while (revealed < revealTimes.length && elapsed >= revealTimes[revealed]) {
           const [k, v] = entries[revealed];
           const line = document.createElement("div");
           line.className = "detail-line";
-          line.innerHTML = `<span>${prettyKey(k)}</span><span>+${v}</span>`;
+          line.setAttribute("data-k", k); // ✅ store key so we can retranslate on language change
+          line.innerHTML = `<span>${escapeHtml(t(k))}</span><span>+${escapeHtml(v)}</span>`;
           detailsEl.appendChild(line);
           revealed++;
         }
 
-        if (t < 1) requestAnimationFrame(frame);
+        if (tt < 1) requestAnimationFrame(frame);
         else {
           for (; revealed < entries.length; revealed++) {
             const [k, v] = entries[revealed];
             const line = document.createElement("div");
             line.className = "detail-line";
-            line.innerHTML = `<span>${prettyKey(k)}</span><span>+${v}</span>`;
+            line.setAttribute("data-k", k);
+            line.innerHTML = `<span>${escapeHtml(t(k))}</span><span>+${escapeHtml(v)}</span>`;
             detailsEl.appendChild(line);
           }
           counterEl.textContent = String(total);
@@ -281,4 +311,14 @@ export function createResultModalView() {
       requestAnimationFrame(frame);
     });
   }
+}
+
+function escapeHtml(s) {
+  const str = String(s ?? "");
+  return str
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

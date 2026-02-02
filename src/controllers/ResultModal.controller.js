@@ -3,13 +3,8 @@ import { createResultModalView } from "../ui/components/ResultModal.view.js";
 import { auth, db } from "../../firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { addObservationAndDiscovery } from "../data/observations.js";
+import { t } from "../language/i18n.js";
 
-/**
- * Controller wrapper that keeps the same public API as before:
- * - el
- * - initLoading({ photos, currentTotalPoints })
- * - showResult({ identify, points, lat, lon, plantnetImageCode })
- */
 export function ResultModal() {
   const view = createResultModalView();
 
@@ -17,18 +12,15 @@ export function ResultModal() {
     el: view.el,
 
     async initLoading({ photos, currentTotalPoints }) {
-      // just pass through to the view
       await view.initLoading({ photos, currentTotalPoints });
     },
 
     async showResult({ identify, points, lat, lon, plantnetImageCode }) {
-      // ----- prepare data (logic) -----
-      const speciesName = identify?.name || "Unknown species";
-      const speciesVernacularName = identify?.vernacularName || "No common name";
+      const speciesName = identify?.name || t("result.unknownSpecies");
+      const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
       const baseTotal = Number(points?.total ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
-      // user current total (for level animation start)
       const user = auth.currentUser;
       let currentTotalBefore = 0;
       if (user) {
@@ -39,12 +31,10 @@ export function ResultModal() {
         } catch { /* noop */ }
       }
 
-      // mission bonus?
       const missionHit = await isInMissionsList(speciesName);
       const badges = [];
-      if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: "Mission species", bonus: 500 });
+      if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: t("result.badge.missionSpecies"), bonus: 500 });
 
-      // discovery + observation persistence
       let discoveryBonus = 0;
       if (user) {
         const { discoveryBonus: got } = await addObservationAndDiscovery({
@@ -54,17 +44,16 @@ export function ResultModal() {
           plantnetImageCode,
           plantnet_identify_score: Number(identify?.score ?? 0),
           gbif_id: identify?.gbif_id ?? null,
-          pointsMap: detail,
+          pointsMap: detail, // detail keys already stable i18n keys
           total_points: baseTotal,
           extraBonus: missionHit ? 500 : 0,
         });
         discoveryBonus = got;
       }
-      if (discoveryBonus > 0) badges.push({ kind: "new", emoji: "🆕", label: "New species", bonus: 500 });
+      if (discoveryBonus > 0) badges.push({ kind: "new", emoji: "🆕", label: t("result.badge.newSpecies"), bonus: 500 });
 
       const finalTotal = baseTotal + badges.reduce((s, b) => s + (b.bonus || 0), 0);
 
-      // ----- render UI -----
       await view.showResultUI({
         speciesName,
         speciesVernacularName,
