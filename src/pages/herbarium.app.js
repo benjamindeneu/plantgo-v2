@@ -1,12 +1,15 @@
 // src/pages/herbarium.app.js
 
+import { initI18n } from "../language/i18n.js";
 import { Header } from "../controllers/Header.controller.js";
 import { HerbariumPanel } from "../controllers/Herbarium.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
-// Firebase at project root
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+// ensure dict is loaded + html lang set BEFORE any views render
+await initI18n();
 
 // ----- Header (Herbarium variant) -----
 const headerMount = document.getElementById("appHeader");
@@ -24,11 +27,10 @@ headerMount.replaceWith(header);
 
 // ----- Herbarium list panel -----
 const listMount = document.getElementById("discoveriesList");
-// Replace the old list node with our panel (which still contains a #discoveriesList inside)
 const herbariumPanel = HerbariumPanel();
 listMount.replaceWith(herbariumPanel);
 
-// Keep header level in sync with auth (same as before)
+// Keep header level in sync with auth
 let stopLevel = () => {};
 onAuthStateChanged(auth, (user) => {
   if (!user) { location.href = "./login.html"; return; }
