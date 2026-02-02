@@ -13,7 +13,7 @@ function normalizeLang(lang) {
 }
 
 async function loadDict(lang) {
-  const res = await fetch(`./i18n/${lang}.json`, { cache: "no-cache" });
+  const res = await fetch(`./src/language/${lang}.json`, { cache: "no-cache" });
   if (!res.ok) throw new Error(`Failed to load i18n/${lang}.json`);
   return res.json();
 }
