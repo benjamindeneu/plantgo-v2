@@ -44,6 +44,7 @@ export function createHeaderView({
   const nameEl = root.querySelector(".user-name");
   const primaryNavBtn = root.querySelector(isHerbarium ? "#menuHome" : "#menuHerbarium");
   const logoutBtn = root.querySelector("#menuLogout");
+  const langSelect = root.querySelector("#langSelect");
 
   // callbacks set by controller
   let onMenuToggle = null;
