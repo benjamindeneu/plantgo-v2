@@ -42,7 +42,8 @@ export function IdentifyPanel() {
     // identify
     try {
       view.setFeedback(t("identify.feedback.identifying"));
-      const result = await identifyPlant({ file, lat, lon, model: "best" });
+      const lang = document.documentElement.lang || "en";
+      const result = await identifyPlant({ file, lat, lon, model: "best", lang });
 
       const bestRaw = result?.identify?.raw || null;
       const plantnetImageCode =

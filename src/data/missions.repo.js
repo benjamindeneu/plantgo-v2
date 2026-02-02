@@ -14,7 +14,8 @@ export async function maybeLoadCachedMissions(uid, isFreshFn) {
  * If save fails (no uid, rules, offline), we just log it.
  */
 export async function loadAndMaybePersistMissions(uid, { lat, lon }, speciesList = []) {
-  const data = await fetchMissions({ lat, lon });
+  const lang = document.documentElement.lang || "en";
+  const data = await fetchMissions({ lat, lon, lang });
   const missions = Array.isArray(data?.missions)
     ? data.missions
     : (Array.isArray(data) ? data : []);

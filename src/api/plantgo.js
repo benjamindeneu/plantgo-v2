@@ -16,7 +16,7 @@ async function http(url, opts = {}) {
  * - multipart form with *single* file field named "image"
  * - form fields: lat, lon, model
  */
-export async function identifyPlant({ file, lat, lon, model = "best" }) {
+export async function identifyPlant({ file, lat, lon, model = "best", lang = "en" }) {
   if (!file) throw new Error("No image file provided.");
   if (lat == null || lon == null) throw new Error("Missing lat/lon for identify.");
 
@@ -26,6 +26,7 @@ export async function identifyPlant({ file, lat, lon, model = "best" }) {
   formData.append("lat", String(lat));
   formData.append("lon", String(lon));
   formData.append("model", model);
+  formData.append("lang", lang);
 
   return http(IDENTIFY_PROXY_URL, { method: "POST", body: formData });
 }
@@ -33,10 +34,10 @@ export async function identifyPlant({ file, lat, lon, model = "best" }) {
 /**
  * Missions kept as-is
  */
-export async function fetchMissions({ lat, lon, model = "best", limit = 10 }) {
+export async function fetchMissions({ lat, lon, model = "best", limit = 10, lang = "en" }) {
   return http(SPECIES_PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lat, lon, model, limit })
+    body: JSON.stringify({ lat, lon, model, limit, lang })
   });
 }
