@@ -44,5 +44,18 @@
   "herbarium.status.loadFailed": "Could not load your herbarium.",
 
   "herbarium.card.noImage": "No image",
-  "herbarium.card.unknownDate": "—"
+  "herbarium.card.unknownDate": "—",
+
+  "identify.title": "Identify a plant",
+  "identify.addPhoto": "Add picture",
+  "identify.selectedPhotoAlt": "Selected plant picture",
+  "identify.identify": "Identify",
+  "identify.clear": "Clear",
+
+  "identify.feedback.addOnePhoto": "Please add at least one picture.",
+  "identify.feedback.fetchingLocation": "Fetching location…",
+  "identify.feedback.locationDenied": "Location permission denied or unavailable.",
+  "identify.feedback.identifying": "Identifying…",
+  "identify.feedback.done": "Done.",
+  "identify.feedback.failed": "Identify failed."
 }

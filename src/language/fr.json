@@ -44,5 +44,18 @@
   "herbarium.status.loadFailed": "Impossible de charger votre herbier.",
 
   "herbarium.card.noImage": "Image manquante",
-  "herbarium.card.unknownDate": "—"
+  "herbarium.card.unknownDate": "—",
+
+  "identify.title": "Identifier une plante",
+  "identify.addPhoto": "Ajouter une photo",
+  "identify.selectedPhotoAlt": "Photo de la plante sélectionnée",
+  "identify.identify": "Identifier",
+  "identify.clear": "Effacer",
+
+  "identify.feedback.addOnePhoto": "Veuillez ajouter au moins une photo.",
+  "identify.feedback.fetchingLocation": "Récupération de la localisation…",
+  "identify.feedback.locationDenied": "Autorisation de localisation refusée ou indisponible.",
+  "identify.feedback.identifying": "Identification en cours…",
+  "identify.feedback.done": "Terminé.",
+  "identify.feedback.failed": "Échec de l’identification."
 }

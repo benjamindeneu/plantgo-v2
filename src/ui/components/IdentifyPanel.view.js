@@ -1,17 +1,14 @@
 // src/ui/components/IdentifyPanel.view.js
+import { t } from "../../language/i18n.js";
 
 /**
  * Pure view for the Identify panel.
- * - Builds DOM
- * - Handles visual preview of selected files
- * - Accumulates multiple file selections
- * - Emits user interactions to the controller via callbacks
  */
 export function createIdentifyPanelView() {
   const wrap = document.createElement("section");
   wrap.className = "general-validation card";
   wrap.innerHTML = `
-    <h1>Identify a plant</h1>
+    <h1 data-i18n="identify.title">Identify a plant</h1>
 
     <input id="files" type="file" accept="image/*" capture="environment" multiple hidden>
 
@@ -19,8 +16,8 @@ export function createIdentifyPanelView() {
     <div class="user-photos center" id="preview"></div>
 
     <div id="actions" style="display:none; gap:8px; justify-content:center; margin-top:12px">
-      <button id="identify" class="primary" type="button">Identify</button>
-      <button id="clear" class="secondary" type="button">Clear</button>
+      <button id="identify" class="primary" type="button" data-i18n="identify.identify">Identify</button>
+      <button id="clear" class="secondary" type="button" data-i18n="identify.clear">Clear</button>
     </div>
 
     <div id="feedback" aria-live="polite" class="validation-feedback"></div>
@@ -53,7 +50,7 @@ export function createIdentifyPanelView() {
     const label = document.createElement("label");
     label.className = "shot label-file add-shot";
     label.setAttribute("for", "files");
-    label.setAttribute("aria-label", "Add photo");
+    label.setAttribute("aria-label", t("identify.addPhoto"));
 
     label.innerHTML = `
       <span class="add-shot-inner" aria-hidden="true">
@@ -69,7 +66,6 @@ export function createIdentifyPanelView() {
     return label;
   }
 
-
   function renderPreview(files = []) {
     preview.innerHTML = "";
 
@@ -79,7 +75,7 @@ export function createIdentifyPanelView() {
       tile.className = "shot";
 
       const img = document.createElement("img");
-      img.alt = "Selected plant photo";
+      img.alt = t("identify.selectedPhotoAlt");
       img.src = URL.createObjectURL(file);
 
       tile.appendChild(img);
@@ -91,6 +87,12 @@ export function createIdentifyPanelView() {
 
     // Actions visible only when >= 1 photo
     setActionsVisible(files.length > 0);
+  }
+
+  function refreshI18n() {
+    // Update aria-label on the add tile and alt text on images without re-rendering everything
+    // Easiest + consistent: just rerender preview from current files
+    renderPreview(selectedFiles);
   }
 
   function clearSelection({ notify = true } = {}) {
@@ -126,7 +128,7 @@ export function createIdentifyPanelView() {
     const filesSnapshot = selectedFiles.slice();
     if (identifyCb) identifyCb(filesSnapshot);
 
-    // Clear after submit (your earlier request)
+    // Clear after submit
     clearSelection({ notify: false });
   });
 
@@ -134,7 +136,10 @@ export function createIdentifyPanelView() {
     clearSelection({ notify: true });
   });
 
-  // Initial render: show only the add-tile centered
+  // When language changes, update dynamic bits (alt/aria label)
+  document.addEventListener("i18n:changed", refreshI18n);
+
+  // Initial render
   renderPreview([]);
 
   return {
@@ -155,5 +160,7 @@ export function createIdentifyPanelView() {
     onClear(cb) {
       clearCb = cb;
     },
+
+    refreshI18n,
   };
 }

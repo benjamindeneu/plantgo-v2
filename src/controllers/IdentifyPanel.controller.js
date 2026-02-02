@@ -4,6 +4,7 @@ import { ResultModal } from "../controllers/ResultModal.controller.js";
 import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 import { getCurrentUser, getUserTotalPoints } from "../data/user.repo.js";
 import { getCurrentPosition } from "../data/geo.service.js";
+import { t } from "../language/i18n.js";
 
 export function IdentifyPanel() {
   const view = createIdentifyPanelView();
@@ -13,7 +14,7 @@ export function IdentifyPanel() {
   view.onClear(() => { chosen = []; view.setFeedback(""); });
 
   view.onIdentify(async () => {
-    if (!chosen.length) return view.setFeedback("Please add at least one photo.");
+    if (!chosen.length) return view.setFeedback(t("identify.feedback.addOnePhoto"));
 
     const file = chosen[0];
     const photoUrls = chosen.map((f) => URL.createObjectURL(f));
@@ -30,17 +31,17 @@ export function IdentifyPanel() {
     // geolocate
     let lat, lon;
     try {
-      view.setFeedback("Fetching location…");
+      view.setFeedback(t("identify.feedback.fetchingLocation"));
       const pos = await getCurrentPosition();
       lat = pos.coords.latitude;
       lon = pos.coords.longitude;
     } catch {
-      return view.setFeedback("Location permission denied or unavailable.");
+      return view.setFeedback(t("identify.feedback.locationDenied"));
     }
 
     // identify
     try {
-      view.setFeedback("Identifying…");
+      view.setFeedback(t("identify.feedback.identifying"));
       const result = await identifyPlant({ file, lat, lon, model: "best" });
 
       const bestRaw = result?.identify?.raw || null;
@@ -54,9 +55,9 @@ export function IdentifyPanel() {
         photoCount: chosen.length,
       });
 
-      view.setFeedback("Done.");
+      view.setFeedback(t("identify.feedback.done"));
     } catch (e) {
-      view.setFeedback(e?.message || "Identify failed.");
+      view.setFeedback(e?.message || t("identify.feedback.failed"));
     }
   });
 
