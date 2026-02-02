@@ -33,6 +33,7 @@ export function createHerbariumView() {
 
   document.addEventListener("i18n:changed", () => {
     view.refreshI18n();
+    renderEntries(lastEntries);
   });
 
   return {
