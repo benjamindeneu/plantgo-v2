@@ -29,6 +29,11 @@ export function createHeaderView({
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
+        <select id="langSelect" aria-label="Language">
+          <option value="en">EN</option>
+          <option value="fr">FR</option>
+          <option value="de">DE</option>
+        </select>
       </div>
     </div>
   `;
@@ -68,6 +73,13 @@ export function createHeaderView({
     if (onLogout) onLogout();
   });
 
+  // language dropdown -> emit to controller
+  if (langSelect) {
+    langSelect.addEventListener("change", () => {
+      if (onLanguageChange) onLanguageChange(langSelect.value);
+    });
+  }
+
   return {
     element: root,
     // view API for controller
@@ -77,8 +89,13 @@ export function createHeaderView({
     setLevel(lvl) {
       levelEl.textContent = String(lvl ?? 1);
     },
+    // allow controller to set/get lang UI state
+    setLanguageValue(lang) {
+      if (langSelect) langSelect.value = lang;
+    },
     setOnMenuToggle(cb) { onMenuToggle = cb; },
     setOnPrimaryNav(cb) { onPrimaryNav = cb; },
     setOnLogout(cb) { onLogout = cb; },
+    setOnLanguageChange(cb) { onLanguageChange = cb; },
   };
 }

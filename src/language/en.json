@@ -1,0 +1,26 @@
+{
+  "app.title": "PlantGo",
+  "nav.login": "Login",
+  "nav.signup": "Sign up",
+
+  "login.pageTitle": "PlantGo • Login",
+  "login.title": "Welcome back",
+  "login.email": "Email",
+  "login.password": "Password",
+  "login.button": "Login",
+  "login.noAccount": "No account?",
+  "login.createOne": "Create one",
+  "login.error.invalid": "Invalid email or password.",
+  "login.error.userNotFound": "No account found with this email.",
+  "login.error.wrongPassword": "Incorrect password.",
+  "login.error.generic": "Login failed. Please try again.",
+
+  "signup.title": "Create your account",
+  "signup.username": "Username",
+  "signup.email": "Email",
+  "signup.password": "Password",
+  "signup.confirm": "Confirm Password",
+  "signup.button": "Sign Up",
+  "signup.haveAccount": "Already have an account?",
+  "signup.login": "Log in"
+}
