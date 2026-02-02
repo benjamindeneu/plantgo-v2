@@ -41,5 +41,8 @@
   "herbarium.empty": "No saved discoveries yet.",
   "herbarium.status.loginRequired": "Please log in.",
   "herbarium.status.loading": "Loading your herbarium…",
-  "herbarium.status.loadFailed": "Could not load your herbarium."
+  "herbarium.status.loadFailed": "Could not load your herbarium.",
+
+  "herbarium.card.noImage": "No image",
+  "herbarium.card.unknownDate": "—"
 }

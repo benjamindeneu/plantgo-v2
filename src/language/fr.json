@@ -41,5 +41,8 @@
   "herbarium.empty": "Aucune découverte enregistrée pour le moment.",
   "herbarium.status.loginRequired": "Veuillez vous connecter.",
   "herbarium.status.loading": "Chargement de votre herbier…",
-  "herbarium.status.loadFailed": "Impossible de charger votre herbier."
+  "herbarium.status.loadFailed": "Impossible de charger votre herbier.",
+
+  "herbarium.card.noImage": "Image manquante",
+  "herbarium.card.unknownDate": "—"
 }
