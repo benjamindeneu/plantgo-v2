@@ -7,7 +7,7 @@ export function Modal({ title = "", content = "" }) {
       <h2>${title}</h2>
       <div class="body">${content}</div>
       <div class="result-actions">
-        <button class="primary" id="doneBtn" type="button">Done</button>
+        <button class="primary" id="doneBtn" type="button">OK</button>
       </div>
     </div>`;
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
