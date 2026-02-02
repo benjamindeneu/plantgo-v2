@@ -35,6 +35,9 @@
   "header.language": "Langue",
   "header.levelShort": "Niv.",
 
+  "herbarium.pageTitle": "PlantGo • Herbier",
+  "herbarium.title": "Vos découvertes",
+  "herbarium.loading": "Chargement…",
   "herbarium.empty": "Aucune découverte enregistrée pour le moment.",
   "herbarium.status.loginRequired": "Veuillez vous connecter.",
   "herbarium.status.loading": "Chargement de votre herbier…",

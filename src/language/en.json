@@ -35,6 +35,9 @@
   "header.language": "Language",
   "header.levelShort": "Lv.",
 
+  "herbarium.pageTitle": "PlantGo • Herbarium",
+  "herbarium.title": "Your Discoveries",
+  "herbarium.loading": "Loading…",
   "herbarium.empty": "No saved discoveries yet.",
   "herbarium.status.loginRequired": "Please log in.",
   "herbarium.status.loading": "Loading your herbarium…",

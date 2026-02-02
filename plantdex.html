@@ -5,15 +5,28 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
-  <title>Herbarium</title>
+
+  <title data-i18n="herbarium.pageTitle">PlantGo • Herbarium</title>
+
   <link rel="stylesheet" href="./assets/styles.css" />
 </head>
+
 <body class="app-shell">
   <header id="appHeader" class="nav"></header>
+
   <main>
-    <h1>Your Discoveries</h1>
+    <h1 data-i18n="herbarium.title">Your Discoveries</h1>
+
     <section class="card">
-      <div id="discoveriesList" class="form-grid" aria-live="polite">Loading…</div>
+      <!-- This is just a placeholder that will be replaced by the panel -->
+      <div
+        id="discoveriesList"
+        class="form-grid"
+        aria-live="polite"
+        data-i18n="herbarium.loading"
+      >
+        Loading…
+      </div>
     </section>
   </main>
 
