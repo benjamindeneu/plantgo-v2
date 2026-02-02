@@ -1,5 +1,5 @@
 // src/ui/components/ResultModal.view.js
-import { t } from "../../language/i18n.js";
+import { t, translateDom } from "../../language/i18n.js";
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
@@ -64,6 +64,8 @@ export function createResultModalView() {
       </div>
     </div>
   `;
+
+  translateDom(overlay);
 
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
   const qs = (sel) => overlay.querySelector(sel);
@@ -181,7 +183,10 @@ export function createResultModalView() {
     });
   }
 
-  document.addEventListener("i18n:changed", refreshI18n);
+  document.addEventListener("i18n:changed", () => {
+    translateDom(overlay);
+    refreshI18n(); // your existing dynamic update (rarity label + detail lines)
+  });
 
   /* ---------- public view API ---------- */
   return {

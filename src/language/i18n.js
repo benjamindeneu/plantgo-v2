@@ -57,6 +57,20 @@ export async function setLanguage(lang) {
   );
 }
 
+export function translateDom(root = document) {
+  root.querySelectorAll("[data-i18n]").forEach((el) => {
+    el.textContent = t(el.getAttribute("data-i18n"));
+  });
+  root.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+    el.setAttribute("placeholder", t(el.getAttribute("data-i18n-placeholder")));
+  });
+  root.querySelectorAll("[data-i18n-title]").forEach((el) => {
+    el.setAttribute("title", t(el.getAttribute("data-i18n-title")));
+  });
+  const titleEl = root.querySelector("title[data-i18n]");
+  if (titleEl) titleEl.textContent = t(titleEl.getAttribute("data-i18n"));
+}
+
 export async function initI18n() {
   const saved = localStorage.getItem("lang");
   const browser = navigator.language || navigator.languages?.[0];
