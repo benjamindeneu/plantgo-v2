@@ -1,0 +1,26 @@
+{
+  "app.title": "PlantGo",
+  "nav.login": "Connexion",
+  "nav.signup": "Inscription",
+
+  "login.pageTitle": "PlantGo • Connexion",
+  "login.title": "Bon retour",
+  "login.email": "Adresse e-mail",
+  "login.password": "Mot de passe",
+  "login.button": "Se connecter",
+  "login.noAccount": "Pas encore de compte ?",
+  "login.createOne": "En créer un",
+  "login.error.invalid": "Adresse e-mail ou mot de passe invalide.",
+  "login.error.userNotFound": "Aucun compte trouvé avec cette adresse e-mail.",
+  "login.error.wrongPassword": "Mot de passe incorrect.",
+  "login.error.generic": "Échec de la connexion. Veuillez réessayer.",
+
+  "signup.title": "Créer votre compte",
+  "signup.username": "Nom d’utilisateur",
+  "signup.email": "Adresse e-mail",
+  "signup.password": "Mot de passe",
+  "signup.confirm": "Confirmer le mot de passe",
+  "signup.button": "S’inscrire",
+  "signup.haveAccount": "Vous avez déjà un compte ?",
+  "signup.login": "Se connecter"
+}
