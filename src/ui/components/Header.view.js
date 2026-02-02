@@ -50,6 +50,7 @@ export function createHeaderView({
   let onMenuToggle = null;
   let onPrimaryNav = null;
   let onLogout = null;
+  let onLanguageChange = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
