@@ -26,5 +26,12 @@
   "signup.login": "Log in",
   "signup.error.passwordMismatch": "Passwords do not match.",
   "signup.success.verificationSent": "A verification email has been sent. Please check your inbox.",
-  "signup.error.verificationFailed": "Failed to send verification email."
+  "signup.error.verificationFailed": "Failed to send verification email.",
+
+  "header.user": "User",
+  "header.main": "Main",
+  "header.herbarium": "Herbarium",
+  "header.logout": "Log out",
+  "header.language": "Language",
+  "header.levelShort": "Lv."
 }

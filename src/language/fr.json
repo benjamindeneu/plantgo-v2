@@ -26,5 +26,12 @@
   "signup.login": "Se connecter",
   "signup.error.passwordMismatch": "Les mots de passe ne correspondent pas.",
   "signup.success.verificationSent": "Un e-mail de vérification a été envoyé. Veuillez vérifier votre boîte de réception.",
-  "signup.error.verificationFailed": "L’envoi de l’e-mail de vérification a échoué."
+  "signup.error.verificationFailed": "L’envoi de l’e-mail de vérification a échoué.",
+
+  "header.user": "Utilisateur",
+  "header.main": "Accueil",
+  "header.herbarium": "Herbier",
+  "header.logout": "Se déconnecter",
+  "header.language": "Langue",
+  "header.levelShort": "Niv."
 }

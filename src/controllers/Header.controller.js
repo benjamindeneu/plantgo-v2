@@ -11,33 +11,37 @@ export function Header({
   onHerbarium,
   onBackHome,
 } = {}) {
-    const view = createHeaderView({ user, level, menuVariant });
+  const view = createHeaderView({ user, level, menuVariant });
 
-    view.setOnMenuToggle(() => { (onMenu || (() => {}))(); });
+  view.setOnMenuToggle(() => { (onMenu || (() => {}))(); });
 
-    view.setOnPrimaryNav(() => {
-      if (menuVariant === "herbarium") (onBackHome || (() => {}))();
-      else (onHerbarium || (() => {}))();
-    });
+  view.setOnPrimaryNav(() => {
+    if (menuVariant === "herbarium") (onBackHome || (() => {}))();
+    else (onHerbarium || (() => {}))();
+  });
 
-    view.setOnLogout(() => { (onLogout || (() => {}))(); });
+  view.setOnLogout(() => { (onLogout || (() => {}))(); });
 
-    // keep dropdown in sync with current doc lang
-    view.setLanguageValue(document.documentElement.lang || "en");
+  // keep dropdown in sync with current doc lang
+  const currentLang = document.documentElement.lang || "en";
+  view.setLanguageValue(currentLang);
+  view.refreshI18n();
 
-    // do the real app behavior here
-    view.setOnLanguageChange(async (lang) => {
-      try {
-        await setLanguage(lang);
-        // optional: close menu after switching language
-        // (only if you want; view already closes on outside click)
-      } catch (e) {
-        console.error("Failed to switch language:", e);
-      }
-    });
+  // do the real app behavior here
+  view.setOnLanguageChange(async (lang) => {
+    try {
+      await setLanguage(lang);
 
-    const el = view.element;
-    el.setUser = (u) => view.setUser(u);
-    el.setLevel = (lvl) => view.setLevel(lvl);
-    return el;
+      // sync UI + translated labels
+      view.setLanguageValue(lang);
+      view.refreshI18n();
+    } catch (e) {
+      console.error("Failed to switch language:", e);
+    }
+  });
+
+  const el = view.element;
+  el.setUser = (u) => view.setUser(u);
+  el.setLevel = (lvl) => view.setLevel(lvl);
+  return el;
 }

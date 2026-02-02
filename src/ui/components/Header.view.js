@@ -6,6 +6,9 @@
  * - Manages visual toggle of the menu
  * - Exposes event hooks for controller
  */
+
+import { t } from "../../language/i18n.js";
+
 export function createHeaderView({
   user,
   level = 1,
@@ -16,12 +19,15 @@ export function createHeaderView({
   const root = document.createElement("header");
   root.className = "nav";
   root.innerHTML = `
-    <div class="brandmark">🌿 PlantGo</div>
+    <div class="brandmark" id="brandmark">🌿 PlantGo</div>
     <div class="user-area">
       <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
-        <span class="level-badge">Lv. <span id="levelNumber">${level}</span></span>
+        <span class="level-badge">
+          <span id="levelLabel">Lv.</span> <span id="levelNumber">${level}</span>
+        </span>
       </button>
+
       <div id="userMenu" class="menu" role="menu" style="display:none">
         ${
           isHerbarium
@@ -29,7 +35,8 @@ export function createHeaderView({
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
-        <select id="langSelect" aria-label="Language">
+
+        <select class="menu-item" id="langSelect" aria-label="Language">
           <option value="en">EN</option>
           <option value="fr">FR</option>
           <option value="de">DE</option>
@@ -40,7 +47,9 @@ export function createHeaderView({
 
   const btn = root.querySelector("#userBtn");
   const menu = root.querySelector("#userMenu");
+  const brandEl = root.querySelector("#brandmark");
   const levelEl = root.querySelector("#levelNumber");
+  const levelLabelEl = root.querySelector("#levelLabel");
   const nameEl = root.querySelector(".user-name");
   const primaryNavBtn = root.querySelector(isHerbarium ? "#menuHome" : "#menuHerbarium");
   const logoutBtn = root.querySelector("#menuLogout");
@@ -59,42 +68,70 @@ export function createHeaderView({
     if (onMenuToggle) onMenuToggle(willOpen);
   }
 
+  // Apply translated strings (called on init + after language changes)
+  function refreshI18n() {
+    if (brandEl) brandEl.textContent = `🌿 ${t("app.title")}`;
+
+    // fallback user label if no displayName
+    if (!user?.displayName) nameEl.textContent = t("header.user");
+
+    if (levelLabelEl) levelLabelEl.textContent = t("header.levelShort");
+
+    if (primaryNavBtn) {
+      primaryNavBtn.textContent = isHerbarium
+        ? `🏠 ${t("header.main")}`
+        : `📗 ${t("header.herbarium")}`;
+    }
+
+    if (logoutBtn) logoutBtn.textContent = `🚪 ${t("header.logout")}`;
+
+    if (langSelect) langSelect.setAttribute("aria-label", t("header.language"));
+  }
+
   // local UI wiring (no business logic)
   btn.addEventListener("click", () => toggleMenu());
   document.addEventListener("click", (e) => {
     if (!root.contains(e.target)) toggleMenu(false);
   });
 
-  primaryNavBtn.addEventListener("click", () => {
+  primaryNavBtn?.addEventListener("click", () => {
     toggleMenu(false);
     if (onPrimaryNav) onPrimaryNav();
   });
 
-  logoutBtn.addEventListener("click", () => {
+  logoutBtn?.addEventListener("click", () => {
     toggleMenu(false);
     if (onLogout) onLogout();
   });
 
   // language dropdown -> emit to controller
-  if (langSelect) {
-    langSelect.addEventListener("change", () => {
-      if (onLanguageChange) onLanguageChange(langSelect.value);
-    });
-  }
+  langSelect?.addEventListener("change", () => {
+    if (onLanguageChange) onLanguageChange(langSelect.value);
+  });
+
+  // initial i18n render
+  refreshI18n();
 
   return {
     element: root,
+
     // view API for controller
     setUser(u) {
-      nameEl.textContent = u?.displayName ?? "User";
+      user = u; // keep local reference for refreshI18n fallback
+      nameEl.textContent = u?.displayName ?? t("header.user");
     },
     setLevel(lvl) {
       levelEl.textContent = String(lvl ?? 1);
     },
+
     // allow controller to set/get lang UI state
     setLanguageValue(lang) {
       if (langSelect) langSelect.value = lang;
     },
+
+    // let controller re-apply translated strings after setLanguage(...)
+    refreshI18n,
+
     setOnMenuToggle(cb) { onMenuToggle = cb; },
     setOnPrimaryNav(cb) { onPrimaryNav = cb; },
     setOnLogout(cb) { onLogout = cb; },
