@@ -7,7 +7,7 @@ import { listenUserLevel } from "../user/level.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-import { initI18n } from "./src/language/i18n.js";
+import { initI18n } from "../language/i18n.js";
 await initI18n();
 
 function App() {
