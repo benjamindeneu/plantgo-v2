@@ -3,28 +3,30 @@ import { createHerbariumView } from "../ui/components/Herbarium.view.js";
 import { loadDiscoveries } from "../data/discoveries.repo.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import { t } from "../language/i18n.js"; // <-- adjust path if needed in your tree
 
 export function HerbariumPanel() {
   const view = createHerbariumView();
 
-  // Wait for auth, then load entries
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      // Page script already redirects to login, but show a friendly message meanwhile
-      view.setStatus("Please log in.");
+      view.setStatus(t("herbarium.status.loginRequired"));
       view.clearEntries();
+      // keep empty list rendered in correct language
+      view.refreshI18n();
       return;
     }
 
     try {
-      view.setStatus("Loading your herbarium…");
+      view.setStatus(t("herbarium.status.loading"));
       const entries = await loadDiscoveries(user.uid);
       view.renderEntries(entries);
-      view.setStatus(""); // safe: status is separate from list
+      view.setStatus("");
     } catch (e) {
       console.error("[Herbarium] load error:", e);
-      view.setStatus("Could not load your herbarium.");
+      view.setStatus(t("herbarium.status.loadFailed"));
       view.clearEntries();
+      view.refreshI18n();
     }
   });
 

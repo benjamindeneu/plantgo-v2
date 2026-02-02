@@ -33,5 +33,10 @@
   "header.herbarium": "Herbarium",
   "header.logout": "Log out",
   "header.language": "Language",
-  "header.levelShort": "Lv."
+  "header.levelShort": "Lv.",
+
+  "herbarium.empty": "No saved discoveries yet.",
+  "herbarium.status.loginRequired": "Please log in.",
+  "herbarium.status.loading": "Loading your herbarium…",
+  "herbarium.status.loadFailed": "Could not load your herbarium."
 }

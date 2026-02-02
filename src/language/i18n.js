@@ -50,6 +50,11 @@ export async function setLanguage(lang) {
   // Optional: translate <title> if you want it dynamic
   const titleEl = document.querySelector("title[data-i18n]");
   if (titleEl) titleEl.textContent = t(titleEl.getAttribute("data-i18n"));
+
+  // 🔔 notify JS views/controllers
+  document.dispatchEvent(
+    new CustomEvent("i18n:changed", { detail: { lang: currentLang } })
+  );
 }
 
 export async function initI18n() {

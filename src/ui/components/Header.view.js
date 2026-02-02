@@ -88,6 +88,10 @@ export function createHeaderView({
     if (langSelect) langSelect.setAttribute("aria-label", t("header.language"));
   }
 
+  document.addEventListener("i18n:changed", () => {
+    refreshI18n();
+  });
+  
   // local UI wiring (no business logic)
   btn.addEventListener("click", () => toggleMenu());
   document.addEventListener("click", (e) => {
