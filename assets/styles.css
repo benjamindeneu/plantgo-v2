@@ -243,7 +243,12 @@ header, .nav{
   border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
-.user-area{ position:relative; }
+.user-area{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 #userInfo{
   position:absolute;
   right:20px;
