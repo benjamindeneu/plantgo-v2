@@ -244,10 +244,10 @@ header, .nav{
 }
 
 .user-area{
-  display: flex;
-  align-items: center;
+  position: relative;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 8px;
-  flex-wrap: wrap;
 }
 #userInfo{
   position:absolute;
