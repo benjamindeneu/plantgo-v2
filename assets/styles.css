@@ -144,7 +144,7 @@ main{ padding:var(--sp-1); }
 .card{
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:var(--sp-5);
+  padding:var(--sp-4);
   background:var(--surface);
   box-shadow:var(--shadow);
 }
@@ -376,7 +376,7 @@ header, .nav{
   background:var(--surface);
   border-radius:var(--r-lg);
   padding:var(--sp-5);
-  margin-bottom:var(--sp-4);
+  margin-bottom:var(--sp-3);
   box-shadow:var(--shadow-md);
   border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
   transition: transform var(--duration) var(--easing), box-shadow var(--duration) var(--easing);
