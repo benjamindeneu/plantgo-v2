@@ -26,11 +26,6 @@ export function createMissionCardView({
               : `<div class="wiki-skeleton"></div>`
           }
         </div>
-
-        <!-- moved here: points button under image -->
-        <div class="species-actions">
-          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
-        </div>
       </div>
 
       <div class="species-info">
@@ -38,10 +33,12 @@ export function createMissionCardView({
 
         <div class="badges" id="badges"></div>
 
-        <!-- new: description block below badges -->
-        <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
+        <div class="species-actions">
+          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
+        </div>
       </div>
     </div>
+    <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
   `;
 
   const missionTitleEl = root.querySelector("#missionTitle");
