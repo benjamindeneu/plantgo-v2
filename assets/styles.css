@@ -409,6 +409,11 @@ header, .nav{
   margin-top:8px;
 }
 
+.wiki-desc{
+  padding-top: 6px;
+  font-size: 14px;
+}
+
 /* Wiki thumb */
 .wiki-thumb{
   position:absolute;
