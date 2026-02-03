@@ -105,3 +105,40 @@ export async function getWikipediaImage(
   writeCache(cacheKey, null, ttlMs);
   return null;
 }
+
+// --- fetch Wikipedia formatted summary (REST API) ---
+export async function getWikipediaSummaryHtml(
+  speciesFullName,
+  { lang = "en", ttlMs = DEFAULT_TTL_MS } = {}
+) {
+  const binomial = getBinomialName(speciesFullName);
+  if (!binomial) return null;
+
+  const cacheKey = `summaryHtml:${binomial}|${lang}`;
+  const cached = readCache(cacheKey);
+  if (cached !== null) return cached;
+
+  const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(binomial)}`;
+
+  try {
+    const res = await fetchWithTimeout(url);
+    if (!res.ok) {
+      writeCache(cacheKey, null, ttlMs);
+      return null;
+    }
+
+    const data = await res.json();
+
+    const html =
+      data?.extract_html?.trim() ||
+      data?.extract?.trim() ||
+      null;
+
+    writeCache(cacheKey, html, ttlMs);
+    return html;
+  } catch {
+    writeCache(cacheKey, null, ttlMs);
+    return null;
+  }
+}
+

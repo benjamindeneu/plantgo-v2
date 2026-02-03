@@ -1,11 +1,13 @@
 // src/controllers/MissionCard.controller.js
 import { createMissionCardView } from "../ui/components/MissionCard.view.js";
 import { Modal } from "../ui/components/Modal.js";
-import { getWikipediaImage } from "../data/wiki.service.js";
+import { getWikipediaImage, getWikipediaSummaryHtml } from "../data/wiki.service.js";
 import { t } from "../language/i18n.js";
 
 /** ---- Wikipedia caching + concurrency ---- */
-const wikiCache = new Map();
+const wikiImageCache = new Map();
+const wikiSummaryCache = new Map();
+
 const MAX_CONCURRENT = 4;
 let inFlight = 0;
 const queue = [];
@@ -28,6 +30,18 @@ function pump() {
         pump();
       });
   }
+}
+
+function getUiLang() {
+  // 1) <html lang="fr"> (best if you control it)
+  const htmlLang = document?.documentElement?.lang?.trim();
+  if (htmlLang) return htmlLang.split("-")[0].toLowerCase();
+
+  // 2) browser language
+  const navLang = navigator?.language?.trim();
+  if (navLang) return navLang.split("-")[0].toLowerCase();
+
+  return "en";
 }
 
 export function MissionCard(species) {
@@ -75,16 +89,48 @@ export function MissionCard(species) {
     );
   });
 
-  // wikipedia image: only if no heroUrl
+  // ---------- description (use backend if present, otherwise Wikipedia) ----------
+  const existingDescHtml =
+    species.wiki_extract_html ||
+    species.description_html ||
+    ""; // keep this as HTML only
+
+  const existingDescText =
+    (!existingDescHtml && (species.wiki_extract || species.description)) ||
+    ""; // plain text fallback
+
+  if (existingDescHtml) {
+    view.setWikiDescriptionHtml(existingDescHtml);
+  } else if (existingDescText) {
+    view.setWikiDescriptionText(existingDescText);
+  } else if (sciName) {
+    const lang = getUiLang();
+    const cacheKey = `${sciName.trim().toLowerCase()}|${lang}`;
+
+    if (!wikiSummaryCache.has(cacheKey)) {
+      wikiSummaryCache.set(
+        cacheKey,
+        runLimited(async () => (await getWikipediaSummaryHtml(sciName, { lang })) || "")
+          .catch(() => "")
+      );
+    }
+
+    Promise.resolve(wikiSummaryCache.get(cacheKey)).then((html) => {
+      if (!view.element.isConnected) return;
+      if (html) view.setWikiDescriptionHtml(html);
+    });
+  }
+
+  // ---------- wikipedia image: only if no heroUrl ----------
   if (!heroUrl && sciName) {
     const cacheKey = sciName.trim().toLowerCase();
-    if (!wikiCache.has(cacheKey)) {
-      wikiCache.set(
+    if (!wikiImageCache.has(cacheKey)) {
+      wikiImageCache.set(
         cacheKey,
         runLimited(async () => (await getWikipediaImage(sciName)) || "").catch(() => "")
       );
     }
-    Promise.resolve(wikiCache.get(cacheKey)).then((url) => {
+    Promise.resolve(wikiImageCache.get(cacheKey)).then((url) => {
       if (!view.element.isConnected) return;
       view.setWikiImage(url);
     });

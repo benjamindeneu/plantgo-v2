@@ -18,12 +18,19 @@ export function createMissionCardView({
     <div class="mission-title" id="missionTitle"></div>
 
     <div class="card-content">
-      <div class="herbarium-img" id="imgWrap">
-        ${
-          heroUrl
-            ? `<img class="species-image" src="${heroUrl}" alt="${escapeHtml(sciName)}" loading="lazy">`
-            : `<div class="wiki-skeleton"></div>`
-        }
+      <div class="media-col">
+        <div class="herbarium-img" id="imgWrap">
+          ${
+            heroUrl
+              ? `<img class="species-image" src="${heroUrl}" alt="${escapeHtml(sciName)}" loading="lazy">`
+              : `<div class="wiki-skeleton"></div>`
+          }
+        </div>
+
+        <!-- moved here: points button under image -->
+        <div class="species-actions">
+          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
+        </div>
       </div>
 
       <div class="species-info">
@@ -31,9 +38,8 @@ export function createMissionCardView({
 
         <div class="badges" id="badges"></div>
 
-        <div class="species-actions">
-          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
-        </div>
+        <!-- new: description block below badges -->
+        <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
       </div>
     </div>
   `;
@@ -42,6 +48,7 @@ export function createMissionCardView({
   const imgWrap = root.querySelector("#imgWrap");
   const pointsBtn = root.querySelector("#pointsBtn");
   const badgesEl = root.querySelector("#badges");
+  const wikiDescEl = root.querySelector("#wikiDesc");
 
   let onPoints = null;
   pointsBtn.addEventListener("click", () => { if (onPoints) onPoints(); });
@@ -58,8 +65,6 @@ export function createMissionCardView({
     }
 
     badgesEl.innerHTML = html;
-
-    // optional: if no badges, remove extra gap/margin
     badgesEl.style.display = html ? "" : "none";
   }
 
@@ -70,7 +75,6 @@ export function createMissionCardView({
     if (pointsBtn) {
       pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
     }
-    //badges text depends on i18n
     renderBadges();
   }
 
@@ -78,16 +82,43 @@ export function createMissionCardView({
 
   return {
     element: root,
+
     setWikiImage(url) {
       if (!imgWrap) return;
       imgWrap.innerHTML = url
         ? `<img src="${url}" alt="${escapeHtml(sciName)}" loading="lazy">`
         : `<div class="wiki-missing">${escapeHtml(t("missions.card.noImage"))}</div>`;
     },
+
+    // new: set wiki description (HTML from extract_html)
+    setWikiDescriptionHtml(html) {
+      if (!wikiDescEl) return;
+      const cleaned = String(html ?? "").trim();
+      if (!cleaned) {
+        wikiDescEl.style.display = "none";
+        wikiDescEl.innerHTML = "";
+        return;
+      }
+      wikiDescEl.style.display = "";
+      wikiDescEl.innerHTML = cleaned;
+    },
+
+    // optional: plain-text version if you ever need it
+    setWikiDescriptionText(text) {
+      if (!wikiDescEl) return;
+      const cleaned = String(text ?? "").trim();
+      if (!cleaned) {
+        wikiDescEl.style.display = "none";
+        wikiDescEl.textContent = "";
+        return;
+      }
+      wikiDescEl.style.display = "";
+      wikiDescEl.textContent = cleaned;
+    },
+
     onPointsClick(cb) { onPoints = cb; },
     refreshI18n,
 
-    // optional if you later want to update them dynamically:
     setPhenology({ flowering, fruiting }) {
       isFlowering = !!flowering;
       isFruiting = !!fruiting;
