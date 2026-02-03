@@ -10,7 +10,6 @@ import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
-translateDom(document);
 
 function App() {
   // --- Header ---
@@ -48,6 +47,8 @@ function App() {
   footer.className = "footer";
   footer.innerHTML = `<div class="brand"><img alt="Powered by Pl@ntNet" loading="lazy" src="https://my.plantnet.org/images/powered-by-plantnet-dark.svg"/></div>`;
   footerMount.replaceWith(footer);
+
+  translateDom(document);
 
   // --- Auth-driven header level sync ---
   let stopLevel = () => {};

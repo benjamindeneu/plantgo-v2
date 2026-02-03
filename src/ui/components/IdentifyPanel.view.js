@@ -1,7 +1,6 @@
 // src/ui/components/IdentifyPanel.view.js
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 await initI18n();
-translateDom(document);
 
 /**
  * Pure view for the Identify panel.
@@ -137,6 +136,8 @@ export function createIdentifyPanelView() {
   btnClear.addEventListener("click", () => {
     clearSelection({ notify: true });
   });
+
+  translateDom(document);
 
   // When language changes, update dynamic bits (alt/aria label)
   document.addEventListener("i18n:changed", refreshI18n);

@@ -41,6 +41,8 @@ export function createMissionsPanelView() {
     renderMissionsList(listEl, lastMissions);
   }
 
+  translateDom(document);
+
   document.addEventListener("i18n:changed", refreshI18n);
 
   // optional: initial message
