@@ -20,6 +20,11 @@ export function createHeaderView({
   root.className = "nav";
   root.innerHTML = `
     <div class="brandmark" id="brandmark">🌿 PlantGo</div>
+    <select class="menu-item" id="langSelect" aria-label="Language">
+      <option value="en">EN</option>
+      <option value="fr">FR</option>
+      <option value="de">DE</option>
+    </select>
     <div class="user-area">
       <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
@@ -35,12 +40,6 @@ export function createHeaderView({
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
-
-        <select class="menu-item" id="langSelect" aria-label="Language">
-          <option value="en">EN</option>
-          <option value="fr">FR</option>
-          <option value="de">DE</option>
-        </select>
       </div>
     </div>
   `;
