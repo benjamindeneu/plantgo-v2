@@ -28,9 +28,7 @@ export function createMissionCardView({
 
       <div class="species-info">
         <p><strong id="commonName">${escapeHtml(commonName)}</strong></p>
-        <p class="muted" id="sciName">${escapeHtml(sciName)}</p>
 
-        <!-- ✅ NEW BADGES -->
         <div class="badges" id="badges"></div>
 
         <div class="species-actions">
