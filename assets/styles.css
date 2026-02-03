@@ -409,7 +409,7 @@ header, .nav{
   margin-top:8px;
 }
 
-.wiki-desc.p{
+.wiki-desc p{
   padding-top: 6px;
   font-size: .65rem;
 }
