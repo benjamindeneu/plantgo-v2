@@ -1,6 +1,8 @@
 // src/ui/components/MissionsPanel.view.js
 import { MissionCard } from "../../controllers/MissionCard.controller.js";
-import { t } from "../../language/i18n.js";
+import { t, initI18n, translateDom } from "../language/i18n.js";
+await initI18n();
+translateDom(document);
 
 function renderMissionsList(listEl, missionsList = []) {
   listEl.innerHTML = "";
