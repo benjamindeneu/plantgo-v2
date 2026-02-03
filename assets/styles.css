@@ -122,10 +122,10 @@ a:hover{
   text-decoration:underline;
   text-underline-offset:3px;
 }
-/*:focus-visible{
+:focus-visible{
   outline:3px solid color-mix(in srgb, var(--green-600) 55%, #fff);
   outline-offset:2px;
-}*/
+}
 
 /* ---------- 3) LAYOUT ---------- */
 .container{ max-width:900px; margin:0 auto; }
@@ -581,6 +581,13 @@ header, .nav{
 }
 
 /* ---------- 10) RARITY CHIPS ---------- */
+.points-btn{
+  border: 0;
+  outline: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background-clip: padding-box;
+}
 .common-points,
 .rare-points,
 .epic-points,
