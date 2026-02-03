@@ -3,9 +3,13 @@ import { initI18n } from "../language/i18n.js";
 // ✅ MUST be first
 await initI18n();
 
-import { Header } from "../controllers/Header.controller.js";
-import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
-import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
+// to make language load at start
+const [{ Header }, { IdentifyPanel }, { MissionsPanel }] = await Promise.all([
+  import("../controllers/Header.controller.js"),
+  import("../controllers/IdentifyPanel.controller.js"),
+  import("../controllers/MissionsPanel.controller.js"),
+]);
+
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
