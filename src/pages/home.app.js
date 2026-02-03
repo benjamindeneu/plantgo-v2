@@ -1,19 +1,16 @@
 // src/pages/home.js
-import { initI18n } from "../language/i18n.js";
-// ✅ MUST be first
-await initI18n();
+import { initI18n, translateDom } from "../language/i18n.js";
 
-// to make language load at start
-const [{ Header }, { IdentifyPanel }, { MissionsPanel }] = await Promise.all([
-  import("../controllers/Header.controller.js"),
-  import("../controllers/IdentifyPanel.controller.js"),
-  import("../controllers/MissionsPanel.controller.js"),
-]);
-
+import { Header } from "../controllers/Header.controller.js";
+import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
+import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+
+await initI18n();
+translateDom(document);
 
 function App() {
   // --- Header ---
