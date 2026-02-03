@@ -376,7 +376,7 @@ header, .nav{
   background:var(--surface);
   border-radius:var(--r-lg);
   padding:var(--sp-5);
-  margin-bottom:var(--sp-3);
+  margin-bottom:var(--sp-1);
   box-shadow:var(--shadow-md);
   border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
   transition: transform var(--duration) var(--easing), box-shadow var(--duration) var(--easing);
