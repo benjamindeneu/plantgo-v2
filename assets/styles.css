@@ -558,7 +558,7 @@ header, .nav{
   border:1px solid var(--border);
   padding:6px 10px;
   border-radius:999px;
-  box-shadow:var(--shadow-sm);
+  /*box-shadow:var(--shadow-sm);*/
 
   opacity:0;
   transform:translateY(8px) scale(.98);
