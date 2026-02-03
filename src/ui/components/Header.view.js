@@ -20,12 +20,12 @@ export function createHeaderView({
   root.className = "nav";
   root.innerHTML = `
     <div class="brandmark" id="brandmark">🌿 PlantGo</div>
-    <select class="user-btn menu-item" id="langSelect" aria-label="Language">
-      <option value="en">EN</option>
-      <option value="fr">FR</option>
-      <option value="de">DE</option>
-    </select>
     <div class="user-area">
+      <select class="user-btn menu-item" id="langSelect" aria-label="Language">
+        <option value="en">EN</option>
+        <option value="fr">FR</option>
+        <option value="de">DE</option>
+      </select>
       <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
         <span class="level-badge">
