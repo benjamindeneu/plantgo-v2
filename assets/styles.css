@@ -566,6 +566,25 @@ header, .nav{
 }
 .badge.in{ opacity:1; transform:translateY(0) scale(1); }
 
+/* make it appear */
+.badge.is-visible{
+  opacity:1;
+  transform:none;
+}
+
+/* phenology colors */
+.flowering-badge{
+  background: var(--warn-100);
+  color: var(--warn-600);
+  border-color: color-mix(in srgb, var(--warn-600) 20%, white);
+}
+
+.fruiting-badge{
+  background: var(--green-100);
+  color: var(--green-700);
+  border-color: color-mix(in srgb, var(--green-700) 20%, white);
+}
+
 .level-badge{
   display:inline-flex;
   align-items:center;

@@ -76,6 +76,8 @@
   "missions.card.rare": "Rare",
   "missions.card.epic": "Épique",
   "missions.card.legendary": "Légendaire",
+  "missions.card.flowering": "En floraison",
+  "missions.card.fruiting": "En fructification",
 
   "missions.card.pointsTitle": "Points",
   "missions.card.pointsDetails": "Détail des points",

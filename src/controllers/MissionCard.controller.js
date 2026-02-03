@@ -50,6 +50,8 @@ export function MissionCard(species) {
     pointsTotal: totalPoints,
     levelClass,
     missionLevel: t(missionLevelKey),
+    isFlowering: !!species.is_flowering,
+    isFruiting: !!species.is_fruiting,
   });
 
   // points modal
