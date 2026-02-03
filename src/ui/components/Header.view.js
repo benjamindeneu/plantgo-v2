@@ -20,7 +20,7 @@ export function createHeaderView({
   root.className = "nav";
   root.innerHTML = `
     <div class="brandmark" id="brandmark">🌿 PlantGo</div>
-    <select class="menu-item" id="langSelect" aria-label="Language">
+    <select class="user-btn menu-item" id="langSelect" aria-label="Language">
       <option value="en">EN</option>
       <option value="fr">FR</option>
       <option value="de">DE</option>
