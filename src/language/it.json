@@ -41,6 +41,7 @@
   "header.badges": "Distintivi",
   "header.quiz": "Quiz",
   "header.observations": "Osservazioni",
+  "header.map": "Mappa delle missioni",
 
   "observations.pageTitle": "PlantGo • Osservazioni",
   "observations.title": "Le tue osservazioni",
@@ -105,6 +106,9 @@
   "missions.card.legendary": "Leggendaria",
   "missions.card.flowering": "In fioritura",
   "missions.card.fruiting": "Fruttificazione",
+  "missions.card.difficulty.easy": "Facile da trovare",
+  "missions.card.difficulty.medium": "Vale un'occhiata",
+  "missions.card.difficulty.hard": "Difficile da trovare",
   "missions.card.habitat": "Habitat:",
 
   "missions.card.pointsTitle": "Punti",
@@ -288,5 +292,25 @@
   "quiz.landing.start": "Inizia il quiz",
   "quiz.landing.alreadyDone": "Quiz già completato oggi",
   "quiz.landing.comeBack": "Torna domani per un nuovo quiz!",
-  "quiz.earned": "Punti guadagnati"
+  "quiz.earned": "Punti guadagnati",
+
+  "map.pageTitle": "PlantGo • Mappa delle missioni",
+  "map.refresh": "Aggiorna le missioni",
+  "map.recenter": "Centra su di me",
+  "map.legend.title": "Probabilità di trovarla",
+  "map.trivia": "Lo sapevi",
+  "map.status.locating": "Ricerca della tua posizione…",
+  "map.status.loading": "Caricamento delle missioni…",
+  "map.status.added": "+{count} nuove missioni",
+  "map.status.empty": "Nessuna missione qui — sposta la mappa",
+  "map.status.zoomIn": "Ingrandisci per vedere le missioni",
+  "map.status.noRasters": "Nessuna mappa di specie per quest'area — posizioni approssimative",
+  "map.status.loadFailed": "Impossibile caricare le missioni",
+  "map.status.locateError": "Posizione non disponibile",
+  "map.meta.chance": "{pct}% di probabilità",
+  "map.meta.noExtent": "Zona non mappata",
+  "map.meta.extentFailed": "Zona non disponibile",
+  "map.gate.title": "Funzione beta",
+  "map.gate.message": "La mappa delle missioni è ancora in fase di test. Chiedi di entrare nella beta per provarla in anteprima.",
+  "map.gate.back": "Torna a PlantGo"
 }

@@ -67,6 +67,7 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
     missionLevel: t(missionLevelKey),
     isFlowering: !!species.is_flowering,
     isFruiting: !!species.is_fruiting,
+    difficulty: species.difficulty ?? null,
     debugData: species,
     showPoints,
     showMissionPrefix,
@@ -202,7 +203,12 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
     });
   }
 
-  return view.element;
+  // Expose the parts of the view a caller may need to fill in later (the map
+  // page already has the description by the time its detail request lands).
+  const el = view.element;
+  el.injectDescription = (d) => view.injectDescription(d);
+  el.setBackendDescription = (d) => view.setBackendDescription(d);
+  return el;
 }
 
 function getRarityFromPoints(totalPoints) {

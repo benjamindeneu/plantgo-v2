@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SDM_MODELS_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, GPN_TILE_BASE } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -104,6 +104,41 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon, model, limit, lang })
   });
+}
+
+/**
+ * Fetch mission pins for the area around a point (beta map page).
+ * Deliberately light — no extent, no description. Returns
+ * { area, model, has_rasters, missions: [{ id, gbif_id, name, vernacular_name,
+ *   lat, lon, has_extent, points, is_flowering, is_fruiting }] }
+ */
+export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en" }) {
+  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang });
+  return httpWithTimeout(`${MAP_MISSIONS_URL}?${qs}`, {}, 60_000);
+}
+
+/**
+ * Fetch the expensive half of one mission: extent polygon, description, trivia.
+ * Returns { id, gbif_id, name, vernacular_name, lat, lon, extent, metrics, points, description, trivia }
+ */
+export async function fetchMissionDetail({ id, lang = "en", model = "best" }) {
+  const qs = new URLSearchParams({ lang, model });
+  return httpWithTimeout(`${MISSION_DETAIL_BASE}/${encodeURIComponent(id)}?${qs}`, {}, 60_000);
+}
+
+/**
+ * Leaflet tile template for the probability raster behind one mission.
+ *
+ * A mission id spells out where its raster lives —
+ * `gpn2:<area>:<raster_id>:<lat_e5>:<lon_e5>` — so the overlay costs no
+ * request of its own and can go up the moment a pin is tapped. Returns null
+ * for ids that carry no raster, which is also what the map gets for the
+ * approximate missions the backend emits when an area has none.
+ */
+export function missionRasterTileUrl(missionId) {
+  const [prefix, area, rasterId, ...rest] = String(missionId ?? "").split(":");
+  if (prefix !== "gpn2" || !area || !rasterId || rest.length !== 2) return null;
+  return `${GPN_TILE_BASE}/${encodeURIComponent(area)}/2/species/${encodeURIComponent(rasterId)}/{z}/{x}/{y}`;
 }
 
 /**

@@ -1,6 +1,7 @@
 // src/controllers/Header.controller.js
 import { createHeaderView } from "../ui/components/Header.view.js";
 import { setLanguage } from "../language/i18n.js";
+import { isBetaUser } from "../data/user.repo.js";
 
 export function Header({
   user,
@@ -15,6 +16,7 @@ export function Header({
   onQuiz,
   onSettings,
   onObservations,
+  onMap,
 } = {}) {
   const view = createHeaderView({ user, level, menuVariant });
 
@@ -34,6 +36,7 @@ export function Header({
   view.setOnQuiz(() => { (onQuiz || (() => {}))(); });
   view.setOnSettings(() => { (onSettings || (() => {}))(); });
   view.setOnObservations(() => { (onObservations || (() => {}))(); });
+  view.setOnMap(() => { (onMap || (() => { location.href = "./map.html"; }))(); });
 
   // keep dropdown in sync with current doc lang
   const currentLang = document.documentElement.lang || "en";
@@ -54,7 +57,16 @@ export function Header({
   });
 
   const el = view.element;
-  el.setUser = (u) => view.setUser(u);
+  el.setUser = (u) => {
+    view.setUser(u);
+    // Beta entries stay hidden until Firestore confirms the flag.
+    view.setBetaUser(false);
+    if (u?.uid) {
+      isBetaUser(u.uid)
+        .then((beta) => view.setBetaUser(beta))
+        .catch(() => view.setBetaUser(false));
+    }
+  };
   el.setLevel = (lvl) => view.setLevel(lvl);
   return el;
 }

@@ -41,6 +41,7 @@
   "header.badges": "Badges",
   "header.quiz": "Quiz",
   "header.observations": "Observations",
+  "header.map": "Mission map",
 
   "observations.pageTitle": "PlantGo • Observations",
   "observations.title": "Your Observations",
@@ -105,6 +106,9 @@
   "missions.card.legendary": "Legendary",
   "missions.card.flowering": "Flowering",
   "missions.card.fruiting": "Fruiting",
+  "missions.card.difficulty.easy": "Easy find",
+  "missions.card.difficulty.medium": "Worth a look",
+  "missions.card.difficulty.hard": "Hard to find",
   "missions.card.habitat": "Habitat:",
 
   "missions.card.pointsTitle": "Points",
@@ -288,5 +292,25 @@
   "quiz.landing.start": "Start quiz",
   "quiz.landing.alreadyDone": "Quiz already completed today",
   "quiz.landing.comeBack": "Come back tomorrow for a new quiz!",
-  "quiz.earned": "Points earned"
+  "quiz.earned": "Points earned",
+
+  "map.pageTitle": "PlantGo • Mission map",
+  "map.refresh": "Refresh missions",
+  "map.recenter": "Recenter on me",
+  "map.legend.title": "Chance of finding it",
+  "map.trivia": "Did you know",
+  "map.status.locating": "Finding your location…",
+  "map.status.loading": "Loading missions…",
+  "map.status.added": "+{count} new missions",
+  "map.status.empty": "No missions here — try moving the map",
+  "map.status.zoomIn": "Zoom in to see missions",
+  "map.status.noRasters": "No species maps for this area — showing approximate spots",
+  "map.status.loadFailed": "Could not load missions",
+  "map.status.locateError": "Location unavailable",
+  "map.meta.chance": "{pct}% chance",
+  "map.meta.noExtent": "No mapped zone",
+  "map.meta.extentFailed": "Zone unavailable",
+  "map.gate.title": "Beta feature",
+  "map.gate.message": "The mission map is still in testing. Ask to join the beta if you would like early access.",
+  "map.gate.back": "Back to PlantGo"
 }

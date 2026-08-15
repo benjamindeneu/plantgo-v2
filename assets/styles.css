@@ -260,9 +260,9 @@ input[type="file"]{ display:none; }
 }
 
 /* Buttons — unified (rarity chips opt-out) */
-button:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
-.points-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
-.validate-species-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
+button:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot, .mission-map-btn, .mission-sheet__close),
+.points-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot, .mission-map-btn, .mission-sheet__close),
+.validate-species-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot, .mission-map-btn, .mission-sheet__close),
 #userMenu button{
   --btn-fg:#fff;
   color:var(--btn-fg);
@@ -278,14 +278,14 @@ button:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-na
   box-shadow:0 2px 0 rgba(0,0,0,0.06);
   transition: transform var(--duration) var(--easing), filter var(--duration) var(--easing);
 }
-button:not(.dq-nav, .dq-dot):hover,
+button:not(.dq-nav, .dq-dot, .mission-map-btn, .mission-sheet__close):hover,
 .points-btn:hover,
 .validate-species-btn:hover,
 #userMenu button:hover{
   filter:brightness(1.02);
   transform:translateY(-1px);
 }
-button:not(.dq-nav, .dq-dot):active,
+button:not(.dq-nav, .dq-dot, .mission-map-btn, .mission-sheet__close):active,
 .points-btn:active,
 .validate-species-btn:active,
 #userMenu button:active{
@@ -1279,6 +1279,24 @@ header, .nav{
   border-color: color-mix(in srgb, var(--green-700) 20%, white);
 }
 
+/* difficulty tier — the backend picks the site inside a probability band, so
+   this is a promise about how hard the plant is to find, not a guess */
+.difficulty-badge--easy{
+  background: var(--green-50);
+  color: var(--green-800);
+  border-color: var(--green-200);
+}
+.difficulty-badge--medium{
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.difficulty-badge--hard{
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}
+
 .level-badge{
   display:inline-flex;
   align-items:center;
@@ -2264,4 +2282,304 @@ body:not(.debug-mode) .mission-debug-section { display: none !important; }
   word-break: break-all;
   color: #ffd700;
   text-align: left;
+}
+
+/* =========================
+   Mission map (beta)
+   ========================= */
+
+/* Column layout so the map takes exactly what the header leaves, whatever
+   height the header ends up being. Sized entirely by flex — percentage
+   heights do not resolve reliably through a flex-sized ancestor. */
+.map-page {
+  margin: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;      /* keeps the phone-width column centred on desktop */
+  overflow: hidden;
+}
+.map-page > .nav { flex: none; }
+
+/* The page-wide `main { padding }` would inset the map inside its own frame. */
+.map-page .map-shell {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+.map-page .map-root {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  position: relative;
+}
+.mission-map-root { position: absolute; inset: 0; }
+
+.map-page--gated { height: auto; min-height: 100dvh; overflow: auto; }
+.map-page--gated .map-shell { flex: 0 0 auto; display: block; padding: var(--sp-3); }
+
+/* PlantGo is a phone app first: on a wide screen the rest of the app paints
+   itself into a 580px column, and the map holds the same shape rather than
+   sprawling. Everything below this stays a single mobile layout. */
+@media (min-width: 900px) {
+  .map-page > .nav,
+  .map-page .map-shell {
+    width: 580px;
+    max-width: 580px;
+  }
+  .map-page .map-root {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.mission-map-canvas { position: absolute; inset: 0; background: var(--surface-2); }
+
+/* ---- floating chrome over the map ---- */
+.mission-map-topbar {
+  position: absolute;
+  top: var(--sp-3); left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  max-width: min(92%, 420px);
+  pointer-events: none;
+}
+.mission-map-status {
+  display: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  font-size: .85rem;
+  color: var(--text);
+  text-align: center;
+}
+.mission-map-status.is-busy::before {
+  content: "";
+  display: inline-block;
+  width: 11px; height: 11px;
+  margin-right: 7px;
+  vertical-align: -1px;
+  border: 2px solid var(--green-300);
+  border-top-color: var(--green-700);
+  border-radius: 50%;
+  animation: map-spin .8s linear infinite;
+}
+@keyframes map-spin { to { transform: rotate(360deg); } }
+
+.mission-map-controls {
+  position: absolute;
+  right: var(--sp-3);
+  top: var(--sp-3);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.mission-map-btn {
+  width: 42px; height: 42px;
+  padding: 0;
+  display: grid; place-items: center;
+  font-size: 1.1rem; line-height: 1;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background var(--duration) var(--easing);
+}
+.mission-map-btn:hover { background: var(--green-50); }
+
+/* ---- species probability raster ---- */
+/* The source is 50 m/px and Leaflet stretches it past zoom 13, so let the
+   browser smooth it: the data has no sharper edges to preserve, and crisp
+   blocks would claim a precision the model does not have. */
+.species-raster { image-rendering: auto; }
+
+/* Sits under the zoom control rather than at the bottom, where the sheet that
+   opens with it would cover it. */
+.raster-legend {
+  position: absolute;
+  top: 88px; left: var(--sp-3);
+  z-index: 500;
+  display: grid;
+  gap: 3px;
+  width: 150px;
+  padding: 7px 9px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+.raster-legend[hidden] { display: none; }
+.raster-legend__title {
+  font-size: .64rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.25;
+}
+/* The GeoPl@ntNet ramp, sampled off the tile service's fixed global colormap
+   so the bar reads against the pixels rather than approximating them. */
+.raster-legend__ramp {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg,
+    #3c0965 0%, #6b176e 12.5%, #932567 25%, #ba3655 37.5%, #db4f3a 50%,
+    #f2741c 62.5%, #fba007 75%, #f7d13c 87.5%, #f7fb99 100%);
+}
+.raster-legend__scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: .64rem;
+  color: var(--muted);
+}
+
+/* ---- pins ---- */
+.mission-pin {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  border: 2px solid #fff;
+  box-shadow: 0 3px 8px rgba(2,6,23,.35);
+  transition: transform var(--duration) var(--easing);
+}
+.mission-pin__glyph {
+  transform: rotate(45deg);
+  font-size: .78rem;
+  font-weight: 700;
+  color: #fff;
+}
+.mission-pin--common    { background: var(--green-600); }
+.mission-pin--rare      { background: #2563eb; }
+.mission-pin--epic      { background: #7c3aed; }
+.mission-pin--legendary { background: #d97706; }
+.mission-pin.is-selected {
+  transform: rotate(-45deg) scale(1.25);
+  border-color: var(--green-900);
+  z-index: 600;
+}
+
+.user-dot {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgba(37,99,235,.5);
+}
+
+/* ---- bottom sheet ---- */
+.mission-sheet {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 700;
+  max-height: 72%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-2) var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(105%);
+  transition: transform var(--duration) var(--easing);
+}
+.mission-sheet.is-open { transform: translateY(0); }
+.mission-sheet[aria-hidden="true"] { pointer-events: none; }
+
+.mission-sheet__grab {
+  width: 42px; height: 4px;
+  margin: 2px auto var(--sp-2);
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  flex: none;
+}
+.mission-sheet__close {
+  position: absolute;
+  top: 6px; right: 8px;
+  width: 32px; height: 32px;
+  padding: 0;
+  display: grid; place-items: center;
+  font-size: 1.35rem; line-height: 1;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.mission-sheet__close:hover { background: var(--surface-2); color: var(--text); }
+
+.mission-sheet__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 var(--sp-2);
+  flex: none;
+}
+.mission-meta-chip {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+  color: var(--green-800);
+  font-size: .76rem;
+  white-space: nowrap;
+}
+.mission-meta-chip--warn {
+  background: var(--warn-100);
+  border-color: #fed7aa;
+  color: var(--warn-600);
+}
+
+.mission-sheet__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0;
+}
+.mission-sheet__body .species-item { border: none; box-shadow: none; padding: 0; }
+
+.mission-trivia {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+}
+.mission-trivia__label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: .72rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--green-700);
+}
+.mission-trivia p { margin: 0; font-size: .9rem; }
+
+/* ---- beta gate + menu tag ---- */
+.beta-gate { display: grid; place-items: center; padding: var(--sp-8) var(--sp-4); }
+.beta-gate__card { max-width: 420px; text-align: center; padding: var(--sp-6); background: var(--surface); }
+.beta-gate__icon { font-size: 2.4rem; margin-bottom: var(--sp-2); }
+.beta-gate__title { margin: 0 0 var(--sp-2); font-size: 1.15rem; }
+.beta-gate__message { margin: 0 0 var(--sp-4); }
+
+.menu-item--beta { display: flex; align-items: center; gap: var(--sp-2); }
+.beta-tag {
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--warn-100);
+  color: var(--warn-600);
+  font-size: .62rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mission-sheet, .mission-pin, .mission-map-btn { transition: none; }
+  .mission-map-status.is-busy::before { animation: none; }
 }
