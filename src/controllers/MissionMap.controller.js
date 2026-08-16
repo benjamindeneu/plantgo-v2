@@ -77,7 +77,7 @@ export function MissionMapPanel() {
         lat: vp.lat,
         lon: vp.lon,
         radius_m: vp.radius_m,
-        limit: 70,
+        limit: 300,
         lang: uiLang(),
       });
       if (inFlight !== token) return; // a newer request already won

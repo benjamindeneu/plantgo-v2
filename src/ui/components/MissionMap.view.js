@@ -134,7 +134,7 @@ export function createMissionMapView() {
   }
 
   function missionIcon(mission, isSelected) {
-    const tier = tierFor(Number(mission?.points?.total ?? 0));
+    const tier = mission?.grade?.tier || "common";
     const label = (mission.vernacular_name || mission.name || "?").trim().charAt(0).toUpperCase();
     return L.divIcon({
       className: "",
