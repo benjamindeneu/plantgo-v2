@@ -55,19 +55,24 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
     (Array.isArray(species.images) && species.images[0]) ||
     "";
 
+  // Two different things, kept apart on purpose. A map mission is graded
+  // before anyone goes anywhere, from what the offer is worth; a pointwise
+  // mission shows the points an observation would earn. Only one applies.
+  const grade = species.grade ?? null;
   const totalPoints = Number(species.points?.total ?? 0);
-  const { missionLevelKey, levelClass } = getRarityFromPoints(totalPoints);
+  const { missionLevelKey, levelClass } = grade
+    ? getRarityFromGrade(grade.tier)
+    : getRarityFromPoints(totalPoints);
 
   const view = createMissionCardView({
     sciName,
     commonName,
     heroUrl,
-    pointsTotal: totalPoints,
+    pointsTotal: grade ? null : totalPoints,
     levelClass,
     missionLevel: t(missionLevelKey),
     isFlowering: !!species.is_flowering,
     isFruiting: !!species.is_fruiting,
-    difficulty: species.difficulty ?? null,
     debugData: species,
     showPoints,
     showMissionPrefix,
@@ -84,24 +89,31 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
     view.setGbifLinkUrl(`https://www.gbif.org/species/${gbifId}`);
   }
 
-  // points modal
-  const detailObj = species.points?.detail || {};
+  // breakdown modal — the grade for a map mission, the points for a pointwise one
+  const detailObj = (grade ? grade.detail : species.points?.detail) || {};
   view.onPointsClick(() => {
     let detail =
-      `<h2>${escapeHtml(t("missions.card.pointsDetails"))}</h2>` +
+      `<h2>${escapeHtml(t(grade ? "missions.card.gradeDetails" : "missions.card.pointsDetails"))}</h2>` +
       `<p><small>${escapeHtml(t("missions.card.missionPrefix"))} ${escapeHtml(sciName)}</small></p>`;
 
-    if (detailObj && typeof detailObj === "object") {
+    if (detailObj && typeof detailObj === "object" && Object.keys(detailObj).length) {
       for (const k of Object.keys(detailObj)) {
-        const label = t(k); // ✅ backend sends i18n key now
-        detail += `<p>${escapeHtml(label)}: ${escapeHtml(detailObj[k])} ${escapeHtml(t("missions.card.points"))}</p>`;
+        const label = t(k); // backend sends i18n keys
+        // Grade factors arrive as 0..1 shares; points arrive as whole numbers.
+        const value = grade
+          ? `${Math.round(Number(detailObj[k]) * 100)}%`
+          : `${detailObj[k]} ${t("missions.card.points")}`;
+        detail += `<p>${escapeHtml(label)}: ${escapeHtml(value)}</p>`;
       }
     } else {
       detail += `<p>${escapeHtml(t("missions.card.noBreakdown"))}</p>`;
     }
 
     document.body.appendChild(
-      Modal({ title: t("missions.card.pointsTitle"), content: detail })
+      Modal({
+        title: t(grade ? "missions.card.gradeTitle" : "missions.card.pointsTitle"),
+        content: detail,
+      })
     );
   });
 
@@ -209,6 +221,13 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
   el.injectDescription = (d) => view.injectDescription(d);
   el.setBackendDescription = (d) => view.setBackendDescription(d);
   return el;
+}
+
+/** Map-mission grades already come named; reuse the same four badge styles. */
+function getRarityFromGrade(tier) {
+  const known = ["legendary", "epic", "rare", "common"];
+  const name = known.includes(tier) ? tier : "common";
+  return { missionLevelKey: `missions.card.${name}`, levelClass: `${name}-points` };
 }
 
 function getRarityFromPoints(totalPoints) {

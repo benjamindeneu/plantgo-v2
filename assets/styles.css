@@ -1279,23 +1279,6 @@ header, .nav{
   border-color: color-mix(in srgb, var(--green-700) 20%, white);
 }
 
-/* difficulty tier — the backend picks the site inside a probability band, so
-   this is a promise about how hard the plant is to find, not a guess */
-.difficulty-badge--easy{
-  background: var(--green-50);
-  color: var(--green-800);
-  border-color: var(--green-200);
-}
-.difficulty-badge--medium{
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
-}
-.difficulty-badge--hard{
-  background: #f5f3ff;
-  color: #6d28d9;
-  border-color: #ddd6fe;
-}
 
 .level-badge{
   display:inline-flex;

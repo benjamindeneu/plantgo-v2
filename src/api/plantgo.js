@@ -130,14 +130,16 @@ export async function fetchMissionDetail({ id, lang = "en", model = "best" }) {
  * Leaflet tile template for the probability raster behind one mission.
  *
  * A mission id spells out where its raster lives —
- * `gpn2:<area>:<raster_id>:<lat_e5>:<lon_e5>` — so the overlay costs no
- * request of its own and can go up the moment a pin is tapped. Returns null
- * for ids that carry no raster, which is also what the map gets for the
- * approximate missions the backend emits when an area has none.
+ * `gpn2:<area>:<raster_id>:<pin_lat_e5>:<pin_lon_e5>` optionally followed by
+ * the site the zone is grown from — so the overlay costs no request of its own
+ * and can go up the moment a pin is tapped. Returns null for ids that carry no
+ * raster, which is also what the map gets for the approximate missions the
+ * backend emits when an area has none.
  */
 export function missionRasterTileUrl(missionId) {
   const [prefix, area, rasterId, ...rest] = String(missionId ?? "").split(":");
-  if (prefix !== "gpn2" || !area || !rasterId || rest.length !== 2) return null;
+  if (prefix !== "gpn2" || !area || !rasterId) return null;
+  if (rest.length !== 2 && rest.length !== 4) return null;
   return `${GPN_TILE_BASE}/${encodeURIComponent(area)}/2/species/${encodeURIComponent(rasterId)}/{z}/{x}/{y}`;
 }
 

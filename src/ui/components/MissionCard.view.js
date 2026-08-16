@@ -1,9 +1,6 @@
 // src/ui/components/MissionCard.view.js
 import { t } from "../../language/i18n.js";
 
-/** Difficulty tiers the backend assigns from the probability at the site. */
-const DIFFICULTY_GLYPH = { easy: "●", medium: "◆", hard: "▲" };
-
 export function createMissionCardView({
   sciName,
   commonName,
@@ -13,7 +10,6 @@ export function createMissionCardView({
   missionLevel = "Common",
   isFlowering = false,
   isFruiting = false,
-  difficulty = null,
   debugData = null,
   showPoints = true,
   showMissionPrefix = true,
@@ -94,12 +90,6 @@ export function createMissionCardView({
     if (!badgesEl) return;
 
     let html = "";
-    // Difficulty first: a hard mission the player chose is exciting, one they
-    // discover is hard only after walking there is not.
-    if (difficulty && DIFFICULTY_GLYPH[difficulty]) {
-      html += `<span class="badge difficulty-badge difficulty-badge--${difficulty} is-visible">`
-        + `${DIFFICULTY_GLYPH[difficulty]} ${escapeHtml(t(`missions.card.difficulty.${difficulty}`))}</span>`;
-    }
     if (isFlowering) {
       html += `<span class="badge flowering-badge is-visible">🌸 ${escapeHtml(t("missions.card.flowering"))}</span>`;
     }
@@ -127,7 +117,11 @@ function refreshI18n() {
     if (extLinksLabel) extLinksLabel.textContent = t("missions.card.moreInfo");
 
     if (pointsBtn) {
-      pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
+      // A map mission carries a grade and no points: its worth is the grade,
+      // and the points are settled later from the observation actually made.
+      pointsBtn.innerHTML = pointsTotal == null
+        ? escapeHtml(missionLevel)
+        : `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
     }
     renderBadges();
   }

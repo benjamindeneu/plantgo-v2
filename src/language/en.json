@@ -2,10 +2,8 @@
   "app.title": "PlantGo",
   "nav.login": "Login",
   "nav.signup": "Sign up",
-
   "common.close": "Close",
   "common.copied": "Copied!",
-
   "login.pageTitle": "PlantGo • Login",
   "login.title": "Welcome back",
   "login.email": "Email",
@@ -17,7 +15,6 @@
   "login.error.userNotFound": "No account found with this email.",
   "login.error.wrongPassword": "Incorrect password.",
   "login.error.generic": "Login failed. Please try again.",
-
   "signup.pageTitle": "PlantGo • Sign Up",
   "signup.title": "Create your account",
   "signup.username": "Username",
@@ -30,7 +27,6 @@
   "signup.error.passwordMismatch": "Passwords do not match.",
   "signup.success.verificationSent": "A verification email has been sent. Please check your inbox.",
   "signup.error.verificationFailed": "Failed to send verification email.",
-
   "header.user": "User",
   "header.main": "Main",
   "header.herbarium": "Herbarium",
@@ -42,13 +38,11 @@
   "header.quiz": "Quiz",
   "header.observations": "Observations",
   "header.map": "Mission map",
-
   "observations.pageTitle": "PlantGo • Observations",
   "observations.title": "Your Observations",
   "observations.empty": "No observations yet.",
   "observations.status.loading": "Loading your observations…",
   "observations.status.loadFailed": "Could not load your observations.",
-
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Your Discoveries",
   "herbarium.loading": "Loading…",
@@ -56,23 +50,19 @@
   "herbarium.status.loginRequired": "Please log in.",
   "herbarium.status.loading": "Loading your herbarium…",
   "herbarium.status.loadFailed": "Could not load your herbarium.",
-
   "herbarium.card.noImage": "No image",
   "herbarium.card.unknownDate": "—",
-
   "identify.title": "Observe and identify a plant",
   "identify.addPhoto": "Add picture",
   "identify.selectedPhotoAlt": "Selected plant picture",
   "identify.identify": "Identify",
   "identify.clear": "Clear",
-
   "identify.feedback.addOnePhoto": "Please add at least one picture.",
   "identify.feedback.fetchingLocation": "Fetching location…",
   "identify.feedback.locationDenied": "Location permission denied or unavailable.",
   "identify.feedback.identifying": "Identifying…",
   "identify.feedback.done": "Done.",
   "identify.feedback.failed": "Identify failed.",
-
   "settings.title": "Settings",
   "missions.title": "Your missions",
   "missions.tab.missions": "Missions",
@@ -96,7 +86,6 @@
   "missions.model.group.default": "Best for your location",
   "missions.model.group.available": "Available models",
   "missions.model.geoplantnet": "GeoPlantNet",
-
   "missions.card.missionPrefix": "Mission:",
   "missions.card.noCommonName": "No common name",
   "missions.card.points": "points",
@@ -106,11 +95,7 @@
   "missions.card.legendary": "Legendary",
   "missions.card.flowering": "Flowering",
   "missions.card.fruiting": "Fruiting",
-  "missions.card.difficulty.easy": "Easy find",
-  "missions.card.difficulty.medium": "Worth a look",
-  "missions.card.difficulty.hard": "Hard to find",
   "missions.card.habitat": "Habitat:",
-
   "missions.card.pointsTitle": "Points",
   "missions.card.pointsDetails": "Point details",
   "missions.card.noBreakdown": "No breakdown available.",
@@ -118,12 +103,10 @@
   "missions.card.noImage": "No image",
   "missions.card.moreInfo": "More info:",
   "missions.card.moreOnWikipedia": "More on Wikipedia →",
-
   "points.distance": "Nearby GBIF observations (20 km)",
   "points.numberObs": "Number of observations on GBIF",
   "points.modelUncertainty": "Distribution model uncertainty",
   "points.baseObs": "Plant observation",
-
   "result.level": "Level",
   "result.levelReached": "Level {level} reached!",
   "result.yourObservation": "Your observation:",
@@ -133,17 +116,14 @@
   "result.noCommonName": "No common name",
   "result.confidence": "confidence: ",
   "result.yourPhotoAlt": "Your photo",
-
   "result.observationPoints": "Observation points:",
   "result.total": "Total:",
   "result.ptsShort": "pts",
   "result.done": "Done",
-
   "result.rarity.common": "Common",
   "result.rarity.rare": "Rare",
   "result.rarity.epic": "Epic",
   "result.rarity.legendary": "Legendary",
-
   "result.badge.newBadgesUnlocked": "New badges unlocked!",
   "result.badge.questComplete": "Quest completed!",
   "result.badge.missionSpecies": "Mission species",
@@ -158,10 +138,8 @@
   "result.description.unavailable": "Impossible to get description at the moment.",
   "result.trivia.loading": "Loading trivia…",
   "result.trivia.unavailable": "Impossible to get trivia at the moment.",
-
   "challenge.title": "Challenge",
   "challenge.modal.title": "Challenge",
-
   "challenge.speciesHunt.speciesCount": "Species",
   "challenge.create.tab": "Create",
   "challenge.join.tab": "Join",
@@ -174,7 +152,6 @@
   "challenge.error.codeGen": "Could not generate a join code. Please try again.",
   "challenge.error.mustLogin": "Please log in to create or join a challenge.",
   "challenge.error.generic": "Something went wrong. Please try again.",
-
   "challenge.join.subtitle": "Join a challenge",
   "challenge.join.placeholder": "ABCDE",
   "challenge.join.button": "Join",
@@ -183,7 +160,6 @@
   "challenge.joined": "Joined!",
   "challenge.join.notFound": "Challenge not found.",
   "challenge.join.ended": "This challenge has already ended.",
-
   "challenge.active.subtitle": "Active challenge",
   "challenge.active.none": "No active challenge",
   "challenge.active.code": "Code:",
@@ -192,11 +168,9 @@
   "challenge.active.close": "Close leaderboard",
   "challenge.leaderboard": "Leaderboard",
   "challenge.leaderboard.empty": "No scores yet.",
-
   "challenge.type.label": "Type",
   "challenge.type.points": "Points Race",
   "challenge.type.speciesHunt": "Species Hunt",
-
   "challenge.speciesHunt.activeSubtitle": "Species Hunt",
   "challenge.speciesHunt.checklistTitle": "Species to find",
   "challenge.speciesHunt.scoreLabel": "species",
@@ -204,7 +178,6 @@
   "challenge.speciesHunt.fetchingSpecies": "Fetching species for your location…",
   "challenge.speciesHunt.missionsInfo": "{count} species loaded for this hunt.",
   "challenge.speciesHunt.error.minSpecies": "Not enough species found for your location. Try again.",
-
   "quests.title": "Daily Quests",
   "quests.completed": "Completed!",
   "quests.obs.label": "Make 10 observations",
@@ -213,32 +186,26 @@
   "quests.inv.desc": "Find 5 different plants within 50 m",
   "quests.mis.label": "Complete a mission",
   "quests.mis.desc": "Observe at least 1 mission species",
-
   "location.gate.title": "Location Required",
   "location.gate.message": "PlantGo needs your location to identify plants, load missions, and create challenges. Please enable location access in your browser or device settings to continue.",
-
   "badges.pageTitle": "PlantGo • Badges",
   "badges.title": "Badges",
   "badges.loading": "Loading…",
   "badges.error": "Could not load badges.",
-
   "badges.obs1.name": "First Steps",
   "badges.obs1.desc": "Made your first plant observation",
   "badges.obs100.name": "Century",
   "badges.obs100.desc": "Made 100 plant observations",
   "badges.obs1000.name": "Botanist",
   "badges.obs1000.desc": "Made 1000 plant observations",
-
   "badges.mission1.name": "On a Mission",
   "badges.mission1.desc": "Completed your first mission",
   "badges.mission10.name": "Mission Specialist",
   "badges.mission10.desc": "Completed 10 missions",
   "badges.mission100.name": "Mission Master",
   "badges.mission100.desc": "Completed 100 missions",
-
   "badges.releve1.name": "Naturalist",
   "badges.releve1.desc": "Found 5 species within 50 m in a single day",
-
   "badges.disc10.name": "Explorer",
   "badges.disc10.desc": "Discovered 10 unique species",
   "badges.disc50.name": "Collector",
@@ -247,22 +214,18 @@
   "badges.disc100.desc": "Discovered 100 unique species",
   "badges.disc500.name": "Taxonomist",
   "badges.disc500.desc": "Discovered 500 unique species",
-
   "badges.perfectDay.name": "Perfect Day",
   "badges.perfectDay.desc": "Completed all 3 daily quests in a single day",
-
   "badges.epicObs.name": "Purple Thumb",
   "badges.epicObs.desc": "Made an epic observation (1000+ pts)",
   "badges.legendaryObs.name": "Legendary Find",
   "badges.legendaryObs.desc": "Made a legendary observation (1500+ pts)",
-
   "badges.level5.name": "Rising",
   "badges.level5.desc": "Reached level 5",
   "badges.level10.name": "Seasoned",
   "badges.level10.desc": "Reached level 10",
   "badges.level20.name": "Master",
   "badges.level20.desc": "Reached level 20",
-
   "quiz.pageTitle": "PlantGo • Quiz",
   "quiz.title": "Plant Quiz",
   "quiz.loading": "Loading your observations…",
@@ -293,7 +256,6 @@
   "quiz.landing.alreadyDone": "Quiz already completed today",
   "quiz.landing.comeBack": "Come back tomorrow for a new quiz!",
   "quiz.earned": "Points earned",
-
   "map.pageTitle": "PlantGo • Mission map",
   "map.refresh": "Refresh missions",
   "map.recenter": "Recenter on me",
@@ -312,5 +274,10 @@
   "map.meta.extentFailed": "Zone unavailable",
   "map.gate.title": "Beta feature",
   "map.gate.message": "The mission map is still in testing. Ask to join the beta if you would like early access.",
-  "map.gate.back": "Back to PlantGo"
+  "map.gate.back": "Back to PlantGo",
+  "missions.card.gradeTitle": "Mission grade",
+  "missions.card.gradeDetails": "What makes this grade",
+  "grade.modelUncertainty": "Model uncertainty",
+  "grade.globalRarity": "Rare worldwide",
+  "grade.localRarity": "Unrecorded nearby"
 }

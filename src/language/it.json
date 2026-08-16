@@ -2,10 +2,8 @@
   "app.title": "PlantGo",
   "nav.login": "Accedi",
   "nav.signup": "Registrati",
-
   "common.close": "Chiudi",
   "common.copied": "Copiato!",
-
   "login.pageTitle": "PlantGo • Accesso",
   "login.title": "Bentornato",
   "login.email": "Email",
@@ -17,7 +15,6 @@
   "login.error.userNotFound": "Nessun account trovato con questa email.",
   "login.error.wrongPassword": "Password non corretta.",
   "login.error.generic": "Accesso non riuscito. Riprova.",
-
   "signup.pageTitle": "PlantGo • Registrazione",
   "signup.title": "Crea il tuo account",
   "signup.username": "Nome utente",
@@ -30,7 +27,6 @@
   "signup.error.passwordMismatch": "Le password non coincidono.",
   "signup.success.verificationSent": "È stata inviata un'email di verifica. Controlla la tua casella di posta.",
   "signup.error.verificationFailed": "Invio dell'email di verifica non riuscito.",
-
   "header.user": "Utente",
   "header.main": "Home",
   "header.herbarium": "Erbario",
@@ -42,13 +38,11 @@
   "header.quiz": "Quiz",
   "header.observations": "Osservazioni",
   "header.map": "Mappa delle missioni",
-
   "observations.pageTitle": "PlantGo • Osservazioni",
   "observations.title": "Le tue osservazioni",
   "observations.empty": "Nessuna osservazione ancora.",
   "observations.status.loading": "Caricamento delle osservazioni…",
   "observations.status.loadFailed": "Impossibile caricare le osservazioni.",
-
   "herbarium.pageTitle": "PlantGo • Erbario",
   "herbarium.title": "Le tue scoperte",
   "herbarium.loading": "Caricamento…",
@@ -56,23 +50,19 @@
   "herbarium.status.loginRequired": "Effettua l'accesso.",
   "herbarium.status.loading": "Caricamento dell’erbario…",
   "herbarium.status.loadFailed": "Impossibile caricare l’erbario.",
-
   "herbarium.card.noImage": "Nessuna immagine",
   "herbarium.card.unknownDate": "—",
-
   "identify.title": "Osserva e identifica una pianta",
   "identify.addPhoto": "Aggiungi foto",
   "identify.selectedPhotoAlt": "Foto della pianta selezionata",
   "identify.identify": "Identifica",
   "identify.clear": "Cancella",
-
   "identify.feedback.addOnePhoto": "Aggiungi almeno una foto.",
   "identify.feedback.fetchingLocation": "Recupero posizione…",
   "identify.feedback.locationDenied": "Permesso di localizzazione negato o non disponibile.",
   "identify.feedback.identifying": "Identificazione in corso…",
   "identify.feedback.done": "Fatto.",
   "identify.feedback.failed": "Identificazione non riuscita.",
-
   "settings.title": "Impostazioni",
   "missions.title": "Le tue missioni",
   "missions.tab.missions": "Missioni",
@@ -96,7 +86,6 @@
   "missions.model.group.default": "Migliore per la tua posizione",
   "missions.model.group.available": "Modelli disponibili",
   "missions.model.geoplantnet": "GeoPlantNet",
-
   "missions.card.missionPrefix": "Missione:",
   "missions.card.noCommonName": "Nessun nome comune",
   "missions.card.points": "punti",
@@ -106,11 +95,7 @@
   "missions.card.legendary": "Leggendaria",
   "missions.card.flowering": "In fioritura",
   "missions.card.fruiting": "Fruttificazione",
-  "missions.card.difficulty.easy": "Facile da trovare",
-  "missions.card.difficulty.medium": "Vale un'occhiata",
-  "missions.card.difficulty.hard": "Difficile da trovare",
   "missions.card.habitat": "Habitat:",
-
   "missions.card.pointsTitle": "Punti",
   "missions.card.pointsDetails": "Dettaglio punti",
   "missions.card.noBreakdown": "Nessun dettaglio disponibile.",
@@ -118,12 +103,10 @@
   "missions.card.noImage": "Nessuna immagine",
   "missions.card.moreInfo": "Più info:",
   "missions.card.moreOnWikipedia": "Scopri di più su Wikipedia →",
-
   "points.distance": "Osservazioni GBIF nelle vicinanze (20 km)",
   "points.numberObs": "Numero di osservazioni su GBIF",
   "points.modelUncertainty": "Incertezza del modello di distribuzione",
   "points.baseObs": "Osservazione della pianta",
-
   "result.level": "Livello",
   "result.levelReached": "Livello {level} raggiunto!",
   "result.yourObservation": "La tua osservazione:",
@@ -133,17 +116,14 @@
   "result.noCommonName": "Nessun nome comune",
   "result.confidence": "affidabilità: ",
   "result.yourPhotoAlt": "La tua foto",
-
   "result.observationPoints": "Punti osservazione:",
   "result.total": "Totale:",
   "result.ptsShort": "pt",
   "result.done": "Fatto",
-
   "result.rarity.common": "Comune",
   "result.rarity.rare": "Rara",
   "result.rarity.epic": "Epica",
   "result.rarity.legendary": "Leggendaria",
-
   "result.badge.newBadgesUnlocked": "Nuovi badge sbloccati!",
   "result.badge.questComplete": "Missione completata!",
   "result.badge.missionSpecies": "Specie della missione",
@@ -158,10 +138,8 @@
   "result.description.unavailable": "Impossibile ottenere la descrizione al momento.",
   "result.trivia.loading": "Caricamento curiosità…",
   "result.trivia.unavailable": "Impossibile ottenere la curiosità al momento.",
-
   "challenge.title": "Sfida",
   "challenge.modal.title": "Sfida",
-
   "challenge.speciesHunt.speciesCount": "Specie",
   "challenge.create.tab": "Crea",
   "challenge.join.tab": "Unisciti",
@@ -174,7 +152,6 @@
   "challenge.error.codeGen": "Impossibile generare il codice. Riprova.",
   "challenge.error.mustLogin": "Accedi per creare o partecipare a una sfida.",
   "challenge.error.generic": "Qualcosa è andato storto. Riprova.",
-
   "challenge.join.subtitle": "Partecipa a una sfida",
   "challenge.join.placeholder": "ABCDE",
   "challenge.join.button": "Partecipa",
@@ -183,7 +160,6 @@
   "challenge.joined": "Partecipazione avvenuta!",
   "challenge.join.notFound": "Sfida non trovata.",
   "challenge.join.ended": "Questa sfida è già terminata.",
-
   "challenge.active.subtitle": "Sfida attiva",
   "challenge.active.none": "Nessuna sfida attiva",
   "challenge.active.code": "Codice:",
@@ -192,11 +168,9 @@
   "challenge.active.close": "Chiudi classifica",
   "challenge.leaderboard": "Classifica",
   "challenge.leaderboard.empty": "Nessun punteggio ancora.",
-
   "challenge.type.label": "Tipo",
   "challenge.type.points": "Gara a punti",
   "challenge.type.speciesHunt": "Caccia alle specie",
-
   "challenge.speciesHunt.activeSubtitle": "Caccia alle specie",
   "challenge.speciesHunt.checklistTitle": "Specie da trovare",
   "challenge.speciesHunt.scoreLabel": "specie",
@@ -204,7 +178,6 @@
   "challenge.speciesHunt.fetchingSpecies": "Recupero specie per la tua posizione…",
   "challenge.speciesHunt.missionsInfo": "{count} specie caricate per questa caccia.",
   "challenge.speciesHunt.error.minSpecies": "Non sono state trovate abbastanza specie per la tua posizione. Riprova.",
-
   "quests.title": "Missioni giornaliere",
   "quests.completed": "Completato!",
   "quests.obs.label": "Fai 10 osservazioni",
@@ -213,32 +186,26 @@
   "quests.inv.desc": "Trova 5 piante diverse entro 50 m",
   "quests.mis.label": "Completa una missione",
   "quests.mis.desc": "Osserva almeno 1 specie della missione",
-
   "location.gate.title": "Posizione richiesta",
   "location.gate.message": "PlantGo ha bisogno della tua posizione per identificare le piante, caricare le missioni e creare sfide. Attiva l'accesso alla posizione nelle impostazioni del browser o del dispositivo per continuare.",
-
   "badges.pageTitle": "PlantGo • Distintivi",
   "badges.title": "Distintivi",
   "badges.loading": "Caricamento…",
   "badges.error": "Impossibile caricare i distintivi.",
-
   "badges.obs1.name": "Primi passi",
   "badges.obs1.desc": "La tua prima osservazione vegetale",
   "badges.obs100.name": "Centenario",
   "badges.obs100.desc": "100 osservazioni effettuate",
   "badges.obs1000.name": "Botanico",
   "badges.obs1000.desc": "1000 osservazioni effettuate",
-
   "badges.mission1.name": "In missione",
   "badges.mission1.desc": "Prima missione completata",
   "badges.mission10.name": "Specialista",
   "badges.mission10.desc": "10 missioni completate",
   "badges.mission100.name": "Maestro delle missioni",
   "badges.mission100.desc": "100 missioni completate",
-
   "badges.releve1.name": "Naturalista",
   "badges.releve1.desc": "5 specie trovate in 50 m nello stesso giorno",
-
   "badges.disc10.name": "Esploratore",
   "badges.disc10.desc": "10 specie uniche scoperte",
   "badges.disc50.name": "Collezionista",
@@ -247,22 +214,18 @@
   "badges.disc100.desc": "100 specie uniche scoperte",
   "badges.disc500.name": "Tassonomo",
   "badges.disc500.desc": "500 specie uniche scoperte",
-
   "badges.perfectDay.name": "Giornata perfetta",
   "badges.perfectDay.desc": "3 missioni giornaliere completate in un solo giorno",
-
   "badges.epicObs.name": "Pollice viola",
   "badges.epicObs.desc": "Osservazione epica effettuata (1000+ punti)",
   "badges.legendaryObs.name": "Scoperta leggendaria",
   "badges.legendaryObs.desc": "Osservazione leggendaria effettuata (1500+ punti)",
-
   "badges.level5.name": "In ascesa",
   "badges.level5.desc": "Livello 5 raggiunto",
   "badges.level10.name": "Esperto",
   "badges.level10.desc": "Livello 10 raggiunto",
   "badges.level20.name": "Maestro",
   "badges.level20.desc": "Livello 20 raggiunto",
-
   "quiz.pageTitle": "PlantGo • Quiz",
   "quiz.title": "Quiz sulle Piante",
   "quiz.loading": "Caricamento osservazioni…",
@@ -293,7 +256,6 @@
   "quiz.landing.alreadyDone": "Quiz già completato oggi",
   "quiz.landing.comeBack": "Torna domani per un nuovo quiz!",
   "quiz.earned": "Punti guadagnati",
-
   "map.pageTitle": "PlantGo • Mappa delle missioni",
   "map.refresh": "Aggiorna le missioni",
   "map.recenter": "Centra su di me",
@@ -312,5 +274,10 @@
   "map.meta.extentFailed": "Zona non disponibile",
   "map.gate.title": "Funzione beta",
   "map.gate.message": "La mappa delle missioni è ancora in fase di test. Chiedi di entrare nella beta per provarla in anteprima.",
-  "map.gate.back": "Torna a PlantGo"
+  "map.gate.back": "Torna a PlantGo",
+  "missions.card.gradeTitle": "Livello della missione",
+  "missions.card.gradeDetails": "Da cosa dipende il livello",
+  "grade.modelUncertainty": "Incertezza del modello",
+  "grade.globalRarity": "Rara nel mondo",
+  "grade.localRarity": "Non segnalata nei dintorni"
 }
