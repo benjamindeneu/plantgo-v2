@@ -7,18 +7,31 @@ import { getCurrentPosition } from "../data/geo.service.js";
 import { t } from "../language/i18n.js";
 import { debugMode } from "../data/debugMode.js";
 
-export function IdentifyPanel() {
+/**
+ * @param {object} [hooks]
+ * @param {(files: File[]) => void} [hooks.onFilesChange] fires as photos are
+ *   picked or cleared — the map page opens its sheet on the first one.
+ * @param {() => void} [hooks.onSubmit] fires when the photos are handed off,
+ *   before any network work, so a caller can get its own UI out of the way.
+ */
+export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
   const view = createIdentifyPanelView();
   let chosen = [];
 
-  view.onFilesChange((files) => { chosen = files; });
-  view.onClear(() => { chosen = []; view.setFeedback(""); });
+  view.onFilesChange((files) => { chosen = files; onFilesChange?.(files); });
+  view.onClear(() => { chosen = []; view.setFeedback(""); onFilesChange?.([]); });
 
   view.onIdentify(async () => {
     if (!chosen.length) return view.setFeedback(t("identify.feedback.addOnePhoto"));
 
-    const file = chosen[0];
-    const photoUrls = chosen.map((f) => URL.createObjectURL(f));
+    // Take the photos before anything else touches the selection. The view
+    // clears it as soon as this returns, and `onSubmit` lets a caller do the
+    // same — a run that read `chosen` after either would find it empty.
+    const files = chosen.slice();
+    onSubmit?.();
+
+    const file = files[0];
+    const photoUrls = files.map((f) => URL.createObjectURL(f));
 
     // preload level/progress
     let currentTotal = 0;
@@ -64,7 +77,7 @@ export function IdentifyPanel() {
         ...result,
         lat, lon,
         plantnetImageCode,
-        photoCount: chosen.length,
+        photoCount: files.length,
         clientTimings: timings,
       });
     } catch (e) {
@@ -72,5 +85,8 @@ export function IdentifyPanel() {
     }
   });
 
-  return view.element;
+  const el = view.element;
+  el.openPicker = () => view.openPicker();
+  el.clearPhotos = () => { chosen = []; view.clear(); view.setFeedback(""); };
+  return el;
 }

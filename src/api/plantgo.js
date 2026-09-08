@@ -108,12 +108,19 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
 
 /**
  * Fetch mission pins for the area around a point (beta map page).
- * Deliberately light — no extent, no description. Returns
- * { area, model, has_rasters, missions: [{ id, gbif_id, name, vernacular_name,
- *   lat, lon, has_extent, points, is_flowering, is_fruiting }] }
+ *
+ * Each mission carries its zone (`extent`, a GeoJSON Polygon) and `metrics`,
+ * so the client can test its own position against every zone locally — see
+ * data/extent.geo.js — instead of asking the server once per mission per GPS
+ * fix. Descriptions and trivia are still per-mission, from fetchMissionDetail.
+ * Pass `extent: false` for the pins alone.
+ *
+ * Returns { area, model, has_rasters, has_extents, missions: [{ id, gbif_id,
+ *   name, vernacular_name, lat, lon, extent, metrics, grade, is_flowering,
+ *   is_fruiting }] }
  */
-export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en" }) {
-  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang });
+export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en", extent = true }) {
+  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang, extent });
   return httpWithTimeout(`${MAP_MISSIONS_URL}?${qs}`, {}, 60_000);
 }
 

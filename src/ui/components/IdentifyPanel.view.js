@@ -176,6 +176,22 @@ export function createIdentifyPanelView() {
   return {
     element: wrap,
 
+    /**
+     * Open the camera without the user having to hit the tile.
+     *
+     * `capture="environment"` on the input is what makes a phone go straight
+     * to the rear camera, so triggering the same input from elsewhere gets the
+     * same behaviour — no second code path for taking a photo.
+     */
+    openPicker() {
+      input.click();
+    },
+
+    /** Drop the pending photos — for a caller that dismissed its own UI. */
+    clear({ notify = false } = {}) {
+      clearSelection({ notify });
+    },
+
     setFeedback(text) {
       feedback.textContent = text ?? "";
     },

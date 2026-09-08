@@ -3,8 +3,16 @@ import L from "https://esm.sh/leaflet@1.9.4";
 import { t } from "../../language/i18n.js";
 
 const DEFAULT_ZOOM = 16;
-// How many pins may sit on the map before the furthest are dropped.
-const MAX_PINS = 140;
+// Mirrors the --pin-size values in the .mp-pin--* CSS rules. Leaflet sizes and
+// anchors the marker's clickable box itself, so it has to agree with the CSS
+// rather than just clip a differently-sized div inside it.
+const PIN_SIZE = { common: 27, rare: 30, epic: 33, legendary: 36 };
+const PIN_BOX_SLACK = 4; // room for the box-shadow around the pin shape
+// How many pins may sit on the map before the furthest are dropped. Comfortably
+// more than one response carries: at 140, every single fetch evicted half of
+// what it had just added, and watching a third of the pins vanish and reappear
+// on each pan looked like the map reloading.
+const MAX_PINS = 400;
 
 // The species raster sits in a pane of its own, between the satellite imagery
 // (tilePane, 200) and the extent outline (overlayPane, 400). Sharing the tile
@@ -26,40 +34,48 @@ const RASTER_MAX_NATIVE_ZOOM = 13;
 const BLANK_TILE =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-/** Points tiers, matching the rarity thresholds used by MissionCard. */
-function tierFor(points) {
-  if (points >= 1500) return "legendary";
-  if (points >= 1000) return "epic";
-  if (points >= 500) return "rare";
-  return "common";
-}
-
+/**
+ * The map, and nothing else.
+ *
+ * It used to own a bottom sheet as well, which opened over the map whenever a
+ * pin was tapped and covered most of what the player had just tapped *on*. The
+ * mission is shown in the page's own sheet now, so this draws the ground, the
+ * pins and the selected species' zone, and reports taps upward.
+ */
 export function createMissionMapView() {
   const root = document.createElement("div");
   root.className = "mission-map-root";
   root.innerHTML = `
     <div id="mapCanvas" class="mission-map-canvas"></div>
 
-    <div class="mission-map-topbar">
-      <div id="mapStatus" class="mission-map-status" aria-live="polite"></div>
+    <div class="mp-map-status-wrap">
+      <div id="mapStatus" class="mp-map-status" aria-live="polite"></div>
     </div>
 
-    <div class="mission-map-controls">
-      <button id="mapRefresh" class="mission-map-btn" type="button" aria-label="Refresh">⟳</button>
-      <button id="mapLocate" class="mission-map-btn" type="button" aria-label="Recenter">◎</button>
+    <div class="mp-map-controls">
+      <button id="mapRefresh" class="mp-map-btn" type="button" aria-label="Refresh">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M12 5V2L8 6l4 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg>
+      </button>
+      <button id="mapLocate" class="mp-map-btn" type="button" aria-label="Recenter">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-6a1 1 0 0 1 1 1v1.06A8 8 0 0 1 19.94 11H21a1 1 0 1 1 0 2h-1.06A8 8 0 0 1 13 19.94V21a1 1 0 1 1-2 0v-1.06A8 8 0 0 1 4.06 13H3a1 1 0 1 1 0-2h1.06A8 8 0 0 1 11 4.06V3a1 1 0 0 1 1-1zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+      </button>
     </div>
 
-    <div id="rasterLegend" class="raster-legend" hidden>
-      <span id="rasterLegendTitle" class="raster-legend__title"></span>
-      <span class="raster-legend__ramp" aria-hidden="true"></span>
-      <span class="raster-legend__scale"><span>20%</span><span>100%</span></span>
+    <!-- Mouse-and-trackpad affordance for the zoom gestures a touchscreen
+         already has pinch for; hidden on mobile widths in CSS. -->
+    <div class="mp-zoom-controls">
+      <button id="mapZoomIn" class="mp-map-btn" type="button" aria-label="Zoom in">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M11 5a1 1 0 0 1 2 0v6h6a1 1 0 1 1 0 2h-6v6a1 1 0 1 1-2 0v-6H5a1 1 0 1 1 0-2h6V5z"/></svg>
+      </button>
+      <button id="mapZoomOut" class="mp-map-btn" type="button" aria-label="Zoom out">
+        <svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true"><path fill="currentColor" d="M5 11h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg>
+      </button>
     </div>
 
-    <div id="missionSheet" class="mission-sheet" aria-hidden="true">
-      <button id="sheetClose" class="mission-sheet__close" type="button" aria-label="Close">×</button>
-      <div class="mission-sheet__grab" aria-hidden="true"></div>
-      <div id="sheetMeta" class="mission-sheet__meta"></div>
-      <div id="sheetBody" class="mission-sheet__body"></div>
+    <div id="rasterLegend" class="mp-legend" hidden>
+      <span id="rasterLegendTitle" class="mp-legend__title"></span>
+      <span class="mp-legend__ramp" aria-hidden="true"></span>
+      <span class="mp-legend__scale"><span>20%</span><span>100%</span></span>
     </div>
   `;
 
@@ -67,16 +83,15 @@ export function createMissionMapView() {
   const statusEl = root.querySelector("#mapStatus");
   const refreshBtn = root.querySelector("#mapRefresh");
   const locateBtn = root.querySelector("#mapLocate");
-  const sheetEl = root.querySelector("#missionSheet");
-  const sheetMetaEl = root.querySelector("#sheetMeta");
-  const sheetBodyEl = root.querySelector("#sheetBody");
-  const sheetCloseEl = root.querySelector("#sheetClose");
+  const zoomInBtn = root.querySelector("#mapZoomIn");
+  const zoomOutBtn = root.querySelector("#mapZoomOut");
   const legendEl = root.querySelector("#rasterLegend");
   const legendTitleEl = root.querySelector("#rasterLegendTitle");
 
   let map = null;
   let userMarker = null;
   const pinLayer = L.layerGroup();
+  let pinsVisible = true;
   let rasterLayer = null;
   let extentLayer = null;
   let fallbackCircle = null;
@@ -84,12 +99,15 @@ export function createMissionMapView() {
   let selectedId = null;
   let programmaticMove = false;
   let statusTimer = null;
+  // The viewport the last moveend was reported at, so a moveend that did not
+  // move the map can be told apart from one that did.
+  let lastReported = null;
 
   let onPinClick = null;
   let onMoveEnd = null;
   let onLocate = null;
   let onRefresh = null;
-  let onSheetClose = null;
+  let onBackgroundClick = null;
 
   function ensureMap(lat, lon) {
     if (map) return map;
@@ -108,17 +126,31 @@ export function createMissionMapView() {
     rasterPane.style.zIndex = String(RASTER_PANE_Z);
     rasterPane.style.pointerEvents = "none";
 
-    L.control.zoom({ position: "topleft" }).addTo(map);
     pinLayer.addTo(map);
 
     map.on("moveend", () => {
-      // Fitting to an extent moves the map itself; that must not be mistaken
-      // for the user exploring.
-      if (programmaticMove) { programmaticMove = false; return; }
-      if (onMoveEnd) onMoveEnd(getViewport());
+      const vp = getViewport();
+
+      // Recentring and zone-fitting move the map themselves; that must not be
+      // mistaken for the user exploring. Recording the viewport as reported
+      // also covers the second moveend an animated fit can emit.
+      if (programmaticMove) { programmaticMove = false; lastReported = vp; return; }
+
+      // Nor may a moveend that moved nothing. `invalidateSize()` fires one
+      // every time — and a phone fires a window resize on every scroll, as its
+      // URL bar slides in and out, so the map was reporting a pan several
+      // times a minute while standing still. Compare where the map actually
+      // is, not whether an event arrived.
+      if (lastReported
+          && vp.zoom === lastReported.zoom
+          && Math.abs(vp.lat - lastReported.lat) < 1e-7
+          && Math.abs(vp.lon - lastReported.lon) < 1e-7) return;
+
+      lastReported = vp;
+      if (onMoveEnd) onMoveEnd(vp);
     });
-    // A tap on empty map dismisses the sheet, like any map app.
-    map.on("click", () => closeSheet());
+
+    map.on("click", () => { if (onBackgroundClick) onBackgroundClick(); });
     return map;
   }
 
@@ -133,17 +165,28 @@ export function createMissionMapView() {
     return { lat: c.lat, lon: c.lng, radius_m: Math.min(Math.max(radius, 400), 2500), zoom: map.getZoom() };
   }
 
+  function keyOf(mission) {
+    return mission.id || `${mission.gbif_id}:${mission.lat}:${mission.lon}`;
+  }
+
   function missionIcon(mission, isSelected) {
     const tier = mission?.grade?.tier || "common";
     const label = (mission.vernacular_name || mission.name || "?").trim().charAt(0).toUpperCase();
+    const box = (PIN_SIZE[tier] ?? PIN_SIZE.common) + PIN_BOX_SLACK;
     return L.divIcon({
       className: "",
-      html: `<div class="mission-pin mission-pin--${tier}${isSelected ? " is-selected" : ""}">
-               <span class="mission-pin__glyph">${escapeHtml(label)}</span>
+      html: `<div class="mp-pin mp-pin--${tier}${isSelected ? " is-selected" : ""}">
+               <span class="mp-pin__glyph">${escapeHtml(label)}</span>
              </div>`,
-      iconSize: [34, 34],
-      iconAnchor: [17, 34],
+      iconSize: [box, box],
+      iconAnchor: [box / 2, box],
     });
+  }
+
+  /** Repaint only the two pins whose state changed, not all of them. */
+  function repaint(key) {
+    const entry = key && markersById.get(key);
+    if (entry) entry.marker.setIcon(missionIcon(entry.mission, key === selectedId));
   }
 
   function clearExtent() {
@@ -156,41 +199,17 @@ export function createMissionMapView() {
     legendEl.hidden = true;
   }
 
-  function closeSheet() {
-    if (sheetEl.getAttribute("aria-hidden") === "true") return;
-    sheetEl.setAttribute("aria-hidden", "true");
-    sheetEl.classList.remove("is-open");
-    clearExtent();
-    clearRaster();
-    if (selectedId) {
-      const prev = markersById.get(selectedId);
-      if (prev) prev.marker.setIcon(missionIcon(prev.mission, false));
-      selectedId = null;
-    }
-    if (onSheetClose) onSheetClose();
+  /** Keep a fitted zone comfortably inside the visible map band. */
+  function fitToExtent(bounds) {
+    if (!bounds?.isValid?.()) return;
+    programmaticMove = true;
+    map.fitBounds(bounds, { padding: [34, 34], maxZoom: 17 });
   }
 
   refreshBtn.addEventListener("click", () => { if (onRefresh) onRefresh(); });
   locateBtn.addEventListener("click", () => { if (onLocate) onLocate(); });
-  sheetCloseEl.addEventListener("click", () => closeSheet());
-  // Dragging the sheet down closes it, which is how a bottom sheet should feel.
-  let dragStartY = null;
-  sheetEl.addEventListener("touchstart", (e) => {
-    if (e.target.closest(".mission-sheet__body")) return;
-    dragStartY = e.touches[0].clientY;
-  }, { passive: true });
-  sheetEl.addEventListener("touchmove", (e) => {
-    if (dragStartY == null) return;
-    const dy = e.touches[0].clientY - dragStartY;
-    if (dy > 0) sheetEl.style.transform = `translateY(${dy}px)`;
-  }, { passive: true });
-  sheetEl.addEventListener("touchend", (e) => {
-    if (dragStartY == null) return;
-    const dy = (e.changedTouches[0]?.clientY ?? dragStartY) - dragStartY;
-    sheetEl.style.transform = "";
-    dragStartY = null;
-    if (dy > 90) closeSheet();
-  });
+  zoomInBtn.addEventListener("click", () => map?.zoomIn());
+  zoomOutBtn.addEventListener("click", () => map?.zoomOut());
 
   return {
     element: root,
@@ -216,7 +235,7 @@ export function createMissionMapView() {
       ensureMap(lat, lon);
       if (!userMarker) {
         userMarker = L.marker([lat, lon], {
-          icon: L.divIcon({ className: "", html: `<div class="user-dot"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] }),
+          icon: L.divIcon({ className: "", html: `<div class="mp-user-dot"></div>`, iconSize: [22, 22], iconAnchor: [11, 11] }),
           interactive: false,
           zIndexOffset: 500,
         }).addTo(map);
@@ -238,6 +257,20 @@ export function createMissionMapView() {
     getViewport,
 
     /**
+     * Whether mission pins are on the map at all.
+     *
+     * "Around you" is a reading taken at one point, not a set of places to
+     * walk to, so the pins would be answering a question nobody asked — and
+     * they cover the one marker that tab is about.
+     */
+    setPinsVisible(visible) {
+      pinsVisible = visible;
+      if (!map) return;
+      if (visible && !map.hasLayer(pinLayer)) pinLayer.addTo(map);
+      if (!visible && map.hasLayer(pinLayer)) map.removeLayer(pinLayer);
+    },
+
+    /**
      * Add missions to the map, keeping the ones already there.
      *
      * Panning asks the server about the new centre, which answers with the
@@ -251,7 +284,7 @@ export function createMissionMapView() {
       let added = 0;
 
       for (const mission of missions) {
-        const key = mission.id || `${mission.gbif_id}:${mission.lat}:${mission.lon}`;
+        const key = keyOf(mission);
         if (markersById.has(key)) {
           markersById.get(key).mission = mission;
           continue;
@@ -284,36 +317,20 @@ export function createMissionMapView() {
       return added;
     },
 
-    /** Opens the sheet immediately with what the pin already knows. */
-    openSheet(mission, cardElement) {
-      selectedId = mission.id || `${mission.gbif_id}:${mission.lat}:${mission.lon}`;
-      for (const [key, entry] of markersById) {
-        entry.marker.setIcon(missionIcon(entry.mission, key === selectedId));
-      }
-      sheetBodyEl.innerHTML = "";
-      if (cardElement) sheetBodyEl.appendChild(cardElement);
-      sheetMetaEl.innerHTML = "";
-      sheetEl.setAttribute("aria-hidden", "false");
-      sheetEl.classList.add("is-open");
+    /** Raise one pin above the rest. Pass null to drop the highlight. */
+    selectMission(mission) {
+      const previous = selectedId;
+      selectedId = mission ? keyOf(mission) : null;
+      if (previous === selectedId) return;
+      repaint(previous);
+      repaint(selectedId);
     },
 
-    /** Extra blocks below the mission card (trivia, actions). */
-    appendToSheet(element) {
-      if (element) sheetBodyEl.appendChild(element);
+    /** Take the selected species' surface and zone back off the map. */
+    clearOverlays() {
+      clearExtent();
+      clearRaster();
     },
-
-    setSheetMeta(items = []) {
-      sheetMetaEl.innerHTML = "";
-      for (const item of items) {
-        if (!item) continue;
-        const chip = document.createElement("span");
-        chip.className = `mission-meta-chip${item.tone ? ` mission-meta-chip--${item.tone}` : ""}`;
-        chip.textContent = item.label;
-        sheetMetaEl.appendChild(chip);
-      }
-    },
-
-    closeSheet,
 
     /**
      * Paint the selected species' probability surface under the map chrome.
@@ -342,50 +359,43 @@ export function createMissionMapView() {
       if (extentLayer) extentLayer.remove();
       extentLayer = L.geoJSON(geojson, {
         style: {
-          color: "#22c55e", weight: 2, opacity: 0.95,
-          dashArray: "5 4", fillColor: "#22c55e", fillOpacity: 0.22,
+          color: "#2fbb6e", weight: 2.5, opacity: 1,
+          dashArray: "6 5", fillColor: "#5fe0a0", fillOpacity: 0.2,
         },
         interactive: false,
       }).addTo(map);
-      fitToExtent(extentLayer.getBounds());
+      // Selecting a mission is a request to look at it, so the map always
+      // frames the full zone rather than just wherever the tap landed.
+      const bounds = extentLayer.getBounds();
+      if (bounds.isValid()) fitToExtent(bounds);
     },
 
     /** No raster for this species — show the search radius instead of a shape. */
-    showFallbackRadius(lat, lon, radius = 250) {
+    showFallbackRadius(lat, lon, { radius = 250 } = {}) {
       if (!map) return;
       if (fallbackCircle) fallbackCircle.remove();
       fallbackCircle = L.circle([lat, lon], {
-        radius, color: "#c2410c", weight: 2, dashArray: "4 5",
-        fillColor: "#c2410c", fillOpacity: 0.12, interactive: false,
+        radius, color: "#e59413", weight: 2, dashArray: "4 5",
+        fillColor: "#e59413", fillOpacity: 0.14, interactive: false,
       }).addTo(map);
-      fitToExtent(fallbackCircle.getBounds());
+      const bounds = fallbackCircle.getBounds();
+      if (bounds.isValid()) fitToExtent(bounds);
     },
 
     onPinClick(cb) { onPinClick = cb; },
     onMoveEnd(cb) { onMoveEnd = cb; },
     onLocate(cb) { onLocate = cb; },
     onRefresh(cb) { onRefresh = cb; },
-    onSheetClose(cb) { onSheetClose = cb; },
+    onBackgroundClick(cb) { onBackgroundClick = cb; },
 
     refreshI18n() {
       refreshBtn.setAttribute("aria-label", t("map.refresh"));
       locateBtn.setAttribute("aria-label", t("map.recenter"));
-      sheetCloseEl.setAttribute("aria-label", t("common.close"));
+      zoomInBtn.setAttribute("aria-label", t("map.zoomIn"));
+      zoomOutBtn.setAttribute("aria-label", t("map.zoomOut"));
       legendTitleEl.textContent = t("map.legend.title");
     },
   };
-
-  /** Keep the extent clear of the sheet that is covering the bottom of the map. */
-  function fitToExtent(bounds) {
-    if (!bounds?.isValid?.()) return;
-    const sheetHeight = sheetEl.classList.contains("is-open") ? sheetEl.offsetHeight : 0;
-    programmaticMove = true;
-    map.fitBounds(bounds, {
-      paddingTopLeft: [30, 60],
-      paddingBottomRight: [30, sheetHeight + 30],
-      maxZoom: 17,
-    });
-  }
 }
 
 function escapeHtml(s) {

@@ -1,7 +1,7 @@
 // src/pages/map.app.js
 import { initI18n, t } from "../language/i18n.js";
 import { Header } from "../controllers/Header.controller.js";
-import { MissionMapPanel } from "../controllers/MissionMap.controller.js";
+import { MapPage } from "../controllers/MapPage.controller.js";
 import { listenUserLevel } from "../user/level.js";
 import { isBetaUser } from "../data/user.repo.js";
 
@@ -42,6 +42,7 @@ function BetaGate() {
 function App() {
   let stopLevel = () => {};
   let panel = null;
+  let booted = false;
 
   const headerMount = document.getElementById("appHeader");
   const header = Header({
@@ -55,6 +56,7 @@ function App() {
     onLogout: async () => {
       try {
         stopLevel();
+        panel?.stop();
         await signOut(auth);
         location.replace("./login.html");
       } catch (e) {
@@ -77,7 +79,12 @@ function App() {
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
 
-    if (panel) return; // already initialised for this session
+    // Claimed before the await, not after. `onAuthStateChanged` fires again on
+    // token refresh, and a second call that reached the guard while the beta
+    // lookup was still out used to get past it — building a second map, whose
+    // `start()` recentred on the GPS fix, over the one being used.
+    if (booted) return;
+    booted = true;
 
     const beta = await isBetaUser(user.uid);
     if (!beta) {
@@ -86,7 +93,7 @@ function App() {
       return;
     }
 
-    panel = MissionMapPanel();
+    panel = MapPage();
     mount.replaceChildren(panel.element);
     // Leaflet measures its container on init, so size it before starting.
     requestAnimationFrame(() => {
