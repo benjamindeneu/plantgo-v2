@@ -24,6 +24,7 @@ export function SpeciesDetail(species, { onBack } = {}) {
   const sciName = species.name || species.scientific_name || "";
   const commonName = species.vernacular_name || sciName;
   const tier = tierOf(species);
+  const graded = !!species.grade;
   const chance = species.metrics?.p_mean;
   const lang = uiLang();
   const binomial = binomialOf(sciName);
@@ -79,7 +80,7 @@ export function SpeciesDetail(species, { onBack } = {}) {
     s.textContent = text;
     tags.appendChild(s);
   };
-  tag(t(`missions.card.${tier}`), tier);
+  tag(graded ? `${t("missions.card.missionPrefix")} ${t(`missions.card.${tier}`)}` : t(`missions.card.${tier}`), tier);
   const chanceTag = document.createElement("span");
   chanceTag.className = "mp-tag mp-tag--chance";
   chanceTag.hidden = chance == null;
@@ -172,8 +173,22 @@ export function SpeciesDetail(species, { onBack } = {}) {
   }
 
   async function pollDescription(id, name) {
-    for (const delay of [0, 3000, 6000, 10000]) {
-      if (delay) await new Promise((r) => setTimeout(r, delay));
+    // Same cadence as pollTrivia below. The description prompt asks Gemini
+    // for all 6 languages in one completion, so it's slower and more likely
+    // to hit a rate limit and retry (observed 40-50s+ in practice) than
+    // trivia's single-language prompt — giving it a *shorter* window than
+    // trivia, as this used to, meant it gave up before its own background
+    // fetch had a chance to land.
+    //
+    // The leading 0 must still go through a real setTimeout (never skipped):
+    // this function starts running synchronously inside SpeciesDetail's own
+    // constructor, before it has returned `el` for the caller to attach to
+    // the page, so `el.isConnected` is false at that instant. Skipping the
+    // await on a falsy delay used to check it right then — always false,
+    // every species, every time — and return before ever calling
+    // fetchDescription at all, which is why this never even started.
+    for (const delay of [0, 3000, 5000, 8000, 12000]) {
+      await new Promise((r) => setTimeout(r, delay));
       if (!el.isConnected) return;
       try {
         const res = await fetchDescription({ gbif_id: id, name, lang });

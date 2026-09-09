@@ -119,9 +119,10 @@ function refreshI18n() {
     if (pointsBtn) {
       // A map mission carries a grade and no points: its worth is the grade,
       // and the points are settled later from the observation actually made.
+      const gradeLine = `${t("missions.card.missionPrefix")} ${escapeHtml(missionLevel)}`;
       pointsBtn.innerHTML = pointsTotal == null
-        ? escapeHtml(missionLevel)
-        : `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
+        ? gradeLine
+        : `${pointsTotal} ${t("missions.card.points")}<br>${gradeLine}`;
     }
     renderBadges();
   }

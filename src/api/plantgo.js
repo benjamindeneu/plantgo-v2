@@ -119,8 +119,11 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
  *   name, vernacular_name, lat, lon, extent, metrics, grade, is_flowering,
  *   is_fruiting }] }
  */
-export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en", extent = true }) {
-  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang, extent });
+export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en", extent = true, largeScale = false }) {
+  // `large_scale` opens the coarse rungs of the ladder (z7, z6). They are
+  // always in the catalogue — the cascade tests finer peaks against them — but
+  // a z6 zone covers hundreds of square kilometres, so a request has to ask.
+  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang, extent, large_scale: largeScale });
   return httpWithTimeout(`${MAP_MISSIONS_URL}?${qs}`, {}, 60_000);
 }
 
@@ -145,8 +148,17 @@ export async function fetchMissionDetail({ id, lang = "en", model = "best" }) {
  */
 export function missionRasterTileUrl(missionId) {
   const [prefix, area, rasterId, ...rest] = String(missionId ?? "").split(":");
-  if (prefix !== "gpn2" || !area || !rasterId) return null;
-  if (rest.length !== 2 && rest.length !== 4) return null;
+  // gpn2 — v1: `gpn2:<area>:<raster>:<lat_e5>:<lon_e5>`, optionally + site pair.
+  // gpn3 — v2: `gpn3:<area>:<raster>:<level>:<lat_e5>:<lon_e5>`, the level being
+  // the pyramid rung the peak was found on.
+  if (!area || !rasterId) return null;
+  if (prefix === "gpn3") {
+    if (rest.length !== 3) return null;
+  } else if (prefix === "gpn2") {
+    if (rest.length !== 2 && rest.length !== 4) return null;
+  } else {
+    return null;
+  }
   return `${GPN_TILE_BASE}/${encodeURIComponent(area)}/2/species/${encodeURIComponent(rasterId)}/{z}/{x}/{y}`;
 }
 

@@ -9,7 +9,11 @@ export const QUIZ_PROXY_URL = `${API_BASE_URL}quiz`;             // /api/quiz
 export const DESCRIPTION_PROXY_BASE = `${API_BASE_URL}description`; // /api/description/<gbif_id>
 export const TRIVIA_PROXY_BASE = `${API_BASE_URL}trivia`;           // /api/trivia/<gbif_id>
 export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
-export const MAP_MISSIONS_URL = `${API_BASE_URL}missions/map`;      // /api/missions/map
+// Mapped Missions v2. The catalogue is precomputed offline, so the map
+// endpoint is a spatial lookup rather than the per-request raster pipeline v1
+// ran — same response shape, so nothing downstream of the fetch changed.
+export const API_V2_BASE_URL = API_BASE_URL.replace(/api\/$/, "api/v2/");
+export const MAP_MISSIONS_URL = `${API_V2_BASE_URL}missions/map`;   // /api/v2/missions/map
 export const MISSION_DETAIL_BASE = `${API_BASE_URL}missions`;       // /api/missions/<mission_id>
 
 // GeoPl@ntNet species probability tiles, used as a Leaflet overlay behind a

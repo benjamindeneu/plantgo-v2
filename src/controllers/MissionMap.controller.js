@@ -127,7 +127,10 @@ export function MissionMapPanel() {
   /** Put one mission's zone and probability surface on the map, framed in view. */
   function showMission(mission) {
     view.selectMission(mission);
-    view.showRaster(missionRasterTileUrl(mission.id));
+    // The surface is only painted inside the mission's own zone, so the raster
+    // answers the question the mission is asking rather than colouring the
+    // whole viewport.
+    view.showRaster(missionRasterTileUrl(mission.id), mission.extent || null);
     if (mission.extent) {
       view.showExtent(mission.extent);
     } else {

@@ -276,6 +276,17 @@
     #3c0965 0%, #6b176e 12.5%, #932567 25%, #ba3655 37.5%, #db4f3a 50%,
     #f2741c 62.5%, #fba007 75%, #f7d13c 87.5%, #f7fb99 100%);
 }
+.map-page .mp-legend__opacity {
+  width: 100%;
+  height: 14px;
+  margin: 2px 0 0;
+  accent-color: var(--mp-accent, #2fbb6e);
+  cursor: pointer;
+  /* .mp-legend is pointer-events:none so the map stays pannable underneath
+     it; the slider is the one control in it that needs to catch its own
+     drags instead of passing them through to the map. */
+  pointer-events: auto;
+}
 .map-page .mp-legend__scale {
   display: flex;
   justify-content: space-between;

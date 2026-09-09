@@ -75,7 +75,9 @@ export function createMissionMapView() {
     <div id="rasterLegend" class="mp-legend" hidden>
       <span id="rasterLegendTitle" class="mp-legend__title"></span>
       <span class="mp-legend__ramp" aria-hidden="true"></span>
-      <span class="mp-legend__scale"><span>20%</span><span>100%</span></span>
+      <span class="mp-legend__scale"><span id="rasterLegendLow"></span><span id="rasterLegendHigh"></span></span>
+      <input id="rasterOpacity" class="mp-legend__opacity" type="range"
+             min="0" max="100" value="55" aria-label="Species layer opacity" />
     </div>
   `;
 
@@ -87,12 +89,18 @@ export function createMissionMapView() {
   const zoomOutBtn = root.querySelector("#mapZoomOut");
   const legendEl = root.querySelector("#rasterLegend");
   const legendTitleEl = root.querySelector("#rasterLegendTitle");
+  const legendLowEl = root.querySelector("#rasterLegendLow");
+  const legendHighEl = root.querySelector("#rasterLegendHigh");
+  const opacityEl = root.querySelector("#rasterOpacity");
 
   let map = null;
   let userMarker = null;
   const pinLayer = L.layerGroup();
   let pinsVisible = true;
   let rasterLayer = null;
+  // The zone the raster is clipped to, in lat/lng. Kept so the clip can be
+  // recomputed in pixel space whenever the map moves under it.
+  let rasterClipRing = null;
   let extentLayer = null;
   let fallbackCircle = null;
   const markersById = new Map();
@@ -127,6 +135,12 @@ export function createMissionMapView() {
     rasterPane.style.pointerEvents = "none";
 
     pinLayer.addTo(map);
+
+    // The clip is expressed in layer pixels, so it has to be re-cut whenever
+    // the projection origin moves under it. `zoom` fires continuously through
+    // an animated zoom, which keeps the edge on the zone instead of letting it
+    // drift and snap back at the end.
+    map.on("move zoom zoomend viewreset", applyRasterClip);
 
     map.on("moveend", () => {
       const vp = getViewport();
@@ -196,7 +210,33 @@ export function createMissionMapView() {
 
   function clearRaster() {
     if (rasterLayer) { rasterLayer.remove(); rasterLayer = null; }
+    rasterClipRing = null;
+    applyRasterClip();
     legendEl.hidden = true;
+  }
+
+  /**
+   * Paint the species surface only inside the mission's own zone.
+   *
+   * The raster answers "how likely is this plant here", and that question is
+   * only being asked about the ground the mission covers — painting the whole
+   * viewport buries the zone outline in colour and invites the player to walk
+   * to a bright patch that belongs to no mission. The pane carries a CSS
+   * clip-path in layer pixels, so it is recomputed whenever the map moves.
+   */
+  function applyRasterClip() {
+    const pane = map?.getPane(RASTER_PANE);
+    if (!pane) return;
+    if (!rasterClipRing || !rasterLayer) { pane.style.clipPath = ""; return; }
+    const pts = rasterClipRing.map(([lng, lat]) => {
+      const p = map.latLngToLayerPoint([lat, lng]);
+      return `${p.x.toFixed(1)}px ${p.y.toFixed(1)}px`;
+    });
+    pane.style.clipPath = pts.length >= 3 ? `polygon(${pts.join(",")})` : "";
+  }
+
+  function setRasterOpacity(value01) {
+    if (rasterLayer) rasterLayer.setOpacity(value01);
   }
 
   /** Keep a fitted zone comfortably inside the visible map band. */
@@ -205,6 +245,12 @@ export function createMissionMapView() {
     programmaticMove = true;
     map.fitBounds(bounds, { padding: [34, 34], maxZoom: 17 });
   }
+
+  opacityEl.addEventListener("input", () => setRasterOpacity(Number(opacityEl.value) / 100));
+  // The legend sits over the map; without this a drag on the slider pans the
+  // map underneath it.
+  ["pointerdown", "mousedown", "touchstart", "dblclick", "wheel"].forEach((evt) =>
+    legendEl.addEventListener(evt, (e) => e.stopPropagation()));
 
   refreshBtn.addEventListener("click", () => { if (onRefresh) onRefresh(); });
   locateBtn.addEventListener("click", () => { if (onLocate) onLocate(); });
@@ -338,19 +384,24 @@ export function createMissionMapView() {
      * Passing null takes it down, so switching to a mission that has no raster
      * clears the previous one rather than leaving the wrong species showing.
      */
-    showRaster(templateUrl) {
+    showRaster(templateUrl, clipGeojson = null) {
       if (!map) return;
       clearRaster();
       if (!templateUrl) return;
 
       rasterLayer = L.tileLayer(templateUrl, {
         pane: RASTER_PANE,
-        opacity: RASTER_OPACITY,
+        opacity: Number(opacityEl.value) / 100,
         className: "species-raster",
         maxNativeZoom: RASTER_MAX_NATIVE_ZOOM,
         maxZoom: 19,
         errorTileUrl: BLANK_TILE,
       }).addTo(map);
+
+      // Outer ring only: a mission zone is a convex hull, so it has exactly
+      // one and never a hole.
+      rasterClipRing = clipGeojson?.coordinates?.[0] ?? null;
+      applyRasterClip();
       legendEl.hidden = false;
     },
 
@@ -394,6 +445,8 @@ export function createMissionMapView() {
       zoomInBtn.setAttribute("aria-label", t("map.zoomIn"));
       zoomOutBtn.setAttribute("aria-label", t("map.zoomOut"));
       legendTitleEl.textContent = t("map.legend.title");
+      legendLowEl.textContent = t("map.legend.low");
+      legendHighEl.textContent = t("map.legend.high");
     },
   };
 }

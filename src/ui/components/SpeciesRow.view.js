@@ -63,7 +63,7 @@ export function SpeciesRow(species, { onClick } = {}) {
 
   if (graded) {
     const badge = el.querySelector(".mp-row__badge");
-    badge.textContent = t(`missions.card.${tier}`);
+    badge.textContent = `${t("missions.card.missionPrefix")} ${t(`missions.card.${tier}`)}`;
     badge.hidden = false;
   }
 

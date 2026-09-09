@@ -169,18 +169,30 @@ export function ResultModal() {
     },
   };
 
-  // Fire description fetch immediately; poll for trivia if not cached yet.
-  // Both inject into the view asynchronously without blocking result display.
+  // Poll for description and trivia if not cached yet. Both endpoints are
+  // async — cached-or-null immediately, generated in the background — so
+  // both inject into the view the same way, without blocking result display.
   function fetchAndInject({ gbif_id, name, lang, trivia }) {
     view.startDescriptionLoading();
-    fetchDescription({ gbif_id, name, lang })
-      .then((res) => view.injectDescription(res?.description ?? null))
-      .catch(() => view.injectDescription(null));
+    pollDescription({ gbif_id, name, lang });
 
     if (!trivia) {
       view.startTriviaLoading();
       pollTrivia({ gbif_id, name, lang });
     }
+  }
+
+  async function pollDescription({ gbif_id, name, lang }) {
+    const delays = [0, 3000, 5000, 8000, 12000]; // ~28 s total
+    for (const delay of delays) {
+      if (delay) await new Promise((r) => setTimeout(r, delay));
+      try {
+        const res = await fetchDescription({ gbif_id, name, lang });
+        if (res?.description) { view.injectDescription(res.description); return; }
+      } catch { /* ignore, keep polling */ }
+    }
+    // All attempts exhausted — hide the spinner
+    view.injectDescription(null);
   }
 
   async function pollTrivia({ gbif_id, name, lang }) {
