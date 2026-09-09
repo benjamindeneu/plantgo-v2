@@ -7,7 +7,9 @@ export function createMissionCardView({
   heroUrl = "",
   pointsTotal = 0,
   levelClass = "common-points",
-  missionLevel = "Common",
+  // Always supplied by the controller; the fallback is translated rather
+  // than a hardcoded English word so it can never leak an untranslated grade.
+  missionLevel = t("missions.card.common"),
   isFlowering = false,
   isFruiting = false,
   debugData = null,

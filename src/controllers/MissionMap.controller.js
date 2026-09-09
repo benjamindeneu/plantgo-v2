@@ -1,7 +1,7 @@
 // src/controllers/MissionMap.controller.js
 import { createMissionMapView } from "../ui/components/MissionMap.view.js";
 import { distanceMeters, getCurrentPosition, watchPosition } from "../data/geo.service.js";
-import { fetchMapMissions, missionRasterTileUrl } from "../api/plantgo.js";
+import { fetchMapMissions, missionRasterTileUrl, speciesRasterTileUrl } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 
 const MOVE_DEBOUNCE_MS = 500;
@@ -124,21 +124,53 @@ export function MissionMapPanel() {
     }
   }
 
-  /** Put one mission's zone and probability surface on the map, framed in view. */
-  function showMission(mission) {
-    view.selectMission(mission);
-    // The surface is only painted inside the mission's own zone, so the raster
-    // answers the question the mission is asking rather than colouring the
-    // whole viewport.
-    view.showRaster(missionRasterTileUrl(mission.id), mission.extent || null);
-    if (mission.extent) {
+  // What is on the map right now, and whether its surface is spread over the
+  // whole viewport instead of clipped to a mission zone.
+  let shown = null;
+  let rasterFull = false;
+
+  /**
+   * The tile template for a species' probability surface, whichever kind it is.
+   *
+   * A mission spells its area and raster id out of its own id. A prediction has
+   * no mission id, so the backend hands those two down as fields — see the
+   * `/prediction` response. Null when this area has no raster for the species,
+   * which is what the detail screen keys its toggle off.
+   */
+  function rasterUrlFor(species) {
+    if (!species) return null;
+    return missionRasterTileUrl(species.id)
+      ?? speciesRasterTileUrl(species.raster_area, species.raster_id);
+  }
+
+  function paintRaster() {
+    const url = rasterUrlFor(shown);
+    // A mission paints its surface by default, clipped to the zone it is
+    // asking about. A prediction is a reading at a point with no zone to clip
+    // to, so its surface only goes up when the player asks for it.
+    if (!url || (!rasterFull && !shown?.id)) { view.showRaster(null); return; }
+    view.showRaster(url, rasterFull ? null : (shown.extent || null));
+  }
+
+  /** Put one species' zone and probability surface on the map, framed in view. */
+  function showMission(mission, { fullRaster = false } = {}) {
+    shown = mission;
+    rasterFull = fullRaster;
+    // Only a mission has a pin to raise.
+    view.selectMission(mission?.id ? mission : null);
+    paintRaster();
+    if (mission?.extent) {
       view.showExtent(mission.extent);
-    } else {
+    } else if (mission?.lat != null && mission?.lon != null) {
+      // A prediction carries no coordinates of its own — there is no one place
+      // it is about — so there is no radius to draw either.
       view.showFallbackRadius(mission.lat, mission.lon);
     }
   }
 
   function clearMission() {
+    shown = null;
+    rasterFull = false;
     view.selectMission(null);
     view.clearOverlays();
   }
@@ -203,6 +235,21 @@ export function MissionMapPanel() {
 
     showMission,
     clearMission,
+
+    /** Mission ids accomplished today, for the pins to mark. */
+    setMissionsDone: (ids) => view.setMissionsDone(ids),
+
+    /** Does this area have a probability raster for the species at all? */
+    hasRaster: (species) => !!rasterUrlFor(species),
+
+    /**
+     * Spread the surface over the whole map, or put it back inside the zone.
+     * Only re-cuts the clip — the tiles already on screen are kept.
+     */
+    setRasterFull(full) {
+      rasterFull = !!full;
+      paintRaster();
+    },
     setPinsVisible: (visible) => view.setPinsVisible(visible),
     recenterOnUser(zoom) {
       if (userPos) view.recenter(userPos.lat, userPos.lon, zoom);

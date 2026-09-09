@@ -29,6 +29,11 @@ export function calcToLevel(total) {
 }
 
 export function animateProgress(el, fromPct, toPct, options = {}) {
+  // Snap straight to the end for anyone who has asked for less motion.
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    el.style.width = `${Math.round(toPct)}%`;
+    return Promise.resolve();
+  }
   const duration = 900, start = performance.now();
   const ease = getEaseFn(options.ease || "linear");
   return new Promise((res) => {

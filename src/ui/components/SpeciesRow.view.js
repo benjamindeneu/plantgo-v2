@@ -34,7 +34,7 @@ export function speciesImage(sciName) {
  * screen, and a stack of full cards meant one and a half were ever visible.
  * A photo, both names and the tier fit in 76px, so a list reads as a list.
  */
-export function SpeciesRow(species, { onClick } = {}) {
+export function SpeciesRow(species, { onClick, done = false } = {}) {
   const sciName = species.name || species.scientific_name || "";
   const commonName = species.vernacular_name || sciName;
   const tier = tierOf(species);
@@ -45,7 +45,10 @@ export function SpeciesRow(species, { onClick } = {}) {
   el.type = "button";
   // Only a mission carries a grade. A prediction does not, so it gets plain
   // paper rather than a tint and a badge that would mean nothing.
-  el.className = `mp-row mp-row--${tier}${graded ? " mp-row--graded" : ""}`;
+  // `done` is a mission already accomplished today. It keeps its place in the
+  // list — you may still want to look at it — but steps back, the same way a
+  // species already found in a hunt does.
+  el.className = `mp-row mp-row--${tier}${graded ? " mp-row--graded" : ""}${done ? " mp-row--done" : ""}`;
   el.innerHTML = `
     <span class="mp-row__thumb"><span class="mp-row__leaf" aria-hidden="true">🌿</span></span>
     <span class="mp-row__text">
@@ -77,6 +80,17 @@ export function SpeciesRow(species, { onClick } = {}) {
   if (chance != null) tag(t("map.meta.chance", { pct: Math.round(chance * 100) }), "chance");
   if (species.is_flowering) tag(t("map.tag.flowering"), "pheno");
   else if (species.is_fruiting) tag(t("map.tag.fruiting"), "pheno");
+
+  // A band across the foot of the row rather than another tag among the tags:
+  // accomplishing a mission is the outcome the whole list is about, and it
+  // should not have to compete with "40% chance" to be noticed.
+  if (done) {
+    const band = document.createElement("span");
+    band.className = "mp-row__done";
+    band.innerHTML = `<span class="mp-row__done-tick" aria-hidden="true">✓</span><span></span>`;
+    band.lastElementChild.textContent = t("result.badge.missionAccomplished");
+    el.appendChild(band);
+  }
 
   attachPhoto(el.querySelector(".mp-row__thumb"), sciName);
 

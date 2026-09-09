@@ -1,0 +1,93 @@
+// src/ui/components/InfoSheet.view.js
+import { t } from "../../language/i18n.js";
+
+/**
+ * A full-screen explainer for one of the sheet's tabs.
+ *
+ * Full screen rather than a small dialog: this is the one place the app gets
+ * to say what a mission actually *is*, and that answer is several paragraphs
+ * of plain language, not a tooltip. It covers the map so there is nothing to
+ * read past.
+ */
+const CONTENT = {
+  missions: {
+    titleKey: "map.info.missions.title",
+    icon: "🎯",
+    introKey: "map.info.missions.intro",
+    howTitleKey: "map.info.missions.howTitle",
+    points: [
+      { icon: "🤔", key: "map.info.missions.how1" },
+      { icon: "🔍", key: "map.info.missions.how2" },
+      { icon: "📍", key: "map.info.missions.how3" },
+    ],
+    noteKey: "map.info.missions.note",
+  },
+  around: {
+    titleKey: "map.info.around.title",
+    icon: "🌿",
+    introKey: "map.info.around.intro",
+    howTitleKey: null,
+    points: [{ icon: "🛰", key: "map.info.around.how" }],
+    noteKey: "map.info.around.note",
+  },
+};
+
+/** @param {"missions"|"around"} kind */
+export function createInfoSheet(kind) {
+  const spec = CONTENT[kind];
+  if (!spec) return null;
+
+  const root = document.createElement("div");
+  root.className = "mp-info";
+  root.setAttribute("role", "dialog");
+  root.setAttribute("aria-modal", "true");
+  root.innerHTML = `
+    <div class="mp-info__bar">
+      <span class="mp-info__icon" aria-hidden="true"></span>
+      <h2 class="mp-info__title"></h2>
+      <button class="mp-info__close" type="button">&times;</button>
+    </div>
+    <div class="mp-info__body">
+      <p class="mp-info__intro"></p>
+      <h3 class="mp-info__how" hidden></h3>
+      <ul class="mp-info__points"></ul>
+      <p class="mp-info__note"></p>
+    </div>
+  `;
+
+  root.querySelector(".mp-info__icon").textContent = spec.icon;
+  root.querySelector(".mp-info__title").textContent = t(spec.titleKey);
+  root.querySelector(".mp-info__intro").textContent = t(spec.introKey);
+  root.querySelector(".mp-info__note").textContent = t(spec.noteKey);
+
+  const how = root.querySelector(".mp-info__how");
+  if (spec.howTitleKey) {
+    how.hidden = false;
+    how.textContent = t(spec.howTitleKey);
+  }
+
+  const list = root.querySelector(".mp-info__points");
+  for (const point of spec.points) {
+    const li = document.createElement("li");
+    li.className = "mp-info__point";
+    li.innerHTML = `<span class="mp-info__point-icon" aria-hidden="true"></span><span></span>`;
+    li.firstElementChild.textContent = point.icon;
+    li.lastElementChild.textContent = t(point.key);
+    list.appendChild(li);
+  }
+
+  const closeBtn = root.querySelector(".mp-info__close");
+  closeBtn.setAttribute("aria-label", t("common.close"));
+
+  function close() {
+    root.remove();
+    document.removeEventListener("keydown", onKey);
+  }
+  function onKey(e) { if (e.key === "Escape") close(); }
+
+  closeBtn.addEventListener("click", close);
+  document.addEventListener("keydown", onKey);
+
+  root.close = close;
+  return root;
+}

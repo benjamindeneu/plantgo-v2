@@ -6,6 +6,8 @@ import { addObservationAndDiscovery } from "../data/observations.js";
 import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
 import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
 import { fetchDescription, fetchTrivia } from "../api/plantgo.js";
+import { missionBonusFor } from "../data/missions.repo.js";
+import { getMissionsDoneToday, markMissionDone } from "../data/missionsDone.js";
 import { t } from "../language/i18n.js";
 
 export function ResultModal() {
@@ -49,11 +51,34 @@ export function ResultModal() {
       }
 
       const tMission = performance.now();
-      const missionHit = await isInMissionsList(speciesName, identify?.gbif_id);
+      // The matched mission, not just whether there was one: what completing it
+      // is worth depends on the grade it was given.
+      const mission = await findMatchingMission(speciesName, identify?.gbif_id);
       timings.missionCheck = Math.round(performance.now() - tMission);
 
+      // A mission pays once a day. It is redrawn overnight and can be
+      // accomplished again on a later day, so this asks about today only.
+      let missionAlreadyDone = false;
+      if (user && mission?.id) {
+        missionAlreadyDone = (await getMissionsDoneToday(user.uid)).has(mission.id);
+      }
+      const missionCounts = !!mission && !missionAlreadyDone;
+
+      const missionBonus = missionCounts ? missionBonusFor(mission) : 0;
+      const missionTier = mission?.grade?.tier || "common";
+
       const badges = [];
-      if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: t("result.badge.missionSpecies"), bonus: 500 });
+      if (missionCounts) {
+        badges.push({
+          kind: "mission",
+          tier: missionTier,
+          emoji: "🎯",
+          // Named as well as coloured — with the bonus now varying by grade,
+          // "Mission species +2000" without the grade reads as arbitrary.
+          label: `${t("result.badge.missionAccomplished")} · ${t(`missions.card.${missionTier}`)}`,
+          bonus: missionBonus,
+        });
+      }
 
       let discoveryBonus = 0;
       let isNearbyDuplicate = false;
@@ -70,9 +95,12 @@ export function ResultModal() {
           gbif_id: identify?.gbif_id ?? null,
           pointsMap: detail,
           total_points: baseTotal,
-          extraBonus: missionHit ? 500 : 0,
+          extraBonus: missionBonus,
         });
         timings.saveObservation = Math.round(performance.now() - tObs);
+        // Written after the observation lands, so a failed save cannot burn
+        // the day's one shot at this mission.
+        if (missionCounts) await markMissionDone(user.uid, mission.id);
         discoveryBonus = obsResult.discoveryBonus;
         isNearbyDuplicate = obsResult.isNearbyDuplicate;
         nearbyPoints = obsResult.nearbyPoints ?? 0;
@@ -94,7 +122,6 @@ export function ResultModal() {
       }
 
       // Estimate new total points for level badge check
-      const missionBonus = missionHit ? 500 : 0;
       const questBonus = completedQuestIds.length * QUEST_BONUS;
       const estimatedNewTotal = currentTotalBefore + baseTotal + discoveryBonus + missionBonus + questBonus;
       const newLevel = Math.floor(1 + estimatedNewTotal / 11000);
@@ -125,8 +152,8 @@ export function ResultModal() {
 
       if (isNearbyDuplicate) {
         // No discovery badge — nearby duplicates cannot be new discoveries
-        const missionBonus = badges.reduce((s, b) => s + (b.bonus || 0), 0);
-        const finalTotal = nearbyPoints + missionBonus;
+        const badgeBonus = badges.reduce((s, b) => s + (b.bonus || 0), 0);
+        const finalTotal = nearbyPoints + badgeBonus;
         await view.showResultUI({
           speciesName,
           speciesVernacularName,
@@ -138,7 +165,7 @@ export function ResultModal() {
           finalTotal,
           isNearbyDuplicate: true,
           trivia,
-          debugData: { identify, missionHit, timings, serverTimings },
+          debugData: { identify, mission, missionBonus, missionAlreadyDone, timings, serverTimings },
         });
         if (identify?.gbif_id) {
           fetchAndInject({ gbif_id: identify.gbif_id, name: speciesName, lang, trivia });
@@ -160,7 +187,7 @@ export function ResultModal() {
         currentTotalBefore,
         finalTotal,
         trivia,
-        debugData: { identify, missionHit, timings, serverTimings },
+        debugData: { identify, mission, missionBonus, missionAlreadyDone, timings, serverTimings },
       });
 
       if (identify?.gbif_id) {
@@ -208,22 +235,36 @@ export function ResultModal() {
     view.injectTrivia(null);
   }
 
-  async function isInMissionsList(name, gbifId) {
+  /**
+   * The mission this observation completes, or null.
+   *
+   * `missions_here` is what the map wrote for where the player is standing;
+   * `missions_list` is the old home page's area cache, still read so an
+   * observation made from that page keeps working. A match in the first wins,
+   * since only those are missions the player is actually inside.
+   */
+  async function findMatchingMission(name, gbifId) {
     try {
       const user = auth.currentUser;
-      if (!user) return false;
-      const ref = doc(db, "users", user.uid);
-      const snap = await getDoc(ref);
-      const list = snap.data()?.missions_list || [];
-      // Prefer gbif_id comparison — name strings often differ by author suffix (e.g. "Rosa canina" vs "Rosa canina L.")
-      if (gbifId != null) {
-        return list.some((m) => Number(m?.gbif_id) === Number(gbifId));
+      if (!user) return null;
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const data = snap.data() || {};
+
+      // Prefer gbif_id — name strings often differ by author suffix
+      // (e.g. "Rosa canina" vs "Rosa canina L.").
+      const binomial = (str) => String(str || "").trim().toLowerCase().split(/\s+/).slice(0, 2).join(" ");
+      const wanted = binomial(name);
+      const matches = (m) => (gbifId != null && m?.gbif_id != null)
+        ? Number(m.gbif_id) === Number(gbifId)
+        : binomial(m?.name || m?.speciesName) === wanted;
+
+      for (const list of [data.missions_here, data.missions_list]) {
+        const hit = (list || []).find(matches);
+        if (hit) return hit;
       }
-      // Fallback: compare first two words of scientific name (genus + species, strip author)
-      const binomial = (str) => str.trim().toLowerCase().split(/\s+/).slice(0, 2).join(" ");
-      return list.some((m) => binomial(m?.name || m?.speciesName || "") === binomial(name));
+      return null;
     } catch {
-      return false;
+      return null;
     }
   }
 }

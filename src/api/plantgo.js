@@ -107,7 +107,7 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
 }
 
 /**
- * Fetch mission pins for the area around a point (beta map page).
+ * Fetch mission pins for the area around a point (front page map).
  *
  * Each mission carries its zone (`extent`, a GeoJSON Polygon) and `metrics`,
  * so the client can test its own position against every zone locally — see
@@ -159,6 +159,18 @@ export function missionRasterTileUrl(missionId) {
   } else {
     return null;
   }
+  return speciesRasterTileUrl(area, rasterId);
+}
+
+/**
+ * Leaflet tile template for one species' probability raster in one area.
+ *
+ * Missions spell their area and raster id out of their own id; predictions
+ * carry them as fields, because a reading taken at a point has no mission to
+ * derive them from. Both end up here.
+ */
+export function speciesRasterTileUrl(area, rasterId) {
+  if (!area || rasterId == null) return null;
   return `${GPN_TILE_BASE}/${encodeURIComponent(area)}/2/species/${encodeURIComponent(rasterId)}/{z}/{x}/{y}`;
 }
 

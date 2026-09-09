@@ -20,6 +20,13 @@ const MAX_PINS = 400;
 // order, and the outline and pins have to stay readable through it.
 const RASTER_PANE = "speciesRaster";
 const RASTER_PANE_Z = 350;
+// The zone's fill goes *under* the raster, between it and the satellite
+// imagery: the fill says "this is the ground the mission covers", the raster
+// says "and here is where the plant is likely on it". With the fill on top it
+// washed 20% of white-green over the very colours you are meant to read.
+// The zone's outline stays in overlayPane (400), above both.
+const EXTENT_FILL_PANE = "extentFill";
+const EXTENT_FILL_PANE_Z = 300;
 // Enough to read the gradient, little enough to keep the imagery underneath
 // legible — the point is to place the species against the terrain you are
 // about to walk, and a common species paints most of a city bright.
@@ -76,8 +83,13 @@ export function createMissionMapView() {
       <span id="rasterLegendTitle" class="mp-legend__title"></span>
       <span class="mp-legend__ramp" aria-hidden="true"></span>
       <span class="mp-legend__scale"><span id="rasterLegendLow"></span><span id="rasterLegendHigh"></span></span>
-      <input id="rasterOpacity" class="mp-legend__opacity" type="range"
-             min="0" max="100" value="55" aria-label="Species layer opacity" />
+      <span class="mp-legend__slider">
+        <svg class="mp-legend__slider-icon" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+          <path fill="currentColor" d="M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 1.6v11.8a5.9 5.9 0 0 1 0-11.8z"/>
+        </svg>
+        <input id="rasterOpacity" class="mp-legend__opacity" type="range"
+               min="0" max="100" value="55" aria-label="Species layer opacity" />
+      </span>
     </div>
   `;
 
@@ -98,12 +110,20 @@ export function createMissionMapView() {
   const pinLayer = L.layerGroup();
   let pinsVisible = true;
   let rasterLayer = null;
+  // The template the layer on the map was built from. Toggling the clip must
+  // not tear the tiles down and refetch them, so a call that only changes the
+  // clip is told apart from one that changes the species.
+  let rasterUrl = null;
   // The zone the raster is clipped to, in lat/lng. Kept so the clip can be
   // recomputed in pixel space whenever the map moves under it.
   let rasterClipRing = null;
-  let extentLayer = null;
+  // The zone is drawn as three layers — fill under the raster, then a dark
+  // casing and the bright dashed line over it — so they are cleared together.
+  let extentLayers = [];
   let fallbackCircle = null;
   const markersById = new Map();
+  // Mission ids the player has already accomplished today.
+  let missionsDone = new Set();
   let selectedId = null;
   let programmaticMove = false;
   let statusTimer = null;
@@ -129,6 +149,10 @@ export function createMissionMapView() {
       "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
       { maxZoom: 19 }
     ).addTo(map);
+
+    const fillPane = map.createPane(EXTENT_FILL_PANE);
+    fillPane.style.zIndex = String(EXTENT_FILL_PANE_Z);
+    fillPane.style.pointerEvents = "none";
 
     const rasterPane = map.createPane(RASTER_PANE);
     rasterPane.style.zIndex = String(RASTER_PANE_Z);
@@ -183,13 +207,23 @@ export function createMissionMapView() {
     return mission.id || `${mission.gbif_id}:${mission.lat}:${mission.lon}`;
   }
 
+  function isDone(mission) {
+    return !!mission?.id && missionsDone.has(mission.id);
+  }
+
   function missionIcon(mission, isSelected) {
     const tier = mission?.grade?.tier || "common";
-    const label = (mission.vernacular_name || mission.name || "?").trim().charAt(0).toUpperCase();
+    const done = isDone(mission);
+    // A mission accomplished today wears a tick instead of its initial: at pin
+    // size there is room for one glyph, and which mission it is matters less
+    // than that there is nothing left to do there until tomorrow.
+    const label = done
+      ? "✓"
+      : (mission.vernacular_name || mission.name || "?").trim().charAt(0).toUpperCase();
     const box = (PIN_SIZE[tier] ?? PIN_SIZE.common) + PIN_BOX_SLACK;
     return L.divIcon({
       className: "",
-      html: `<div class="mp-pin mp-pin--${tier}${isSelected ? " is-selected" : ""}">
+      html: `<div class="mp-pin mp-pin--${tier}${isSelected ? " is-selected" : ""}${done ? " is-done" : ""}">
                <span class="mp-pin__glyph">${escapeHtml(label)}</span>
              </div>`,
       iconSize: [box, box],
@@ -203,13 +237,35 @@ export function createMissionMapView() {
     if (entry) entry.marker.setIcon(missionIcon(entry.mission, key === selectedId));
   }
 
+  /**
+   * While one mission is selected, its neighbours come off the map.
+   *
+   * The detail screen is about one species and the map is showing its zone and
+   * surface; a field of other pins on top of that is noise you have to read
+   * past, and tapping one by accident throws away the screen you were reading.
+   * Faded rather than removed, so the pins come straight back on the way out
+   * without rebuilding four hundred markers.
+   */
+  function applyFocus() {
+    const focused = selectedId != null;
+    for (const [key, entry] of markersById) {
+      const visible = !focused || key === selectedId;
+      entry.marker.setOpacity(visible ? 1 : 0);
+      // A pin you cannot see must not be tappable either.
+      const el = entry.marker.getElement();
+      if (el) el.style.pointerEvents = visible ? "" : "none";
+    }
+  }
+
   function clearExtent() {
-    if (extentLayer) { extentLayer.remove(); extentLayer = null; }
+    for (const layer of extentLayers) layer.remove();
+    extentLayers = [];
     if (fallbackCircle) { fallbackCircle.remove(); fallbackCircle = null; }
   }
 
   function clearRaster() {
     if (rasterLayer) { rasterLayer.remove(); rasterLayer = null; }
+    rasterUrl = null;
     rasterClipRing = null;
     applyRasterClip();
     legendEl.hidden = true;
@@ -246,7 +302,17 @@ export function createMissionMapView() {
     map.fitBounds(bounds, { padding: [34, 34], maxZoom: 17 });
   }
 
-  opacityEl.addEventListener("input", () => setRasterOpacity(Number(opacityEl.value) / 100));
+  // Blink and WebKit have no ::-moz-range-progress, so the filled part of the
+  // track is a gradient stop the slider drives itself. Firefox ignores it and
+  // paints the real progress pseudo-element instead.
+  function syncOpacityFill() {
+    opacityEl.style.setProperty("--fill", `${opacityEl.value}%`);
+  }
+  opacityEl.addEventListener("input", () => {
+    setRasterOpacity(Number(opacityEl.value) / 100);
+    syncOpacityFill();
+  });
+  syncOpacityFill();
   // The legend sits over the map; without this a drag on the slider pans the
   // map underneath it.
   ["pointerdown", "mousedown", "touchstart", "dblclick", "wheel"].forEach((evt) =>
@@ -346,6 +412,10 @@ export function createMissionMapView() {
         added++;
       }
 
+      // A fetch can land while a mission is open; its pins must not appear on
+      // top of the one being read.
+      if (added && selectedId != null) applyFocus();
+
       // Cap the layer so a long session does not accumulate forever; the ones
       // furthest from where you are looking go first.
       if (markersById.size > MAX_PINS) {
@@ -363,13 +433,33 @@ export function createMissionMapView() {
       return added;
     },
 
-    /** Raise one pin above the rest. Pass null to drop the highlight. */
+    /**
+     * Which missions are accomplished today. Only the pins whose state
+     * actually changed are repainted — this arrives on a live subscription,
+     * and redrawing four hundred icons for one completion would be visible.
+     */
+    setMissionsDone(ids) {
+      const next = ids instanceof Set ? ids : new Set(ids || []);
+      const changed = [];
+      for (const [key, entry] of markersById) {
+        const id = entry.mission?.id;
+        if (!id) continue;
+        if (missionsDone.has(id) !== next.has(id)) changed.push(key);
+      }
+      missionsDone = next;
+      for (const key of changed) repaint(key);
+    },
+
+    /**
+     * Raise one pin and take the others off the map. Pass null to restore them.
+     */
     selectMission(mission) {
       const previous = selectedId;
       selectedId = mission ? keyOf(mission) : null;
       if (previous === selectedId) return;
       repaint(previous);
       repaint(selectedId);
+      applyFocus();
     },
 
     /** Take the selected species' surface and zone back off the map. */
@@ -386,9 +476,21 @@ export function createMissionMapView() {
      */
     showRaster(templateUrl, clipGeojson = null) {
       if (!map) return;
-      clearRaster();
-      if (!templateUrl) return;
+      if (!templateUrl) { clearRaster(); return; }
 
+      // Outer ring only: a mission zone is a convex hull, so it has exactly
+      // one and never a hole. Null means paint the whole viewport.
+      const ring = clipGeojson?.coordinates?.[0] ?? null;
+
+      // Same species, different clip — keep the tiles and just re-cut the pane.
+      if (rasterLayer && rasterUrl === templateUrl) {
+        rasterClipRing = ring;
+        applyRasterClip();
+        return;
+      }
+
+      clearRaster();
+      rasterUrl = templateUrl;
       rasterLayer = L.tileLayer(templateUrl, {
         pane: RASTER_PANE,
         opacity: Number(opacityEl.value) / 100,
@@ -398,35 +500,67 @@ export function createMissionMapView() {
         errorTileUrl: BLANK_TILE,
       }).addTo(map);
 
-      // Outer ring only: a mission zone is a convex hull, so it has exactly
-      // one and never a hole.
-      rasterClipRing = clipGeojson?.coordinates?.[0] ?? null;
+      rasterClipRing = ring;
       applyRasterClip();
       legendEl.hidden = false;
     },
 
+    /**
+     * Outline the mission's ground.
+     *
+     * Three layers, because one flat green line over satellite imagery is
+     * exactly the case a single stroke loses: the basemap is mostly vegetation
+     * and rooftops, and mid-green on either of those disappears. A dark casing
+     * underneath separates the line from whatever it crosses, and the line
+     * itself is the brand's brightest green so it reads as ours rather than as
+     * a generic map annotation.
+     */
     showExtent(geojson) {
       if (!map || !geojson) return;
-      if (extentLayer) extentLayer.remove();
-      extentLayer = L.geoJSON(geojson, {
+      clearExtent();
+
+      const fill = L.geoJSON(geojson, {
+        pane: EXTENT_FILL_PANE,
+        style: { stroke: false, fillColor: "#4fe39b", fillOpacity: 0.22 },
+        interactive: false,
+      }).addTo(map);
+
+      const casing = L.geoJSON(geojson, {
+        style: { color: "#06301f", weight: 6, opacity: 0.5, fill: false, lineJoin: "round" },
+        interactive: false,
+      }).addTo(map);
+
+      const line = L.geoJSON(geojson, {
+        className: "mp-extent-line",
         style: {
-          color: "#2fbb6e", weight: 2.5, opacity: 1,
-          dashArray: "6 5", fillColor: "#5fe0a0", fillOpacity: 0.2,
+          color: "#4fe39b", weight: 2.5, opacity: 1,
+          dashArray: "8 6", lineCap: "round", lineJoin: "round", fill: false,
         },
         interactive: false,
       }).addTo(map);
+
+      extentLayers = [fill, casing, line];
+
       // Selecting a mission is a request to look at it, so the map always
       // frames the full zone rather than just wherever the tap landed.
-      const bounds = extentLayer.getBounds();
+      const bounds = line.getBounds();
       if (bounds.isValid()) fitToExtent(bounds);
     },
 
     /** No raster for this species — show the search radius instead of a shape. */
     showFallbackRadius(lat, lon, { radius = 250 } = {}) {
       if (!map) return;
-      if (fallbackCircle) fallbackCircle.remove();
+      clearExtent();
+      // Same casing treatment as a real zone, in the amber that means
+      // "approximate" everywhere else in the app. Tracked with the zone layers
+      // so `clearExtent` takes it down too.
+      extentLayers.push(L.circle([lat, lon], {
+        radius, color: "#3d2400", weight: 5, opacity: 0.45,
+        fill: false, interactive: false,
+      }).addTo(map));
       fallbackCircle = L.circle([lat, lon], {
-        radius, color: "#e59413", weight: 2, dashArray: "4 5",
+        className: "mp-extent-line",
+        radius, color: "#ffc861", weight: 2.5, dashArray: "8 6", lineCap: "round",
         fillColor: "#e59413", fillOpacity: 0.14, interactive: false,
       }).addTo(map);
       const bounds = fallbackCircle.getBounds();

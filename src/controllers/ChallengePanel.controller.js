@@ -1,189 +1,81 @@
 // src/controllers/ChallengePanel.controller.js
 import { createChallengePanelView } from "../ui/components/ChallengePanel.view.js";
 import { t } from "../language/i18n.js";
-import {
-  createChallenge,
-  joinChallengeByCode,
-  subscribeLeaderboard,
-  getMyActiveChallenge,
-  clearMyActiveChallenge,
-} from "../data/challenges.js";
+import { clearMyActiveChallenge } from "../data/challenges.js";
+import { watchActiveChallenge, isEnded } from "../data/activeChallenge.js";
 
-import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-import { db } from "../../firebase-config.js";
-import { auth } from "../../firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-
+/**
+ * The active-challenge card on the old home page.
+ *
+ * The live data comes from `watchActiveChallenge`, the same source the map's
+ * challenge screen reads, so the two can never disagree about what the player
+ * is in. This controller is only the countdown and the wiring to this view.
+ */
 export function ChallengePanel() {
   const view = createChallengePanelView();
 
-  let unsub = null;
   let timer = null;
-  let endAtMs = null;
-  let active = null; // { id, code, endAtMs }
-  let lastRows = null;
-  let challengeType = "points";
-  let challengeSpeciesList = [];
-  let unsubMemberDoc = null;
+  let challenge = null;
 
-  function cleanupLive() {
-    if (unsub) { unsub(); unsub = null; }
+  function stopCountdown() {
     if (timer) { clearInterval(timer); timer = null; }
   }
 
-  function setEndedUI(isEnded) {
-    view.setEnded(!!isEnded);
-  }
-
   function startCountdown() {
-    if (!endAtMs) return;
-
-    if (timer) clearInterval(timer);
-
+    stopCountdown();
+    if (!challenge?.endAtMs) return;
     timer = setInterval(() => {
-      const remaining = endAtMs - Date.now();
-
-      if (remaining <= 0) {
-        clearInterval(timer);
-        timer = null;
-        setEndedUI(true);        // ✅ timer removed, ended text shown
+      if (isEnded(challenge)) {
+        stopCountdown();
+        view.setEnded(true);
         return;
       }
-
-      view.setTimeLeft(endAtMs);
+      view.setTimeLeft(challenge.endAtMs);
     }, 1000);
   }
 
-  async function activateFromPointer(pointer) {
-    if (!pointer?.id) {
-      active = null;
-      endAtMs = null;
-      challengeType = "points";
-      challengeSpeciesList = [];
-      if (unsubMemberDoc) { unsubMemberDoc(); unsubMemberDoc = null; }
-      cleanupLive();
+  const stop = watchActiveChallenge((state) => {
+    view.setMyUid(state.myUid);
+    challenge = state.challenge;
+
+    if (!challenge) {
+      stopCountdown();
       view.setActiveChallenge(null);
       view.renderLeaderboard([]);
       view.renderSpeciesChecklist([], []);
-      setEndedUI(false);
+      view.setEnded(false);
       return;
     }
 
-    endAtMs = pointer?.endAt?.toMillis ? pointer.endAt.toMillis() : null;
-    challengeType = pointer?.type || "points";
-    active = { id: pointer.id, code: pointer.code, endAtMs };
-
-    view.setActiveChallenge({ code: active.code, endsAtMs: endAtMs, type: challengeType });
-
-    cleanupLive();
-
-    unsub = subscribeLeaderboard(active.id, (rows) => {
-      lastRows = rows;
-      view.renderLeaderboard(rows, challengeType);
+    view.setActiveChallenge({
+      code: challenge.code,
+      endsAtMs: challenge.endAtMs,
+      type: challenge.type,
     });
+    view.renderLeaderboard(state.rows, challenge.type);
+    view.renderSpeciesChecklist(state.speciesList, state.foundSpecies, state.foundGbifIds);
 
-    // For species_hunt: fetch full mission objects and subscribe to the user's found species
-    if (unsubMemberDoc) { unsubMemberDoc(); unsubMemberDoc = null; }
-
-    if (challengeType === "species_hunt") {
-      // Fetch challenge doc once to get full species list (with mission data)
-      const challengeSnap = await getDoc(doc(db, "challenges", active.id));
-      challengeSpeciesList = challengeSnap.exists()
-        ? (challengeSnap.data()?.speciesList || [])
-        : [];
-
-      const uid = auth.currentUser?.uid;
-      if (uid) {
-        const memberRef = doc(db, "challenges", active.id, "members", uid);
-        unsubMemberDoc = onSnapshot(memberRef, (snap) => {
-          const foundSpecies = snap.exists() ? (snap.data()?.foundSpecies || []) : [];
-          const foundGbifIds = snap.exists() ? (snap.data()?.foundGbifIds || []) : [];
-          view.renderSpeciesChecklist(challengeSpeciesList, foundSpecies, foundGbifIds);
-        });
-      }
-    } else {
-      challengeSpeciesList = [];
-      view.renderSpeciesChecklist([], []);
-    }
-
-    const isEnded = endAtMs && Date.now() >= endAtMs;
-    setEndedUI(isEnded);
-
-    if (!isEnded) startCountdown();
-  }
-
-
-  let unsubUserDoc = null;
-
-  onAuthStateChanged(auth, (user) => {
-    view.setMyUid(user?.uid || null);
-
-    // If you already have last leaderboard cached, rerender it
-    if (lastRows) view.renderLeaderboard(lastRows, challengeType);
-
-    if (!user) {
-      if (unsubUserDoc) unsubUserDoc();
-      activateFromPointer(null);
-      return;
-    }
-
-    // Listen to user's document in real-time
-    const userRef = doc(db, "users", user.uid);
-
-    if (unsubUserDoc) unsubUserDoc();
-
-    unsubUserDoc = onSnapshot(userRef, (snap) => {
-      const data = snap.exists() ? snap.data() : null;
-      const pointer = data?.activeChallenge || null;
-      activateFromPointer(pointer);
-    });
+    const ended = isEnded(challenge);
+    view.setEnded(ended);
+    if (ended) stopCountdown();
+    else startCountdown();
   });
 
-  /*view.onCreate(async ({ durationSec }) => {
-    try {
-      view.setFeedback("");
-      view.setCreateStatus(t("challenge.creating"));
-
-      const res = await createChallenge({ durationSec });
-
-      view.setCreateStatus(`${t("challenge.created")} ${res.code}`);
-      await activateFromPointer({ id: res.challengeId, code: res.code, startAt: res.startAt, endAt: res.endAt });
-    } catch (e) {
-      view.setCreateStatus("");
-      view.setFeedback(e?.message || t("challenge.error.generic"));
-    }
-  });
-
-  view.onJoin(async ({ code }) => {
-    try {
-      view.setFeedback("");
-      view.setJoinStatus(t("challenge.joining"));
-
-      const res = await joinChallengeByCode(code);
-
-      view.setJoinStatus(t("challenge.joined"));
-      await activateFromPointer({ id: res.challengeId, code: res.code, startAt: res.startAt, endAt: res.endAt });
-    } catch (e) {
-      view.setJoinStatus("");
-      view.setFeedback(e?.message || t("challenge.error.generic"));
-    }
-  });*/
-
-  // ✅ Close leaderboard when ended: clears activeChallenge pointer + collapses UI
   view.onClose(async () => {
     try {
       await clearMyActiveChallenge();
-      await activateFromPointer(null);
     } catch (e) {
-      view.setFeedback(e?.message || t("challenge.error.generic"));
+      view.setFeedback?.(e?.message || t("challenge.error.generic"));
     }
   });
 
-  // initial state
+  // initial state, before the first snapshot lands
   view.setActiveChallenge(null);
   view.renderLeaderboard([]);
   view.renderSpeciesChecklist([], []);
-  setEndedUI(false);
+  view.setEnded(false);
 
-  return view.element;
+  const el = view.element;
+  el.stop = () => { stopCountdown(); stop(); };
+  return el;
 }

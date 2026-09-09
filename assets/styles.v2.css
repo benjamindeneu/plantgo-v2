@@ -1,20 +1,30 @@
 /* ============================================================
    PlantGo — design system v2
    ------------------------------------------------------------
-   The new look, kept in its own file so it can spread page by
-   page without the old stylesheet being touched. Nothing in
-   here overrides a v1 rule by accident: every selector is
-   scoped to `.map-page` (the first page on v2) and namespaced
-   `mp-`. Scoping also settles specificity — v1's global
-   `button` rule paints every button green, and a
-   `.map-page .mp-tab` outranks it without editing v1 at all.
+   The app's look, grown out of the mission map. It began life
+   scoped to that one page; now the map is the front page and
+   this is the system every screen is dressed in.
 
-   Adding a page to v2: link this file after styles.css, give
-   the body the page's scope class, and build with `mp-`
-   components. Once a page is fully on v2 its v1 rules can go.
+   How it layers on v1:
+   * Tokens live on `:root`, so `--mp-*` is available anywhere.
+   * Everything else is scoped to `.v2` on the body, and this
+     file loads after styles.css. v1 still owns the markup —
+     `.card`, `.modal`, `.nav`, `button` — and this file
+     re-dresses those same class names rather than asking every
+     view to be rewritten. Where v1's specificity needs beating
+     (its `#userMenu button` is an id selector) the `.v2` scope
+     supplies the extra weight.
+   * `mp-` components are the native v2 vocabulary. New markup
+     should reach for those; the re-dressed v1 classes are the
+     bridge for what already exists.
+   * `.map-page` is the front page's own layout and comes last,
+     so its rules win over the generic `.v2` ones.
+
+   Adding a page: link this file after styles.css and put `v2`
+   on the body. Once a page's v1 rules are unused they can go.
    ============================================================ */
 
-.map-page {
+:root {
   /* --- ink & paper --- */
   --mp-bg:        #eef3ea;   /* soft paper, seen at the sheet's shoulders */
   --mp-surface:   #ffffff;
@@ -46,6 +56,10 @@
   --mp-legendary:      #e59413;
   --mp-legendary-tint: #fff5e4;
 
+  /* --- status --- */
+  --mp-danger:      #c62348;
+  --mp-danger-tint: #ffeaee;
+
   /* --- form --- */
   --mp-r:    26px;
   --mp-r-md: 18px;
@@ -61,6 +75,1152 @@
   --mp-ui:      "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mp-display: "Fraunces", Georgia, "Times New Roman", serif;
 
+  /* PlantGo is a phone app first: on a wide screen every page paints itself
+     into this column rather than sprawling. */
+  --mp-col: 580px;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+/* v1 paints a photographic background behind translucent glass cards. v2 is
+   paper: one flat, quiet ground so the cards on it are the only thing with
+   depth. `background: none` alone would leave v1's image rules half-applied,
+   so the shorthand is reset outright. */
+.v2 {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--mp-bg);
+  color: var(--mp-ink);
+  font-family: var(--mp-ui);
+  line-height: 1.55;
+}
+.v2::before { content: none; }
+
+.v2 h1, .v2 h2, .v2 h3 {
+  margin: 0 0 var(--sp-1, 4px);
+  font-family: var(--mp-ui);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+  text-align: left;
+  color: var(--mp-ink);
+}
+.v2 h1 { font-size: 1.42rem; }
+.v2 h2 { font-size: 1.12rem; }
+.v2 h3 { font-size: 1rem; }
+
+.v2 p {
+  margin: 0 0 var(--sp-2, 8px);
+  font-size: .92rem;
+  color: var(--mp-ink);
+}
+.v2 .muted { color: var(--mp-ink-2); }
+.v2 .small-text { font-size: .78em; }
+.v2 .big-text { font-size: 1.18em; }
+
+.v2 a { color: var(--mp-brand-text); font-weight: 600; text-decoration: none; }
+.v2 a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.v2 :focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--mp-brand) 45%, #fff);
+  outline-offset: 2px;
+}
+
+/* Species names are set in the display face wherever they appear. */
+.v2 .species-sci,
+.v2 .checklist-sci,
+.v2 .herbarium-name,
+.v2 .obs-species-name {
+  font-family: var(--mp-display);
+  letter-spacing: -.01em;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.v2 main { padding: 16px 14px 28px; }
+.v2 .app-shell { display: grid; grid-template-rows: auto 1fr auto; grid-template-columns: minmax(0,1fr); }
+.v2 .footer { padding: 22px 16px 30px; text-align: center; color: var(--mp-ink-2); }
+
+/* A page heading and the panel under it are one block, not two stacked
+   boxes — the h1 sits on the paper and the card carries the content. */
+.v2 main > h1 {
+  margin: 4px 2px 14px;
+  font-size: 1.5rem;
+}
+
+.v2 .rule {
+  height: 1px;
+  margin: 20px 0;
+  border: 0;
+  background: var(--mp-line);
+}
+
+@media (min-width: 900px) {
+  .v2 > header,
+  .v2 > .nav,
+  .v2 > footer,
+  .v2 .app-shell { width: var(--mp-col); max-width: var(--mp-col); }
+  .v2 { display: flex; flex-direction: column; align-items: center; }
+}
+
+/* ============================================================
+   HEADER / NAV
+   ============================================================ */
+.v2 header,
+.v2 .nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 10px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255,255,255,.86);
+  border-bottom: 1px solid var(--mp-line);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+}
+
+.v2 .brand-logo { height: 30px; width: auto; }
+.v2 .brand-title { height: 20px; width: auto; }
+
+.v2 .user-area { margin-left: auto; }
+.v2 .user-info { display: flex; align-items: center; gap: 8px; }
+.v2 .user-name {
+  font-family: var(--mp-ui);
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--mp-ink);
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v2 .level-badge {
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  color: #fff;
+  font-family: var(--mp-ui);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+}
+
+/* ---------- daily quests chip ---------- */
+/* Top-left over the map, opposite its controls. */
+.map-page .mp-quests-slot {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 645;
+}
+.v2 .mp-quests { position: relative; }
+.v2 .mp-quests__btn {
+  width: auto;
+  margin: 0;
+  padding: 5px 11px 5px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--mp-brand-text);
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 999px;
+  box-shadow: var(--mp-lift);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 200ms var(--mp-ease);
+}
+.v2 .mp-quests__btn:hover { background: #fff; transform: none; filter: none; }
+.v2 .mp-quests__icon { font-size: .82rem; line-height: 1; }
+/* All three done — say so with the same gradient the level badge uses. */
+.v2 .mp-quests.is-complete .mp-quests__btn {
+  background: var(--mp-grad);
+  color: #fff;
+  text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+}
+
+.v2 .mp-quests__panel {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 9px);
+  z-index: 1100;
+  /* Sized so the longest quest label fits on one line: French runs to
+     "Observer 5 plantes dans un rayon de 50m", which needs ~335px of panel
+     once the icon, bar and counter are paid for. */
+  width: min(calc(100vw - 24px), 348px);
+  padding: 11px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: var(--mp-lift-2);
+  animation: mp-menu-in 180ms var(--mp-ease);
+}
+.v2 .mp-quests__panel[hidden] { display: none; }
+.v2 .mp-quests__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.v2 .mp-quests__title {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-quests__reward {
+  font-family: var(--mp-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--mp-brand-text);
+  white-space: nowrap;
+}
+
+.v2 .mp-quests__list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.v2 .mp-quest {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+}
+.v2 .mp-quest.is-done { background: var(--mp-soft); }
+.v2 .mp-quest__icon { font-size: 1rem; line-height: 1; }
+.v2 .mp-quest__body { min-width: 0; display: grid; gap: 5px; }
+.v2 .mp-quest__label {
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--mp-ink);
+}
+.v2 .mp-quest.is-done .mp-quest__label { color: var(--mp-brand-text); font-weight: 600; }
+.v2 .mp-quest__rail {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(22,36,28,.09);
+  overflow: hidden;
+}
+.v2 .mp-quest__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  transition: width 420ms var(--mp-ease);
+}
+.v2 .mp-quest__meta {
+  font-family: var(--mp-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+  white-space: nowrap;
+}
+.v2 .mp-quest.is-done .mp-quest__meta { color: var(--mp-brand-text); }
+/* On the narrowest phones there is no width left to buy, so the label gives
+   up a little size rather than wrapping onto a second line. */
+@media (max-width: 340px) {
+  .v2 .mp-quest__label { font-size: .68rem; }
+  .v2 .mp-quests__panel { padding: 9px; }
+}
+
+.v2 .menu-wrap { position: relative; }
+/* v1 paints every button green, this one included. */
+.v2 .menu-btn {
+  width: auto;
+  margin: 0;
+  padding: 9px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mp-brand-text);
+  background: var(--mp-soft);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms var(--mp-ease);
+}
+.v2 .menu-btn:hover { background: #d8f2e3; transform: none; filter: none; }
+.v2 .menu-btn[aria-expanded="true"] { background: var(--mp-grad); color: #fff; text-shadow: var(--mp-on-brand-shadow); }
+
+.v2 .menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 9px);
+  z-index: 1100;
+  min-width: 226px;
+  padding: 7px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: var(--mp-lift-2);
+  animation: mp-menu-in 180ms var(--mp-ease);
+}
+.v2 .menu.show { display: block; }
+@keyframes mp-menu-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* v1's `#userMenu button` is an id selector, so the `.v2` scope is what wins
+   here rather than a lucky source order. */
+.v2 #userMenu .menu-item,
+.v2 #userMenu button.menu-item {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-align: left;
+  color: var(--mp-ink);
+  background: transparent;
+  border: 0;
+  border-radius: var(--mp-r-sm);
+  box-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .92rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  cursor: pointer;
+  transition: background 160ms var(--mp-ease), color 160ms var(--mp-ease);
+}
+.v2 #userMenu .menu-item:hover {
+  background: var(--mp-soft);
+  color: var(--mp-brand-text);
+  transform: none;
+  filter: none;
+}
+.v2 #userMenu .menu-item.danger { color: var(--mp-danger); }
+.v2 #userMenu .menu-item.danger:hover { background: var(--mp-danger-tint); color: var(--mp-danger); }
+.v2 #userMenu .menu-item--back { color: var(--mp-brand-text); font-weight: 600; }
+.v2 .menu-divider { height: 1px; margin: 6px 4px; background: var(--mp-line); border: 0; }
+
+.v2 .lang-wrapper { display: flex; justify-content: center; padding: 4px; }
+.v2 .lang-select {
+  width: 100%;
+  padding: 9px 12px;
+  color: var(--mp-ink);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-sm);
+  font-family: var(--mp-ui);
+  font-size: .88rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+/* v1's global button rule paints everything green and full-width; this is the
+   v2 replacement. The exclusions are the components that own their own look:
+   anything `mp-` namespaced (every v2-native component, matched by prefix so
+   new ones are covered without editing this list), the rarity chips, the
+   quest-strip arrows and dots, and the modal close. */
+.v2 button:not([class^="mp-"], [class*=" mp-"],
+               .common-points, .rare-points, .epic-points, .legendary-points,
+               .dq-nav, .dq-dot, .close, .menu-item, .menu-btn) {
+  width: 100%;
+  margin: 0;
+  padding: 12px 20px;
+  color: #fff;
+  background: var(--mp-grad);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(18,185,110,.34), inset 0 1px 0 rgba(255,255,255,.42);
+  font-family: var(--mp-ui);
+  font-size: .95rem;
+  font-weight: 600;
+  letter-spacing: .005em;
+  text-shadow: var(--mp-on-brand-shadow);
+  cursor: pointer;
+  transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease);
+}
+.v2 button:not([class^="mp-"], [class*=" mp-"],
+               .common-points, .rare-points, .epic-points, .legendary-points,
+               .dq-nav, .dq-dot, .close, .menu-item, .menu-btn):hover {
+  transform: none;
+  filter: none;
+  box-shadow: 0 6px 20px rgba(18,185,110,.44), inset 0 1px 0 rgba(255,255,255,.42);
+}
+.v2 button:not([class^="mp-"], [class*=" mp-"],
+               .common-points, .rare-points, .epic-points, .legendary-points,
+               .dq-nav, .dq-dot, .close, .menu-item, .menu-btn):active {
+  transform: scale(.98);
+}
+.v2 button:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
+
+.v2 button.secondary {
+  color: var(--mp-ink);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  box-shadow: none;
+  text-shadow: none;
+}
+.v2 button.secondary:hover { background: var(--mp-soft); box-shadow: none; }
+
+/* A row of actions is a row, not a stack of full-width slabs. */
+.v2 .result-actions,
+.v2 .species-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  align-items: center;
+}
+.v2 .result-actions { justify-content: center; margin-top: 14px; }
+.v2 .result-actions button { width: auto; min-width: 132px; }
+
+/* ============================================================
+   INPUTS
+   ============================================================ */
+.v2 .input,
+.v2 select.input,
+.v2 textarea.input {
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--mp-ink);
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-sm);
+  font-family: var(--mp-ui);
+  font-size: .95rem;
+  transition: border-color 160ms var(--mp-ease), box-shadow 160ms var(--mp-ease);
+}
+.v2 .input:focus {
+  outline: none;
+  border-color: var(--mp-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-brand) 18%, transparent);
+}
+.v2 .input::placeholder { color: var(--mp-ink-2); }
+.v2 .form-grid { display: grid; gap: 12px; }
+.v2 .validation-feedback {
+  margin-top: 12px;
+  font-family: var(--mp-ui);
+  font-size: .88rem;
+  color: var(--mp-ink-2);
+  text-align: center;
+}
+
+/* The file-picker label is a button in everything but name. */
+.v2 label.label-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  color: var(--mp-brand-text);
+  background: var(--mp-surface);
+  border: 1px dashed color-mix(in srgb, var(--mp-brand) 40%, var(--mp-line));
+  border-radius: var(--mp-r-md);
+  box-shadow: none;
+  font-family: var(--mp-ui);
+  font-weight: 600;
+  cursor: pointer;
+}
+.v2 label.label-file:hover { background: var(--mp-soft); border-color: var(--mp-brand); }
+
+/* ============================================================
+   SURFACES
+   ============================================================ */
+/* v1's card is frosted glass over a photograph. On paper it needs to be a
+   real sheet: opaque, hairline border, one soft lift. */
+.v2 .card {
+  padding: 14px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r);
+  box-shadow: var(--mp-lift);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+}
+/* Cards nested inside a card are sections of it, not sheets of their own. */
+.v2 .card .card {
+  padding: 12px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  box-shadow: none;
+}
+
+.v2 .general-validation {
+  padding: 18px 14px;
+  text-align: center;
+  font-family: var(--mp-ui);
+  color: var(--mp-ink-2);
+}
+
+/* ============================================================
+   TABS  (challenge modal, panels)
+   ============================================================ */
+.v2 .panel-tab-bar {
+  display: flex;
+  gap: 3px;
+  padding: 4px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+}
+.v2 .panel-tab {
+  flex: 1;
+  padding: 9px 16px;
+  border-radius: 999px;
+  color: var(--mp-brand-text);
+  font-family: var(--mp-ui);
+  font-size: .89rem;
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  transition: background 240ms var(--mp-ease), color 240ms var(--mp-ease);
+}
+.v2 .panel-tab:hover { background: rgba(255,255,255,.7); }
+.v2 .panel-tab--active {
+  background: var(--mp-grad);
+  color: #fff;
+  font-weight: 600;
+  text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 3px 12px rgba(18,185,110,.36);
+}
+.v2 .tab-desc {
+  margin: 0 0 12px;
+  font-size: .86rem;
+  color: var(--mp-ink-2);
+  text-align: center;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+.v2 .modal {
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  background: color-mix(in srgb, #0b1a12 42%, transparent);
+}
+.v2 .modal.show { padding: clamp(14px, 5vh, 44px) 12px; }
+
+.v2 .modal-content {
+  width: min(94vw, 460px);
+  padding: 18px 16px 16px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r);
+  box-shadow: var(--mp-lift-2);
+  text-align: left;
+  animation: mp-modal-in 220ms var(--mp-ease);
+}
+@keyframes mp-modal-in {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.v2 .modal-content h2 {
+  margin: 0 0 14px;
+  font-family: var(--mp-ui);
+  font-size: 1.14rem;
+  font-weight: 600;
+  letter-spacing: -.015em;
+  text-align: center;
+  color: var(--mp-ink);
+}
+/* The tab bar is the modal's own header when it has one, so it loses the
+   card padding above it. */
+.v2 .modal-content .panel-tab-bar { margin-top: 0; }
+
+.v2 .close {
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  color: var(--mp-ink-2);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+.v2 .close:hover,
+.v2 .close:focus { background: var(--mp-surface-2); color: var(--mp-ink); }
+
+.v2 .settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+  font-family: var(--mp-ui);
+  font-size: .93rem;
+  cursor: pointer;
+}
+.v2 .settings-toggle input { accent-color: var(--mp-brand); width: 17px; height: 17px; }
+
+/* ---------- result modal ---------- */
+.v2 .modal-content.result { padding-top: 14px; }
+.v2 .result-body { display: grid; gap: 12px; }
+.v2 .result-head { display: grid; gap: 8px; }
+.v2 .result-head h2 { margin: 0; }
+.v2 #speciesNameDiv {
+  padding: 12px;
+  text-align: center;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: none;
+}
+.v2 #speciesNameLine { font-family: var(--mp-display); color: var(--mp-ink); }
+.v2 #speciesVernacularNameLine { font-family: var(--mp-ui); color: var(--mp-ink); }
+
+.v2 .level-wrap { display: grid; gap: 6px; margin-bottom: 14px; }
+.v2 .level-line {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mp-ui);
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--mp-ink-2);
+}
+.v2 .progress-rail {
+  height: 9px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  overflow: hidden;
+}
+.v2 .progress-bar { height: 100%; border-radius: 999px; background: var(--mp-grad); }
+.v2 .level-reached-text {
+  font-family: var(--mp-ui);
+  font-weight: 700;
+  color: var(--mp-brand-text);
+}
+
+/* One list, not a stack of separate tiles. The rows were individually
+   rounded and gapped, which read as unrelated items; hairline-separated rows
+   inside one framed box read as a breakdown that adds up. */
+.v2 .details {
+  display: grid;
+  gap: 0;
+  margin-top: 12px;
+  padding: 0;                    /* v1 pads the container */
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  overflow: hidden;
+}
+.v2 .details:empty { display: none; }
+.v2 .detail-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 9px 13px;
+  /* v1 draws each line as its own rounded, tinted, fully-bordered tile — all
+     three have to be undone for the rows to read as one list. */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  border-top: 1px solid var(--mp-line);
+  font-family: var(--mp-ui);
+  font-size: .86rem;
+  color: var(--mp-ink);
+  /* Each line lands as it is revealed, one after another. */
+  animation: mp-detail-in 260ms var(--mp-ease) both;
+}
+.v2 .detail-line:first-child { border-top: 0; }
+.v2 .detail-line span:last-child {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-brand-text);
+}
+@keyframes mp-detail-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* The base observation heads the list: it is the figure everything else is
+   added to, so it sits on its own ground and is not written as a "+". */
+.v2 .detail-line--base {
+  background: var(--mp-surface-2);
+  font-weight: 600;
+  animation: none;
+}
+.v2 .detail-line--base span:last-child { color: var(--mp-ink); }
+
+.v2 .result-total {
+  padding: 12px;
+  text-align: center;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-soft);
+  font-family: var(--mp-ui);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--mp-brand-text);
+}
+
+.v2 .result-description {
+  font-family: var(--mp-ui);
+  font-size: .91rem;
+  line-height: 1.62;
+  color: var(--mp-ink);
+}
+.v2 .result-trivia {
+  padding: 13px 15px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-soft);
+  border-left: 3px solid var(--mp-brand);
+}
+.v2 .result-trivia p {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .89rem;
+  line-height: 1.55;
+  color: var(--mp-ink);
+}
+.v2 .trivia-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 7px;
+  vertical-align: -3px;
+  border-radius: 50%;
+  background: var(--mp-brand);
+  color: #fff;
+  font-family: var(--mp-display);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.v2 .low-confidence-msg,
+.v2 .fetch-error {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-legendary-tint);
+  color: #8a5a06;
+  font-family: var(--mp-ui);
+  font-size: .86rem;
+}
+.v2 .fetch-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mp-ui);
+  font-size: .86rem;
+  color: var(--mp-ink-2);
+}
+
+.v2 .user-photos .shot {
+  border-radius: var(--mp-r-md);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(22,36,28,.06);
+}
+
+/* ============================================================
+   BADGES & RARITY CHIPS
+   ============================================================ */
+.v2 .badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  color: var(--mp-ink);
+  font-family: var(--mp-ui);
+  font-size: .74rem;
+  font-weight: 600;
+}
+/* A completed mission is shown in the grade's own colour — the same four the
+   map's "right here" list paints its rows with (see .mp-row--* below), so the
+   grade you walked to is the grade you are congratulated in. */
+.v2 .badge--mission {
+  --tier: var(--mp-common);
+  --tier-ink: #2f6a55;
+  gap: 8px;
+  padding: 7px 13px;
+  color: var(--tier-ink);
+  background: color-mix(in srgb, var(--tier) 14%, var(--mp-surface));
+  border: 1px solid color-mix(in srgb, var(--tier) 38%, var(--mp-line));
+}
+.v2 .badge--rare      { --tier: var(--mp-rare); --tier-ink: #1d4ed8; }
+.v2 .badge--epic      { --tier: #9c27b0;        --tier-ink: #7b1fa2; }
+.v2 .badge--legendary { --tier: #e5a400;        --tier-ink: #8a5a06; }
+.v2 .badge--mission .add {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tier) 22%, transparent);
+  color: var(--tier-ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* The top two grades earn the same ring the map rows get. */
+.v2 .badge--epic,
+.v2 .badge--legendary {
+  box-shadow: 0 2px 10px color-mix(in srgb, var(--tier) 26%, transparent);
+}
+
+.v2 .flowering-badge { background: var(--mp-epic-tint); color: #7b3fd4; }
+.v2 .fruiting-badge  { background: var(--mp-legendary-tint); color: #a3660a; }
+
+.v2 .badges-grid,
+.v2 .achievement-badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.v2 .badge-card {
+  padding: 14px 12px;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  text-align: center;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+}
+.v2 .badge-card--unlocked {
+  background: linear-gradient(140deg, var(--mp-soft), var(--mp-surface) 72%);
+  border-color: color-mix(in srgb, var(--mp-brand) 26%, var(--mp-line));
+}
+.v2 .badge-card--locked { opacity: .62; }
+.v2 .badge-card__icon { font-size: 1.8rem; line-height: 1.1; }
+.v2 .badge-card--locked .badge-card__icon { filter: grayscale(1); }
+.v2 .badge-card__name {
+  font-family: var(--mp-ui);
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+}
+.v2 .badge-card__desc { font-size: .76rem; line-height: 1.4; color: var(--mp-ink-2); }
+.v2 .badge-card__progress { width: 100%; display: grid; gap: 4px; margin-top: 4px; }
+.v2 .badge-card__progress-rail {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  overflow: hidden;
+}
+.v2 .badge-card__progress-bar { height: 100%; border-radius: 999px; background: var(--mp-grad); }
+.v2 .badge-card__progress-label { font-size: .7rem; color: var(--mp-ink-2); }
+.v2 .achievement-badges-title {
+  margin: 12px 0 8px;
+  font-family: var(--mp-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-brand-text);
+  text-align: center;
+}
+
+/* The rarity chips keep v1's colours — they are the same grade shown on the
+   same scale as the map's pins and rows — but take v2's pill shape. */
+.v2 .points-badge,
+.v2 .points-btn {
+  width: auto;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: var(--mp-ui);
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.24);
+}
+.v2 .rarity-label {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  opacity: .92;
+}
+
+/* ============================================================
+   LIST CARDS  (herbarium, observations, species)
+   ============================================================ */
+.v2 .grid,
+.v2 .obs-history-list,
+.v2 .herbarium-list {
+  display: grid;
+  gap: 9px;
+}
+
+.v2 .herbarium-card,
+.v2 .obs-history-card,
+.v2 .species-item,
+.v2 .checklist-row {
+  padding: 11px 12px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  transition: box-shadow 180ms var(--mp-ease);
+}
+.v2 .herbarium-card:hover,
+.v2 .obs-history-card:hover,
+.v2 .species-item:hover { box-shadow: var(--mp-lift); transform: none; }
+
+.v2 .herbarium-img,
+.v2 .obs-wiki-img,
+.v2 .checklist-img-wrap,
+.v2 .species-image-container {
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--mp-soft), var(--mp-surface-2));
+}
+.v2 .herbarium-name { font-size: 1rem; font-weight: 600; color: var(--mp-ink); }
+.v2 .herbarium-date,
+.v2 .obs-history-date { font-size: .76rem; color: var(--mp-ink-2); }
+.v2 .obs-species-name { font-size: 1rem; font-weight: 600; color: var(--mp-ink); }
+.v2 .obs-confidence,
+.v2 .obs-coords { font-size: .78rem; color: var(--mp-ink-2); }
+.v2 .obs-nearby-badge {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--mp-legendary-tint);
+  color: #a3660a;
+  font-family: var(--mp-ui);
+  font-size: .68rem;
+  font-weight: 600;
+}
+
+.v2 .wiki-skeleton {
+  background: linear-gradient(145deg, var(--mp-soft), var(--mp-surface-2));
+}
+.v2 .wiki-missing { font-size: .66rem; color: var(--mp-ink-2); }
+.v2 .wiki-desc p { font-size: .88rem; line-height: 1.6; color: var(--mp-ink-2); }
+.v2 .ext-links-bar {
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--mp-line);
+}
+.v2 .ext-links-label {
+  font-family: var(--mp-ui);
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .inline-copy {
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+  color: var(--mp-ink-2);
+  border: 1px solid var(--mp-line);
+}
+.v2 .inline-copy:hover { background: var(--mp-soft); color: var(--mp-brand-text); }
+.v2 .checklist-divider { border-top-color: var(--mp-line); }
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+.v2 .quiz-landing-icon { font-size: 2.6rem; line-height: 1; }
+.v2 .quiz-landing-title {
+  font-family: var(--mp-ui);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: -.015em;
+  color: var(--mp-ink);
+}
+.v2 .quiz-landing-sub,
+.v2 .quiz-landing-desc { font-size: .89rem; line-height: 1.55; color: var(--mp-ink-2); }
+.v2 .quiz-lock-progress {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  overflow: hidden;
+}
+.v2 .quiz-lock-progress-bar { height: 100%; border-radius: 999px; background: var(--mp-grad); }
+.v2 .quiz-progress-label {
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .quiz-progress-bar { border-radius: 999px; background: var(--mp-grad); }
+.v2 .quiz-status {
+  padding: 12px;
+  text-align: center;
+  font-family: var(--mp-ui);
+  font-size: .89rem;
+  color: var(--mp-ink-2);
+}
+.v2 .quiz-status--error { color: var(--mp-danger); }
+.v2 .quiz-score-icon { font-size: 2.4rem; }
+.v2 .quiz-score-title {
+  font-family: var(--mp-ui);
+  font-size: 1.14rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+}
+.v2 .quiz-score-value {
+  font-family: var(--mp-ui);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--mp-brand-text);
+}
+.v2 .quiz-score-subtitle { font-size: .86rem; color: var(--mp-ink-2); }
+.v2 .quiz-pts-value {
+  font-family: var(--mp-ui);
+  font-weight: 700;
+  color: var(--mp-brand-text);
+}
+.v2 .quiz-pts-label,
+.v2 .quiz-pts-unit { font-size: .8rem; color: var(--mp-ink-2); }
+
+/* ============================================================
+   DAILY QUESTS  (old home)
+   ============================================================ */
+.v2 .daily-quests {
+  padding: 12px 14px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r);
+  box-shadow: var(--mp-lift);
+}
+.v2 .dq-title,
+.v2 .dq-label,
+.v2 .dq-label-bottom {
+  font-family: var(--mp-ui);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .dq-quest-label { font-family: var(--mp-ui); font-size: .89rem; color: var(--mp-ink); }
+.v2 .dq-progress-bar-track { border-radius: 999px; background: var(--mp-surface-2); }
+.v2 .dq-progress-bar-fill { border-radius: 999px; background: var(--mp-grad); }
+.v2 .dq-progress-text { font-size: .74rem; color: var(--mp-ink-2); }
+.v2 .dq-reward {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--mp-soft);
+  color: var(--mp-brand-text);
+  font-size: .72rem;
+  font-weight: 600;
+}
+.v2 .dq-dot { background: var(--mp-line); }
+
+/* ============================================================
+   LOCATION GATE
+   ============================================================ */
+.v2 .location-gate { background: color-mix(in srgb, #0b1a12 62%, transparent); }
+.v2 .location-gate__card {
+  padding: 30px 24px;
+  gap: 12px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r);
+  box-shadow: var(--mp-lift-2);
+  animation: mp-modal-in 220ms var(--mp-ease);
+}
+.v2 .location-gate__title {
+  font-family: var(--mp-ui);
+  font-size: 1.18rem;
+  font-weight: 600;
+  letter-spacing: -.015em;
+  color: var(--mp-ink);
+}
+.v2 .location-gate__message {
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--mp-ink-2);
+}
+
+/* ============================================================
+   AUTH PAGES
+   ============================================================ */
+.auth-page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+.auth-page .card {
+  width: min(92vw, 400px);
+  padding: 26px 22px;
+  border-radius: var(--mp-r);
+  box-shadow: var(--mp-lift-2);
+}
+.auth-page h1 {
+  margin: 0 0 18px;
+  font-size: 1.42rem;
+  text-align: center;
+}
+.auth-page .lang-wrapper { margin-bottom: 14px; }
+.auth-page .lang-select { width: auto; min-width: 108px; }
+.auth-page .muted { margin-top: 16px; text-align: center; font-size: .88rem; }
+
+/* ============================================================
+   SPINNERS
+   ============================================================ */
+.v2 .loading-spinner,
+.v2 .spinner {
+  border-color: var(--mp-soft);
+  border-top-color: var(--mp-brand);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2 .menu,
+  .v2 .modal-content,
+  .v2 .mp-quests__panel,
+  .v2 .location-gate__card { animation: none; }
+  .v2 .mp-quest__fill { transition: none; }
+  .v2 button,
+  .v2 .panel-tab,
+  .v2 .menu-btn,
+  .v2 .herbarium-card,
+  .v2 .obs-history-card,
+  .v2 .species-item { transition: none; }
+  .v2 .detail-line { animation: none; }
+}
+
+/* ============================================================
+   FRONT PAGE — the mission map
+   ------------------------------------------------------------
+   Last in the file so these win over the generic `.v2` rules
+   above wherever the two describe the same element.
+   ============================================================ */
+.map-page {
   margin: 0;
   height: 100dvh;
   display: flex;
@@ -121,6 +1281,14 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 640;
+  /* The top band is shared with the quest chip on the left and the map
+     controls on the right. Rather than risk the capsule sliding under either
+     — which three tabs plus a running clock will do on a narrow phone — it is
+     capped to the space between them and scrolls its own overflow. */
+  max-width: calc(100% - 152px);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   display: flex;
   gap: 3px;
   padding: 4px;
@@ -131,7 +1299,9 @@
   backdrop-filter: blur(14px) saturate(170%);
   -webkit-backdrop-filter: blur(14px) saturate(170%);
 }
+.map-page .mp-tabs::-webkit-scrollbar { display: none; }
 .map-page .mp-tab {
+  flex: none;
   width: auto;
   margin: 0;
   padding: 9px 20px;
@@ -247,7 +1417,14 @@
   z-index: 620;
   display: grid;
   gap: 3px;
-  width: 152px;
+  /* Sized to its title rather than to a fixed 152px, which cut the longer
+     translations onto a second line ("Probabilidad de encontrar la especie").
+     max-content keeps it to one line; the cap is a share of the map it sits
+     in — not of the viewport, which on a desktop is far wider than the 580px
+     column the map is held to — so it can never outgrow its own ground. */
+  width: max-content;
+  min-width: 160px;
+  max-width: calc(100% - 24px);
   padding: 8px 11px;
   border-radius: var(--mp-r-sm);
   background: rgba(255,255,255,.93);
@@ -260,7 +1437,7 @@
 .map-page .mp-legend[hidden] { display: none; }
 .map-page .mp-legend__title {
   font-family: var(--mp-ui);
-  font-size: .6rem;
+  font-size: .62rem;
   font-weight: 600;
   letter-spacing: .07em;
   text-transform: uppercase;
@@ -276,16 +1453,72 @@
     #3c0965 0%, #6b176e 12.5%, #932567 25%, #ba3655 37.5%, #db4f3a 50%,
     #f2741c 62.5%, #fba007 75%, #f7d13c 87.5%, #f7fb99 100%);
 }
-.map-page .mp-legend__opacity {
-  width: 100%;
-  height: 14px;
-  margin: 2px 0 0;
-  accent-color: var(--mp-accent, #2fbb6e);
-  cursor: pointer;
+/* The opacity control used to be a bare `<input type=range>` leaning on
+   accent-color, which meant a native grey track and a platform thumb sitting
+   in the middle of a hand-drawn legend. It is drawn here instead: a hairline
+   track, a filled lead-in, and a small white knob with the same lift as the
+   map buttons. Both vendor thumb pseudo-elements are needed — a selector list
+   mixing -webkit- and -moz- is dropped whole by both engines. */
+.map-page .mp-legend__slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
   /* .mp-legend is pointer-events:none so the map stays pannable underneath
-     it; the slider is the one control in it that needs to catch its own
-     drags instead of passing them through to the map. */
+     it; the slider row is the one part of it that catches its own drags
+     instead of passing them through to the map. */
   pointer-events: auto;
+}
+.map-page .mp-legend__slider-icon { flex: none; color: var(--mp-ink-2); opacity: .75; }
+
+.map-page .mp-legend__opacity {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.map-page .mp-legend__opacity::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg,
+    var(--mp-brand) 0 var(--fill, 55%), rgba(22,36,28,.14) var(--fill, 55%) 100%);
+}
+.map-page .mp-legend__opacity::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(22,36,28,.14);
+}
+.map-page .mp-legend__opacity::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--mp-brand);
+}
+.map-page .mp-legend__opacity::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px; height: 13px;
+  margin-top: -4.5px;          /* centres the knob on a 4px track */
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--mp-brand);
+  box-shadow: 0 1px 3px rgba(22,36,28,.3);
+  transition: transform 140ms var(--mp-ease);
+}
+.map-page .mp-legend__opacity::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--mp-brand);
+  box-shadow: 0 1px 3px rgba(22,36,28,.3);
+}
+.map-page .mp-legend__opacity:active::-webkit-slider-thumb { transform: scale(1.18); }
+.map-page .mp-legend__opacity:focus-visible { outline: none; }
+.map-page .mp-legend__opacity:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-brand) 30%, transparent);
 }
 .map-page .mp-legend__scale {
   display: flex;
@@ -343,10 +1576,40 @@
   animation: sheen-slide var(--sheen-speed, 4s) linear infinite;
   mix-blend-mode: overlay;
 }
+/* Accomplished today: still its grade's colour, so you can see at a glance
+   what you completed, but washed out — the pins still to do are the ones that
+   should carry full saturation. The tick glyph replaces the initial (see
+   missionIcon), and the animated sheen comes off: a spent mission has nothing
+   left to advertise. */
+.mp-pin.is-done {
+  box-shadow: 0 2px 6px rgba(22,36,28,.22);
+}
+.mp-pin--common.is-done    { background: color-mix(in srgb, #55917a 34%, #fff); }
+.mp-pin--rare.is-done      { background: color-mix(in srgb, #3b82f6 30%, #fff); }
+.mp-pin--epic.is-done      { background: color-mix(in srgb, #9c27b0 28%, #fff); }
+.mp-pin--legendary.is-done { background: color-mix(in srgb, #e5a400 38%, #fff); }
+.mp-pin.is-done::after { content: none; }
+/* Dark ink, because white on a washed-out pin is unreadable. */
+.mp-pin.is-done .mp-pin__glyph { color: rgba(22,36,28,.72); }
+
 .mp-pin.is-selected {
   transform: rotate(-45deg) scale(1.34);
   z-index: 600;
 }
+/* ---------- mission zone ---------- */
+/* The dashes crawl slowly around the zone. It reads as "this is the boundary
+   you are walking to" rather than as a static annotation, and it is the one
+   thing on the map that moves, so the eye finds it immediately. The period is
+   two dash cycles (8 + 6 = 14) so the loop is seamless. */
+.map-page .mp-extent-line {
+  animation: mp-extent-march 2.4s linear infinite;
+}
+@keyframes mp-extent-march { to { stroke-dashoffset: -28; } }
+
+/* Selecting a mission fades its neighbours out (see `applyFocus` in
+   MissionMap.view.js, which sets the opacity Leaflet writes here). */
+.map-page .leaflet-marker-icon { transition: opacity 240ms var(--mp-ease); }
+
 .mp-user-dot {
   width: 20px; height: 20px;
   border-radius: 50%;
@@ -415,6 +1678,155 @@
   text-align: left;
   color: var(--mp-ink);
 }
+/* A quiet question mark beside the title — there when you wonder, invisible
+   when you don't. */
+.map-page .mp-sheet__info {
+  flex: none;
+  width: 24px; height: 24px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--mp-ink-2);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+  transition: background 180ms var(--mp-ease), color 180ms var(--mp-ease);
+}
+.map-page .mp-sheet__info:hover {
+  background: var(--mp-soft);
+  color: var(--mp-brand-text);
+  transform: none;
+  filter: none;
+}
+.map-page .mp-sheet__info[hidden] { display: none; }
+
+/* ---------- the explainer ---------- */
+/* Mounted on <body>, so it is fixed to the viewport rather than to the sheet
+   it was opened from. */
+.map-page .mp-info {
+  position: fixed;
+  inset: 0;
+  /* Above the sticky header (1000) and its menu (1100): this is a full-page
+     modal, so nothing may paint over it. */
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  background: var(--mp-surface);
+  animation: mp-info-in 260ms var(--mp-ease);
+}
+@keyframes mp-info-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.map-page .mp-info__bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid var(--mp-line);
+}
+.map-page .mp-info__icon { font-size: 1.4rem; line-height: 1; }
+.map-page .mp-info__title {
+  flex: 1;
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: 1.16rem;
+  font-weight: 600;
+  letter-spacing: -.015em;
+  text-align: left;
+  color: var(--mp-ink);
+}
+.map-page .mp-info__close {
+  flex: none;
+  width: 34px; height: 34px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface-2);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  text-shadow: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.map-page .mp-info__close:hover { background: var(--mp-line); color: var(--mp-ink); transform: none; filter: none; }
+
+.map-page .mp-info__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  font-family: var(--mp-ui);
+}
+.map-page .mp-info__intro {
+  margin: 0 0 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--mp-ink);
+}
+.map-page .mp-info__how {
+  margin: 0 0 10px;
+  font-family: var(--mp-ui);
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-info__how[hidden] { display: none; }
+
+.map-page .mp-info__points { display: grid; gap: 9px; margin: 0 0 18px; padding: 0; list-style: none; }
+.map-page .mp-info__point {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 11px;
+  padding: 12px 13px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  font-size: .91rem;
+  line-height: 1.55;
+  color: var(--mp-ink);
+}
+.map-page .mp-info__point-icon { font-size: 1.1rem; line-height: 1.35; }
+
+/* The caveat — that a mission is a guess — reads as an aside, in the same
+   tinted, brand-ruled box the species detail uses for its trivia. */
+.map-page .mp-info__note {
+  margin: 0;
+  padding: 13px 15px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-soft);
+  border-left: 3px solid var(--mp-brand);
+  font-size: .89rem;
+  line-height: 1.55;
+  color: var(--mp-ink);
+}
+
+@media (min-width: 900px) {
+  /* The page paints into a 580px column, so the explainer stays inside it
+     rather than spilling across a desktop screen. Offset rather than
+     translated: the entry animation already owns `transform`. */
+  .map-page .mp-info {
+    left: calc(50% - 290px);
+    right: auto;
+    width: 580px;
+    box-shadow: var(--mp-lift-2);
+  }
+}
+
 .map-page .mp-sheet__count {
   flex: none;
   min-width: 26px;
@@ -443,6 +1855,98 @@
 }
 .map-page .mp-list { display: grid; gap: 9px; }
 .map-page .mp-list[hidden] { display: none; }
+
+/* ---------- around-you toolbar ---------- */
+/* One row above the list: which model to ask, and a button to ask again. */
+.map-page .mp-around-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* A native <select> wearing v2 chrome. The real control is stretched over the
+   pill at zero opacity, so the platform's own picker opens — which on a phone
+   is a full-height wheel no custom menu is going to beat — while the pill
+   shows the chosen model in the app's own type. */
+.map-page .mp-select {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 9px 7px 12px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  cursor: pointer;
+  transition: background 200ms var(--mp-ease), border-color 200ms var(--mp-ease);
+}
+.map-page .mp-select:hover { background: var(--mp-soft); }
+.map-page .mp-select:focus-within {
+  border-color: var(--mp-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-brand) 18%, transparent);
+}
+.map-page .mp-select__label {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mp-ui);
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mp-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-page .mp-select__caret { flex: none; color: var(--mp-ink-2); }
+.map-page .mp-select__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.map-page .mp-icon-btn {
+  flex: none;
+  width: 34px; height: 34px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--mp-brand-text);
+  background: var(--mp-soft);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+  transition: background 200ms var(--mp-ease);
+}
+.map-page .mp-icon-btn:hover { background: #d8f2e3; transform: none; filter: none; }
+.map-page .mp-icon-btn:active { transform: scale(.94); }
+.map-page .mp-icon-btn:disabled { opacity: .55; cursor: default; }
+.map-page .mp-icon-btn.is-busy svg { animation: mp-spin .9s linear infinite; }
+
+/* Which model produced the list on screen — provenance, so it sits under the
+   control rather than competing with it. */
+.map-page .mp-around-model {
+  margin: 0 0 9px;
+  padding: 0 2px;
+  font-family: var(--mp-ui);
+  font-size: .7rem;
+  line-height: 1.35;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-around-model[hidden] { display: none; }
 
 /* ---------- species row ---------- */
 /* The grade is the row, not a chip on it: a legendary find should be visible
@@ -591,6 +2095,40 @@
 .map-page .mp-row__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
 .map-page .mp-row__tags:empty { display: none; }
 
+/* An accomplished mission is a result, not a struck-out chore: the name stays
+   readable and the row keeps most of its colour. The band across the foot is
+   what carries the news. */
+.map-page .mp-row--done { opacity: .82; }
+.map-page .mp-row__done {
+  grid-column: 1 / -1;
+  /* Bleeds to the row's edges — the row is `padding: 11px 12px` and clips to
+     its own radius, so the band reads as part of the card, not a chip on it. */
+  margin: 10px -12px -11px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: var(--mp-grad);
+  color: #fff;
+  font-family: var(--mp-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  text-shadow: var(--mp-on-brand-shadow);
+}
+.map-page .mp-row__done-tick {
+  display: grid;
+  place-items: center;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.26);
+  font-size: .6rem;
+  letter-spacing: 0;
+}
+
 /* ---------- tags ---------- */
 .map-page .mp-tag {
   --tone: var(--mp-common);
@@ -657,7 +2195,9 @@
 .map-page .mp-detail--epic      { --tier: var(--mp-epic); }
 .map-page .mp-detail--legendary { --tier: var(--mp-legendary); }
 
-.map-page .mp-detail__bar { display: flex; }
+.map-page .mp-detail__bar { display: flex; align-items: center; gap: 8px; }
+/* Back on the left, the map control hard right. */
+.map-page .mp-detail__bar .mp-switch { margin-left: auto; }
 .map-page .mp-detail__back {
   width: auto;
   margin: 0;
@@ -767,6 +2307,78 @@
   font-family: var(--mp-ui);
   font-size: .89rem;
   line-height: 1.55;
+}
+
+/* ---------- switch ---------- */
+/* A compact pill that rides in the detail's back bar. It used to be a full
+   card-width row with a description under it, which cost the sheet 60px for
+   one boolean — and the sheet only shows a third of a phone screen. The whole
+   thing is a <label>, so the text is part of the tap target. */
+.map-page .mp-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 5px 4px 11px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  cursor: pointer;
+  user-select: none;
+  transition: background 200ms var(--mp-ease), border-color 200ms var(--mp-ease);
+}
+.map-page .mp-switch[hidden] { display: none; }
+.map-page .mp-switch:hover { background: var(--mp-soft); }
+.map-page .mp-switch:has(.mp-switch__input:checked) {
+  background: var(--mp-soft);
+  border-color: color-mix(in srgb, var(--mp-brand) 34%, var(--mp-line));
+}
+
+.map-page .mp-switch__label {
+  font-family: var(--mp-ui);
+  font-size: .74rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-switch:has(.mp-switch__input:checked) .mp-switch__label { color: var(--mp-brand-text); }
+
+/* The input stays in the layout — not display:none — so it keeps its place in
+   the tab order and reaches :focus-visible. */
+.map-page .mp-switch__input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.map-page .mp-switch__track {
+  flex: none;
+  position: relative;
+  width: 30px; height: 18px;
+  border-radius: 999px;
+  background: #ccd6cf;
+  box-shadow: inset 0 1px 2px rgba(22,36,28,.16);
+  transition: background 240ms var(--mp-ease);
+}
+.map-page .mp-switch__knob {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(22,36,28,.32);
+  transition: transform 240ms var(--mp-ease);
+}
+.map-page .mp-switch__input:checked + .mp-switch__track {
+  background: var(--mp-grad);
+  box-shadow: inset 0 1px 2px rgba(3,58,33,.2);
+}
+.map-page .mp-switch__input:checked + .mp-switch__track .mp-switch__knob {
+  transform: translateX(12px);
+}
+.map-page .mp-switch__input:focus-visible + .mp-switch__track {
+  outline: 3px solid color-mix(in srgb, var(--mp-brand) 45%, #fff);
+  outline-offset: 2px;
 }
 
 .map-page .mp-detail__links { display: flex; gap: 8px; }
@@ -905,55 +2517,194 @@
   text-align: center;
 }
 
-/* ---------- beta gate ---------- */
-.map-page--gated { height: auto; min-height: 100dvh; overflow: auto; }
-.map-page--gated .map-shell { flex: 0 0 auto; display: block; padding: 20px; }
-.map-page .beta-gate { display: grid; place-items: center; padding: 40px 18px; }
-.map-page .beta-gate__card {
-  max-width: 420px;
-  padding: 30px 24px;
-  text-align: center;
-  background: var(--mp-surface);
-  border: 1px solid var(--mp-line);
-  border-radius: var(--mp-r);
-  box-shadow: var(--mp-lift);
+/* ---------- the challenge screen ---------- */
+/* Only in the capsule while the player is actually in a challenge, so the
+   common case is still the two tabs this sheet was designed around. Three
+   labels plus a running clock do not fit at the two-tab padding on a narrow
+   phone, so the capsule tightens instead of wrapping or overflowing. */
+.map-page .mp-tabs--crowded .mp-tab { padding: 9px 13px; font-size: .84rem; }
+.map-page .mp-tab--chal { font-variant-numeric: tabular-nums; }
+.map-page .mp-tab--chal[hidden] { display: none; }
+
+.map-page .mp-chal { display: grid; gap: 14px; padding-top: 2px; }
+
+.map-page .mp-chal__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.map-page .beta-gate__icon { font-size: 2.4rem; margin-bottom: 10px; }
-.map-page .beta-gate__title {
-  margin: 0 0 8px;
-  font-family: var(--mp-ui);
-  font-size: 1.22rem;
-  font-weight: 600;
-  letter-spacing: -.015em;
-  color: var(--mp-ink);
-}
-.map-page .beta-gate__message {
-  margin: 0 0 20px;
-  font-family: var(--mp-ui);
-  color: var(--mp-ink-2);
-  line-height: 1.55;
-}
-.map-page .beta-gate button {
+/* The join code is the one thing in here another player needs, so it is a
+   button that copies itself rather than text to be read out loud. */
+.map-page .mp-chal__code {
   width: auto;
-  padding: 11px 24px;
+  margin: 0;
+  padding: 7px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mp-brand-text);
+  background: var(--mp-soft);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .86rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+  transition: background 200ms var(--mp-ease);
+}
+.map-page .mp-chal__code:hover { background: #d8f2e3; transform: none; filter: none; }
+.map-page .mp-chal__code.is-copied { letter-spacing: 0; }
+.map-page .mp-chal__code-icon { opacity: .6; }
+.map-page .mp-chal__code.is-copied .mp-chal__code-icon { display: none; }
+
+/* Tabular figures so a ticking clock does not jitter its own width. */
+.map-page .mp-chal__clock {
+  margin-left: auto;
+  padding: 6px 13px;
   border-radius: 999px;
   background: var(--mp-grad);
+  color: #fff;
   font-family: var(--mp-ui);
-  font-weight: 600;
+  font-size: .86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+}
+.map-page .mp-chal__clock.is-ended {
+  background: var(--mp-surface-2);
+  color: var(--mp-ink-2);
+  font-weight: 600;
+  text-shadow: none;
+  box-shadow: none;
 }
 
-/* v1 still owns the header menu this tag appears in. */
-.menu-item--beta { display: flex; align-items: center; gap: 8px; }
-.beta-tag {
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: #fff2dd;
-  color: #b8710f;
-  font-size: .62rem;
+.map-page .mp-chal__section { display: grid; gap: 8px; }
+.map-page .mp-chal__section[hidden] { display: none; }
+.map-page .mp-chal__label {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .64rem;
   font-weight: 700;
-  letter-spacing: .07em;
+  letter-spacing: .09em;
   text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+
+.map-page .mp-chal__foot { display: flex; justify-content: center; }
+.map-page .mp-chal__foot[hidden] { display: none; }
+.map-page .mp-chal__close {
+  width: auto;
+  margin: 0;
+  padding: 10px 20px;
+  color: var(--mp-ink);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  border-radius: 999px;
+  box-shadow: none;
+  text-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.map-page .mp-chal__close:hover { background: var(--mp-soft); transform: none; filter: none; }
+
+/* A hunt species already found steps well back — the checklist is a list of
+   what is left, so what is done is nearly finished business. */
+.map-page .mp-row--found { opacity: .55; }
+.map-page .mp-row--found .mp-row__name { text-decoration: line-through; }
+/* The tick is absolutely positioned in the row's top-right corner, which is
+   also where the grade badge ends. Reserve the width so the two do not sit on
+   top of each other. */
+.map-page .mp-row--found .mp-row__head { padding-right: 22px; }
+.map-page .mp-row--found::before {
+  content: "✓";
+  position: absolute;
+  top: 8px; right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--mp-brand);
+  color: #fff;
+  font-size: .66rem;
+  font-weight: 700;
+}
+
+/* ---------- leaderboard ---------- */
+/* Two lines per player: name and score on the first, a bar under them. The
+   bar is the row's own background rather than a column, so a long username
+   never squeezes it to nothing. */
+.map-page .mp-lead { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.map-page .mp-lead__row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 11px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+  border: 1px solid transparent;
+}
+.map-page .mp-lead__row--top1 { background: var(--mp-legendary-tint); }
+.map-page .mp-lead__row--top2 { background: #f1f4f2; }
+.map-page .mp-lead__row--top3 { background: #f8f0e8; }
+.map-page .mp-lead__row.is-me {
+  border-color: color-mix(in srgb, var(--mp-brand) 40%, transparent);
+  background: var(--mp-soft);
+}
+.map-page .mp-lead__rank {
+  font-family: var(--mp-ui);
+  font-size: .8rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-lead__row--top1 .mp-lead__rank { color: #d99b09; font-size: .95rem; }
+.map-page .mp-lead__row--top2 .mp-lead__rank { color: #9aa3a7; font-size: .95rem; }
+.map-page .mp-lead__row--top3 .mp-lead__rank { color: #c07a3e; font-size: .95rem; }
+.map-page .mp-lead__name {
+  min-width: 0;
+  font-family: var(--mp-ui);
+  font-size: .89rem;
+  font-weight: 500;
+  color: var(--mp-ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.map-page .mp-lead__row.is-me .mp-lead__name { font-weight: 700; color: var(--mp-brand-text); }
+.map-page .mp-lead__score {
+  font-family: var(--mp-ui);
+  font-size: .8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+  white-space: nowrap;
+}
+.map-page .mp-lead__row.is-me .mp-lead__score { color: var(--mp-brand-text); }
+.map-page .mp-lead__rail {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(22,36,28,.07);
+  overflow: hidden;
+}
+.map-page .mp-lead__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  transition: width 420ms var(--mp-ease);
+}
+.map-page .mp-lead__empty {
+  padding: 14px 4px;
+  font-family: var(--mp-ui);
+  font-size: .86rem;
+  color: var(--mp-ink-2);
+  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -964,9 +2715,20 @@
   .map-page .mp-map-btn,
   .map-page .mp-row__thumb img,
   .map-page .mp-row__leaf,
+  .map-page .mp-lead__fill,
+  .map-page .mp-chal__code,
+  .map-page .mp-switch,
+  .map-page .mp-switch__track,
+  .map-page .mp-switch__knob,
+  .map-page .mp-select,
+  .map-page .mp-icon-btn,
+  .map-page .leaflet-marker-icon,
   .mp-pin { transition: none; }
   .map-page .mp-screen--detail,
+  .map-page .mp-info,
   .map-page .mp-detail__hero { animation: none; }
   .map-page .mp-map-status.is-busy::before,
+  .map-page .mp-extent-line,
+  .map-page .mp-icon-btn.is-busy svg,
   .map-page .mp-spinner { animation: none; }
 }

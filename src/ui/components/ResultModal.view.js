@@ -4,6 +4,16 @@ import { debugMode } from "../../data/debugMode.js";
 import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs";
 import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
 
+// The base observation points every find is worth. It leads the points list
+// and is written as a plain figure rather than "+100": it is what you started
+// from, not something added to it. Module scope, because the helpers that use
+// it sit after the view's `return` and so never run their own declarations.
+const BASE_KEY = "points.baseObs";
+
+/** The count-up and the one-by-one reveal are decoration; some people opt out. */
+const reducedMotion = () =>
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
 export function createResultModalView() {
   const overlay = document.createElement("div");
   overlay.className = "modal show result-modal";
@@ -290,6 +300,7 @@ export function createResultModalView() {
         <div class="badge-card__desc">${escapeHtml(badge.desc ?? "")}</div>
       `;
       container.appendChild(node);
+      if (reducedMotion()) { node.classList.add("in"); r(); return; }
       requestAnimationFrame(() => {
         node.classList.add("in");
         setTimeout(r, 600);
@@ -301,9 +312,14 @@ export function createResultModalView() {
     return new Promise((r) => {
       const node = document.createElement("div");
       node.className = "badge big";
+      // A mission badge is painted in its grade's colour — the same four the
+      // map's "missions right here" list uses, so a Critical find looks the
+      // same on the result screen as it did on the row you tapped.
+      if (badge.kind === "mission" && badge.tier) node.classList.add("badge--mission", `badge--${badge.tier}`);
       if (badge.rawHTML) node.innerHTML = badge.label;
       else node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${escapeHtml(badge.label)}</span>${badge.bonus != null ? `<span class="add">+${badge.bonus}</span>` : ""}`;
       container.appendChild(node);
+      if (reducedMotion()) { node.classList.add("in"); r(); return; }
       requestAnimationFrame(() => {
         node.classList.add("in");
         setTimeout(r, 500);
@@ -655,9 +671,31 @@ export function createResultModalView() {
   };
 
   // ----- local to view -----
+  function detailRow(key, value, { isBase = false } = {}) {
+    const line = document.createElement("div");
+    line.className = "detail-line" + (isBase ? " detail-line--base" : "");
+    line.setAttribute("data-k", key); // stored so it can be retranslated
+    line.innerHTML = `<span>${escapeHtml(t(key))}</span>`
+      + `<span>${isBase ? "" : "+"}${escapeHtml(value)}</span>`;
+    return line;
+  }
+
   function animateObservation({ total, detail, counterEl, detailsEl, badgeEl }, options = {}) {
-    const entries = Object.entries(detail || {});
+    // The base line is always first, whatever order the backend sent; the rest
+    // build up from it one at a time.
+    const all = Object.entries(detail || {});
+    const base = all.filter(([k]) => k === BASE_KEY);
+    const entries = all.filter(([k]) => k !== BASE_KEY);
+
     detailsEl.innerHTML = "";
+    for (const [k, v] of base) detailsEl.appendChild(detailRow(k, v, { isBase: true }));
+
+    if (reducedMotion()) {
+      for (const [k, v] of entries) detailsEl.appendChild(detailRow(k, v));
+      counterEl.textContent = String(total);
+      upgradeBadgeBy(total, badgeEl);
+      return Promise.resolve();
+    }
 
     const duration = 1800;
     const start = performance.now();
@@ -676,11 +714,7 @@ export function createResultModalView() {
 
         while (revealed < revealTimes.length && elapsed >= revealTimes[revealed]) {
           const [k, v] = entries[revealed];
-          const line = document.createElement("div");
-          line.className = "detail-line";
-          line.setAttribute("data-k", k); // ✅ store key so we can retranslate on language change
-          line.innerHTML = `<span>${escapeHtml(t(k))}</span><span>+${escapeHtml(v)}</span>`;
-          detailsEl.appendChild(line);
+          detailsEl.appendChild(detailRow(k, v));
           revealed++;
         }
 
@@ -688,11 +722,7 @@ export function createResultModalView() {
         else {
           for (; revealed < entries.length; revealed++) {
             const [k, v] = entries[revealed];
-            const line = document.createElement("div");
-            line.className = "detail-line";
-            line.setAttribute("data-k", k);
-            line.innerHTML = `<span>${escapeHtml(t(k))}</span><span>+${escapeHtml(v)}</span>`;
-            detailsEl.appendChild(line);
+            detailsEl.appendChild(detailRow(k, v));
           }
           counterEl.textContent = String(total);
           upgradeBadgeBy(total, badgeEl);

@@ -1,45 +1,25 @@
-// src/pages/map.app.js
-import { initI18n, t } from "../language/i18n.js";
+// src/pages/map.app.js — bootstrap for the front page (index.html).
+//
+// The mission map is the app's main screen: it owns the full header menu and
+// the modals that used to hang off the old home page.
+import { initI18n } from "../language/i18n.js";
 import { Header } from "../controllers/Header.controller.js";
 import { MapPage } from "../controllers/MapPage.controller.js";
+import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
+import { openSettingsModal } from "../controllers/SettingsModal.controller.js";
+import { LocationGate } from "../ui/components/LocationGate.js";
 import { listenUserLevel } from "../user/level.js";
-import { isBetaUser } from "../data/user.repo.js";
+import { debugMode } from "../data/debugMode.js";
 
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
-
-/**
- * Shown when a signed-in user is not on the beta list. This is a UI gate, not
- * a security boundary — the backend endpoints are open like the rest of the
- * API. It exists so the page only reaches people who opted in.
- */
-function BetaGate() {
-  const wrap = document.createElement("div");
-  wrap.className = "beta-gate";
-  wrap.innerHTML = `
-    <div class="beta-gate__card card">
-      <div class="beta-gate__icon">🗺</div>
-      <h2 class="beta-gate__title"></h2>
-      <p class="beta-gate__message muted"></p>
-      <button class="secondary" type="button" id="betaGateBack"></button>
-    </div>
-  `;
-  const apply = () => {
-    wrap.querySelector(".beta-gate__title").textContent = t("map.gate.title");
-    wrap.querySelector(".beta-gate__message").textContent = t("map.gate.message");
-    wrap.querySelector("#betaGateBack").textContent = t("map.gate.back");
-  };
-  apply();
-  document.addEventListener("i18n:changed", apply);
-  wrap.querySelector("#betaGateBack").addEventListener("click", () => {
-    location.href = "./index.html";
-  });
-  return wrap;
-}
+debugMode.init();
 
 function App() {
+  LocationGate();
+
   let stopLevel = () => {};
   let panel = null;
   let booted = false;
@@ -48,11 +28,16 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    menuVariant: "herbarium",
-    onBackHome: () => { location.href = "./index.html"; },
     onBadges: () => { location.href = "./badges.html"; },
     onQuiz: () => { location.href = "./quiz.html"; },
+    onHerbarium: () => { location.href = "./plantdex.html"; },
     onObservations: () => { location.href = "./observations.html"; },
+    onChallenge: () => {
+      // Creating or joining lands the player on the challenge screen; the tab
+      // itself appears on its own as soon as Firestore reports the pointer.
+      document.body.appendChild(ChallengeModal({ onJoined: () => panel?.showChallenge() }));
+    },
+    onSettings: () => openSettingsModal(),
     onLogout: async () => {
       try {
         stopLevel();
@@ -68,7 +53,7 @@ function App() {
 
   const mount = document.getElementById("mapRoot");
 
-  onAuthStateChanged(auth, async (user) => {
+  onAuthStateChanged(auth, (user) => {
     if (!user) {
       stopLevel();
       location.replace("./login.html");
@@ -79,19 +64,11 @@ function App() {
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
 
-    // Claimed before the await, not after. `onAuthStateChanged` fires again on
-    // token refresh, and a second call that reached the guard while the beta
-    // lookup was still out used to get past it — building a second map, whose
-    // `start()` recentred on the GPS fix, over the one being used.
+    // `onAuthStateChanged` fires again on token refresh, and a second call
+    // used to build a second map — whose `start()` recentred on the GPS fix —
+    // over the one being used.
     if (booted) return;
     booted = true;
-
-    const beta = await isBetaUser(user.uid);
-    if (!beta) {
-      document.body.classList.add("map-page--gated");
-      mount.replaceChildren(BetaGate());
-      return;
-    }
 
     panel = MapPage();
     mount.replaceChildren(panel.element);

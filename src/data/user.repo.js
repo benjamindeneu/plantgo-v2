@@ -37,29 +37,24 @@ export async function saveSpeciesAndMissions(uid, speciesList = [], missionsList
   });
 }
 
+/**
+ * The missions the player is currently standing in.
+ *
+ * Kept apart from `missions_list` (the old home page's area cache) because it
+ * answers a different question: not "what is near me" but "what could I
+ * complete with the next photo I take".
+ */
+export async function saveMissionsHere(uid, missions = []) {
+  const ref = doc(db, "users", uid);
+  await updateDoc(ref, { missions_here: missions });
+}
+
 export async function awardQuizPoints(uid, points) {
   if (!points) return;
   const ref = doc(db, "users", uid);
   await updateDoc(ref, { total_points: increment(points) });
 }
 
-/**
- * Whether the user is opted into beta features (the map missions page).
- * A missing field means "not a beta user" — access is opt-in only.
- *
- * Note this is a UI gate, not a security boundary: it hides the page and its
- * menu entry, but the backend endpoints are open like the rest of the API.
- */
-export async function isBetaUser(uid) {
-  if (!uid) return false;
-  try {
-    const snap = await getDoc(doc(db, "users", uid));
-    return snap.exists() && snap.data()?.beta_user === true;
-  } catch (e) {
-    console.warn("[user.repo] beta check failed:", e?.message || e);
-    return false;
-  }
-}
 
 export async function getCachedMissions(uid) {
   const ref = doc(db, "users", uid);

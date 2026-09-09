@@ -20,7 +20,7 @@ function binomialOf(sciName) {
  * which is now showing this species' zone and probability surface, the whole
  * reason the pin was tapped — stays visible the entire time.
  */
-export function SpeciesDetail(species, { onBack } = {}) {
+export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable = false, rasterOn = false } = {}) {
   const sciName = species.name || species.scientific_name || "";
   const commonName = species.vernacular_name || sciName;
   const tier = tierOf(species);
@@ -37,6 +37,12 @@ export function SpeciesDetail(species, { onBack } = {}) {
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M14.7 6.3 13.4 5l-5.7 5.7v2.6L13.4 19l1.3-1.3-4.4-4.4z"/></svg>
         <span class="mp-detail__back-label"></span>
       </button>
+
+      <label class="mp-switch" hidden>
+        <span class="mp-switch__label"></span>
+        <input class="mp-switch__input" type="checkbox">
+        <span class="mp-switch__track" aria-hidden="true"><span class="mp-switch__knob"></span></span>
+      </label>
     </div>
 
     <div class="mp-detail__heading">
@@ -80,7 +86,11 @@ export function SpeciesDetail(species, { onBack } = {}) {
     s.textContent = text;
     tags.appendChild(s);
   };
-  tag(graded ? `${t("missions.card.missionPrefix")} ${t(`missions.card.${tier}`)}` : t(`missions.card.${tier}`), tier);
+  // Only a mission has a grade. A prediction's tier is derived from a points
+  // estimate it does not have, so labelling one "Routine" was inventing a
+  // rank for a species nobody graded — the row already omits it, and this
+  // screen now agrees.
+  if (graded) tag(`${t("missions.card.missionPrefix")} ${t(`missions.card.${tier}`)}`, tier);
   const chanceTag = document.createElement("span");
   chanceTag.className = "mp-tag mp-tag--chance";
   chanceTag.hidden = chance == null;
@@ -88,6 +98,23 @@ export function SpeciesDetail(species, { onBack } = {}) {
   tags.appendChild(chanceTag);
   if (species.is_flowering) tag(t("map.tag.flowering"), "pheno");
   if (species.is_fruiting) tag(t("map.tag.fruiting"), "pheno");
+
+  // --- probability surface --------------------------------------------------
+  // A mission paints its surface clipped to its own zone; this lifts that clip
+  // and spreads it over the whole map, which is also the only way a prediction
+  // — which has no zone to clip to — can show one at all. Hidden outright when
+  // the species has no raster in this area, rather than offered as a switch
+  // that does nothing.
+  //
+  // It rides in the back bar rather than getting a row of its own: it is a
+  // control for the map behind the sheet, not a fact about the species, and
+  // the bar already had the width going spare.
+  const rasterSwitch = el.querySelector(".mp-switch");
+  const rasterInput = el.querySelector(".mp-switch__input");
+  el.querySelector(".mp-switch__label").textContent = t("map.detail.showRaster");
+  rasterSwitch.hidden = !rasterAvailable;
+  rasterInput.checked = !!rasterOn;
+  rasterInput.addEventListener("change", () => onRasterToggle?.(rasterInput.checked));
 
   // --- hero -----------------------------------------------------------------
   // The photo band appears only once there is a photo. A placeholder rectangle
@@ -249,6 +276,8 @@ export function SpeciesDetail(species, { onBack } = {}) {
     chanceTag.textContent = t("map.meta.chance", { pct: Math.round(p * 100) });
   };
   el.setTrivia = (trivia) => { setTrivia(trivia); };
+  /** The detail request can reveal a raster the list row knew nothing about. */
+  el.setRasterAvailable = (available) => { rasterSwitch.hidden = !available; };
   el.setDescription = (desc) => { setBackend(desc); };
 
   return el;

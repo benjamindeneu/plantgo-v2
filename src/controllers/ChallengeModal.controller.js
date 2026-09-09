@@ -5,7 +5,29 @@ import { createChallenge, joinChallengeByCode } from "../data/challenges.js";
 import { getCurrentPosition } from "../data/geo.service.js";
 import { fetchPredictions } from "../api/plantgo.js";
 
-export function ChallengeModal() {
+/**
+ * Challenge types that can be created, in the order they are offered.
+ *
+ * The points race is off for now — put "points" back in this list to offer it
+ * again. This gates creation only: a points race that already exists still
+ * scores and still renders wherever challenges are shown, so re-enabling it
+ * needs no other change.
+ */
+const CREATABLE_TYPES = ["species_hunt"];
+
+const TYPE_LABEL_KEY = {
+  points: "challenge.type.points",
+  species_hunt: "challenge.type.speciesHunt",
+};
+
+export function ChallengeModal({ onJoined } = {}) {
+  const typeOptions = CREATABLE_TYPES
+    .map((v) => `<option value="${v}" data-i18n="${TYPE_LABEL_KEY[v]}"></option>`)
+    .join("");
+  // With a single type there is no choice to present, so the row is dropped
+  // rather than shown as a select with one entry.
+  const typeRowStyle = CREATABLE_TYPES.length > 1 ? "flex" : "none";
+
   const content = `
     <div class="panel-tab-bar" role="tablist">
       <span class="panel-tab panel-tab--active" id="tabCreate" role="tab" tabindex="0" aria-selected="true"
@@ -15,12 +37,9 @@ export function ChallengeModal() {
     </div>
 
     <div id="paneCreate" style="display:flex; flex-direction:column; gap:12px">
-      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <div id="typeRow" style="display:${typeRowStyle}; gap:8px; align-items:center; flex-wrap:wrap">
         <label class="muted" for="challengeType" data-i18n="challenge.type.label">Type</label>
-        <select id="challengeType" class="input" style="width:160px">
-          <option value="points" data-i18n="challenge.type.points">Points Race</option>
-          <option value="species_hunt" data-i18n="challenge.type.speciesHunt">Species Hunt</option>
-        </select>
+        <select id="challengeType" class="input" style="width:160px">${typeOptions}</select>
       </div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
         <label class="muted" for="challengeDuration" data-i18n="challenge.duration">Duration</label>
@@ -131,8 +150,10 @@ export function ChallengeModal() {
     feedback.textContent = text || "";
   }
 
-  elType?.addEventListener("change", () => {
-    const isHunt = elType.value === "species_hunt";
+  // Runs on init as well as on change: with the points race off, a hunt is
+  // selected from the start and its extra rows have to be showing already.
+  function applyType() {
+    const isHunt = (elType?.value || CREATABLE_TYPES[0]) === "species_hunt";
     modelRow.style.display = isHunt ? "flex" : "none";
     speciesCountRow.style.display = isHunt ? "flex" : "none";
     if (!isHunt) {
@@ -142,7 +163,10 @@ export function ChallengeModal() {
       speciesHuntInfo.style.display = "block";
       speciesHuntInfo.textContent = t("challenge.speciesHunt.infoLocate");
     }
-  });
+  }
+
+  elType?.addEventListener("change", applyType);
+  applyType();
 
   joinCode?.addEventListener("input", () => {
     joinCode.value = joinCode.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
@@ -155,7 +179,7 @@ export function ChallengeModal() {
       btnCreate.style.display = "none";
 
       const durationSec = Number(elDuration?.value || 1800);
-      const type = elType?.value || "points";
+      const type = elType?.value || CREATABLE_TYPES[0];
 
       if (type === "species_hunt") {
         // Step 1: get location
@@ -199,6 +223,7 @@ export function ChallengeModal() {
       // ChallengePanel will restore/show active automatically via users/{uid}.activeChallenge
       modal.querySelector(".body").innerHTML =
         `<p style="text-align:center;padding:12px 0">${t("challenge.created")} ${res.code}</p>`;
+      onJoined?.();
     } catch (e) {
       show(createOut, "");
       setFeedback(e?.message || t("challenge.error.generic"));
@@ -222,6 +247,7 @@ export function ChallengeModal() {
 
       modal.querySelector(".body").innerHTML =
         `<p style="text-align:center;padding:12px 0">${t("challenge.joined")}</p>`;
+      onJoined?.();
     } catch (e) {
       show(joinOut, "");
       setFeedback(e?.message || t("challenge.error.generic"));

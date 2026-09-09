@@ -54,9 +54,6 @@ export function createHeaderView({
           <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
           <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
           <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
-          <button class="menu-item menu-item--beta" role="menuitem" id="menuMap" hidden>
-            <span id="menuMapLabel">🗺 Mission map</span><span class="beta-tag">beta</span>
-          </button>
           <div class="menu-divider"></div>
           <button class="menu-item" role="menuitem" id="menuSettings">⚙ Settings</button>
           <div class="lang-wrapper">
@@ -91,8 +88,6 @@ export function createHeaderView({
   const quizMenuBtn = root.querySelector("#menuQuiz");
   const settingsMenuBtn = root.querySelector("#menuSettings");
   const observationsMenuBtn = root.querySelector("#menuObservations");
-  const mapMenuBtn = root.querySelector("#menuMap");
-  const mapMenuLabel = root.querySelector("#menuMapLabel");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -104,7 +99,6 @@ export function createHeaderView({
   let onQuiz = null;
   let onSettings = null;
   let onObservations = null;
-  let onMap = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : !menu.classList.contains("show");
@@ -137,7 +131,6 @@ export function createHeaderView({
     if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
     if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
     if (observationsMenuBtn) { observationsMenuBtn.textContent = `📋 ${t("header.observations")}`; }
-    if (mapMenuLabel) { mapMenuLabel.textContent = `🗺 ${t("header.map")}`; }
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -190,11 +183,6 @@ export function createHeaderView({
     if (onObservations) onObservations();
   });
 
-  mapMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onMap) onMap();
-  });
-
   // initial i18n render
   refreshI18n();
 
@@ -208,11 +196,6 @@ export function createHeaderView({
     },
     setLevel(lvl) {
       levelEl.textContent = String(lvl ?? 1);
-    },
-
-    /** Reveal beta-only menu entries. Off unless explicitly enabled. */
-    setBetaUser(isBeta) {
-      if (mapMenuBtn) mapMenuBtn.hidden = !isBeta;
     },
 
     // allow controller to set/get lang UI state
@@ -232,6 +215,5 @@ export function createHeaderView({
     setOnQuiz(cb) { onQuiz = cb; },
     setOnSettings(cb) { onSettings = cb; },
     setOnObservations(cb) { onObservations = cb; },
-    setOnMap(cb) { onMap = cb; },
   };
 }
