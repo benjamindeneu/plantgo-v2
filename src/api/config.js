@@ -1,6 +1,6 @@
 // Centralized endpoints (preserved exactly as requested)
-//export const API_BASE_URL = "https://plantgo.onmypc.net/api/";
-export const API_BASE_URL = "http://localhost:8111/api/";
+export const API_BASE_URL = "https://plantgo.onmypc.net/api/";
+//export const API_BASE_URL = "http://localhost:8111/api/";
 
 export const SPECIES_PROXY_URL = `${API_BASE_URL}missions`;       // /api/missions
 export const IDENTIFY_PROXY_URL = `${API_BASE_URL}identify`;     // /api/identify
