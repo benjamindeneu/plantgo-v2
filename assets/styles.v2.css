@@ -1230,7 +1230,10 @@
   background: var(--mp-bg);
   color: var(--mp-ink);
 }
-.map-page > .nav { flex: none; }
+/* `.map-page`'s align-items:center shrink-wraps flex children by default —
+   `.map-shell` below counters it with an explicit width:100%, so .nav needs
+   the same or it hugs its content width instead of spanning the screen. */
+.map-page > .nav { flex: none; width: 100%; }
 
 /* v1's `main { padding }` would inset the map inside its own frame. */
 .map-page .map-shell {
@@ -1415,16 +1418,16 @@
   position: absolute;
   left: 12px; bottom: 32px;
   z-index: 620;
-  display: grid;
-  gap: 3px;
-  /* Sized to its title rather than to a fixed 152px, which cut the longer
-     translations onto a second line ("Probabilidad de encontrar la especie").
-     max-content keeps it to one line; the cap is a share of the map it sits
-     in — not of the viewport, which on a desktop is far wider than the 580px
-     column the map is held to — so it can never outgrow its own ground. */
-  width: max-content;
-  min-width: 160px;
-  max-width: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  /* Wide and short rather than the old narrow-and-tall stack: the ramp and
+     the slider now share a row, so the box holds its ground on the map's
+     bottom band instead of eating into the little vertical room left once
+     the sheet above it is dragged tall on a small screen. The cap is a
+     share of the map it sits in — not of the viewport, which on a desktop
+     is far wider than the 580px column the map is held to. */
+  width: min(280px, calc(100% - 24px));
   padding: 8px 11px;
   border-radius: var(--mp-r-sm);
   background: rgba(255,255,255,.93);
@@ -1444,6 +1447,18 @@
   color: var(--mp-ink-2);
   line-height: 1.3;
 }
+.map-page .mp-legend__body {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.map-page .mp-legend__ramp-wrap {
+  flex: 1 1 120px;
+  min-width: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 /* The GeoPl@ntNet ramp, sampled off the tile service's fixed global colormap
    so the bar reads against the pixels rather than approximating them. */
 .map-page .mp-legend__ramp {
@@ -1460,13 +1475,14 @@
    map buttons. Both vendor thumb pseudo-elements are needed — a selector list
    mixing -webkit- and -moz- is dropped whole by both engines. */
 .map-page .mp-legend__slider {
+  flex: 0 1 108px;
+  min-width: 76px;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 3px;
   /* .mp-legend is pointer-events:none so the map stays pannable underneath
-     it; the slider row is the one part of it that catches its own drags
-     instead of passing them through to the map. */
+     it; the slider is the one part of it that catches its own drags instead
+     of passing them through to the map. */
   pointer-events: auto;
 }
 .map-page .mp-legend__slider-icon { flex: none; color: var(--mp-ink-2); opacity: .75; }
@@ -1619,10 +1635,13 @@
 }
 
 /* ---------- the sheet ---------- */
-/* A fixed share of the screen, riding over the map's bottom edge — and the
-   same share whichever screen is inside it. Sizing it to its contents, or
-   growing it for the detail view, resized the map underneath, and a map that
-   re-lays out under your thumb reads as the page reloading. */
+/* A fixed share of the screen by default, riding over the map's bottom edge
+   — and the same share whichever screen is inside it. Sizing it to its
+   contents, or growing it for the detail view, resized the map underneath,
+   and a map that re-lays out under your thumb reads as the page reloading.
+   The player can still resize it deliberately via the grab handle (see
+   MapPage.view.js), which sets an explicit pixel height inline and wins
+   over the percentages below. */
 .map-page .mp-sheet {
   position: relative;
   z-index: 660;
@@ -1638,13 +1657,46 @@
 .map-page .mp-shell--compact .mp-map { flex: 0 0 34%; }
 .map-page .mp-shell--compact .mp-sheet { flex: 1 1 auto; }
 
+/* The visible pill is only 38x4, but that's a poor touch target — the
+   button itself spans the sheet's full width so a thumb anywhere near the
+   top edge catches the drag, and the pill is drawn on top via ::after. */
 .map-page .mp-sheet__grab {
   flex: none;
-  width: 38px; height: 4px;
-  margin: 9px auto 0;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+/* It's a plain `<button>` for keyboard/AT reach, but a resize handle
+   shouldn't lift and brighten like the app's other buttons do on hover. */
+.map-page .mp-sheet__grab,
+.map-page .mp-sheet__grab:hover,
+.map-page .mp-sheet__grab:active {
+  transform: none;
+  filter: none;
+}
+.map-page .mp-sheet__grab::after {
+  content: "";
+  width: 38px;
+  height: 4px;
   border-radius: 999px;
   background: var(--mp-line);
+  transition: background 120ms var(--mp-ease);
 }
+.map-page .mp-sheet__grab:hover::after { background: var(--mp-ink-2); }
+.map-page .mp-sheet--dragging .mp-sheet__grab { cursor: grabbing; }
+.map-page .mp-sheet--dragging .mp-sheet__grab::after { background: var(--mp-brand); }
 
 .map-page .mp-screen {
   flex: 1 1 auto;

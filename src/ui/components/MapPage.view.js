@@ -31,7 +31,7 @@ export function createMapPageView() {
     </div>
 
     <div class="mp-sheet">
-      <span class="mp-sheet__grab" aria-hidden="true"></span>
+      <button type="button" class="mp-sheet__grab" id="sheetGrab" aria-label=""></button>
 
       <div id="screenList" class="mp-screen">
         <div class="mp-sheet__head">
@@ -97,6 +97,8 @@ export function createMapPageView() {
   const tabsWrap = q(".mp-tabs");
   const questsSlot = q("#questsSlot");
   const mapSlot = q("#mapSlot");
+  const sheet = q(".mp-sheet");
+  const sheetGrab = q("#sheetGrab");
   const screenList = q("#screenList");
   const screenDetail = q("#screenDetail");
   const detailSlot = q("#detailSlot");
@@ -232,6 +234,75 @@ export function createMapPageView() {
     sheetCloseCb?.();
   }
 
+  // --- sheet drag-resize ---
+  // The 44%/34% split above is only a default. Dragging the grab handle sets
+  // an explicit pixel height on the sheet (and lets the map claim whatever's
+  // left) which, being inline, outranks those percentages — so once the
+  // player has sized it once, it holds that size across tab switches too.
+  const SHEET_MIN_H = 140; // enough for the grab + head with a sliver of list
+  const MAP_MIN_H = 96;    // the map never fully disappears under the sheet
+  let dragPointerId = null;
+  let dragStartY = 0;
+  let dragStartHeight = 0;
+  let pendingHeight = null;
+  let dragRaf = null;
+
+  function clampSheetHeight(px) {
+    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - MAP_MIN_H);
+    return Math.min(max, Math.max(SHEET_MIN_H, px));
+  }
+
+  function applySheetHeight(px) {
+    sheet.style.flex = `0 0 ${px}px`;
+    mapSlot.style.flex = "1 1 auto";
+  }
+
+  function flushDrag() {
+    dragRaf = null;
+    if (pendingHeight == null) return;
+    applySheetHeight(pendingHeight);
+    resizeCb?.();
+  }
+
+  function stepSheetHeight(deltaPx) {
+    applySheetHeight(clampSheetHeight(sheet.getBoundingClientRect().height + deltaPx));
+    resizeCb?.();
+    requestAnimationFrame(() => resizeCb?.());
+  }
+
+  sheetGrab.addEventListener("pointerdown", (e) => {
+    if (e.button != null && e.button !== 0) return;
+    dragPointerId = e.pointerId;
+    dragStartY = e.clientY;
+    dragStartHeight = sheet.getBoundingClientRect().height;
+    sheet.classList.add("mp-sheet--dragging");
+    sheetGrab.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+
+  sheetGrab.addEventListener("pointermove", (e) => {
+    if (dragPointerId === null || e.pointerId !== dragPointerId) return;
+    pendingHeight = clampSheetHeight(dragStartHeight + (dragStartY - e.clientY));
+    if (dragRaf == null) dragRaf = requestAnimationFrame(flushDrag);
+  });
+
+  function endSheetDrag(e) {
+    if (dragPointerId === null || e.pointerId !== dragPointerId) return;
+    dragPointerId = null;
+    sheet.classList.remove("mp-sheet--dragging");
+    if (dragRaf != null) { cancelAnimationFrame(dragRaf); dragRaf = null; }
+    flushDrag();
+    requestAnimationFrame(() => resizeCb?.());
+  }
+  sheetGrab.addEventListener("pointerup", endSheetDrag);
+  sheetGrab.addEventListener("pointercancel", endSheetDrag);
+
+  // Arrow keys give keyboard users the same control once the handle is focused.
+  sheetGrab.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") { e.preventDefault(); stepSheetHeight(24); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); stepSheetHeight(-24); }
+  });
+
   /** Replace a list's contents, or stand an illustrated empty state in. */
   function fill(listEl, rows, { icon, text }) {
     listEl.replaceChildren();
@@ -316,6 +387,7 @@ export function createMapPageView() {
     syncAroundModelUsed();
     observeLabel.textContent = t("map.observe");
     observeClose.setAttribute("aria-label", t("common.close"));
+    sheetGrab.setAttribute("aria-label", t("map.sheet.resize"));
     syncHead();
   }
   setAroundModels();

@@ -81,15 +81,19 @@ export function createMissionMapView() {
 
     <div id="rasterLegend" class="mp-legend" hidden>
       <span id="rasterLegendTitle" class="mp-legend__title"></span>
-      <span class="mp-legend__ramp" aria-hidden="true"></span>
-      <span class="mp-legend__scale"><span id="rasterLegendLow"></span><span id="rasterLegendHigh"></span></span>
-      <span class="mp-legend__slider">
-        <svg class="mp-legend__slider-icon" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
-          <path fill="currentColor" d="M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 1.6v11.8a5.9 5.9 0 0 1 0-11.8z"/>
-        </svg>
-        <input id="rasterOpacity" class="mp-legend__opacity" type="range"
-               min="0" max="100" value="55" aria-label="Species layer opacity" />
-      </span>
+      <div class="mp-legend__body">
+        <div class="mp-legend__ramp-wrap">
+          <span class="mp-legend__ramp" aria-hidden="true"></span>
+          <span class="mp-legend__scale"><span id="rasterLegendLow"></span><span id="rasterLegendHigh"></span></span>
+        </div>
+        <span class="mp-legend__slider">
+          <svg class="mp-legend__slider-icon" viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+            <path fill="currentColor" d="M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 1.6v11.8a5.9 5.9 0 0 1 0-11.8z"/>
+          </svg>
+          <input id="rasterOpacity" class="mp-legend__opacity" type="range"
+                 min="0" max="100" value="55" aria-label="Species layer opacity" />
+        </span>
+      </div>
     </div>
   `;
 

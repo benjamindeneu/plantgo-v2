@@ -181,27 +181,55 @@ export function MissionMapPanel() {
     emit("position", pos);
   }
 
+  // Which missions the player is standing in changes as they walk, and a list
+  // that only updated when they pressed a button would be wrong exactly while
+  // they are moving towards a pin — so a watch keeps following in the
+  // background from the moment the player is first located. Also reached from
+  // `refresh()`, which restarts it defensively: a watch that dies silently
+  // (a permission hiccup, the OS suspending GPS) would otherwise leave
+  // location frozen for the rest of the session with no visible symptom until
+  // the player happened to notice and re-tap locate.
+  function startWatch() {
+    stopWatch();
+    stopWatch = watchPosition(setPosition, {
+      onError: (e) => console.warn("[MissionMap] position watch:", e?.message || e),
+    });
+  }
+
   async function locate({ recenter = true, force = true } = {}) {
     view.setStatus(t("map.status.locating"), { busy: true });
+
+    // Started before the fix below even lands — a watch that only started
+    // once that first request had already succeeded meant one slow or failed
+    // GPS read on a cold start left location frozen until the player tapped
+    // locate again.
+    startWatch();
+
     try {
       const pos = await getCurrentPosition();
       setPosition({ lat: pos.coords.latitude, lon: pos.coords.longitude });
       if (recenter) view.recenter(userPos.lat, userPos.lon);
       view.invalidate();
       await loadMissions(view.getViewport(), { force });
-
-      // Keep following. Which missions the player is standing in changes as
-      // they walk, and a list that only updated when they pressed a button
-      // would be wrong exactly while they are moving towards a pin.
-      stopWatch();
-      stopWatch = watchPosition(setPosition, {
-        onError: (e) => console.warn("[MissionMap] position watch:", e?.message || e),
-      });
     } catch (e) {
       console.error("[MissionMap] locate failed:", e);
       view.setStatus(t("map.status.locateError"));
       if (!everLoaded) { everLoaded = true; emit("loading", false); }
     }
+  }
+
+  /** Refresh: a fresh GPS fix plus a forced re-fetch of what's on screen — not
+   *  just the missions. Previously this only re-fetched missions for whatever
+   *  the map happened to be centred on, so a player who had walked since their
+   *  last fix (or panned away) saw stale ground marked as their own. Run both
+   *  at once rather than one after the other: the mission re-fetch doesn't
+   *  depend on the fix, and there's no reason to make it wait on GPS latency. */
+  function refresh() {
+    loadMissions(view.getViewport(), { force: true });
+    startWatch();
+    getCurrentPosition()
+      .then((pos) => setPosition({ lat: pos.coords.latitude, lon: pos.coords.longitude }))
+      .catch((e) => console.warn("[MissionMap] refresh location failed:", e?.message || e));
   }
 
   view.onPinClick((mission) => emit("open", mission));
@@ -215,7 +243,7 @@ export function MissionMapPanel() {
   // covered after the map slides back to you, and the normal distance gate
   // will ask for anything new — so a stray tap costs a pan, not a round trip.
   view.onLocate(() => locate({ recenter: true, force: false }));
-  view.onRefresh(() => loadMissions(view.getViewport(), { force: true }));
+  view.onRefresh(refresh);
 
   document.addEventListener("i18n:changed", () => {
     view.refreshI18n();
