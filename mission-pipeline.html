@@ -1,0 +1,1550 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>From Raster to Mission</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Outfit:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: light;
+    --paper:        #eef3ea;
+    --surface:      #ffffff;
+    --surface-2:    #f3f7f0;
+    --surface-sunk: #e9efe6;
+    --ink:          #16241c;
+    --ink-2:        #4a5f54;
+    --ink-3:        #7b8d82;
+    --rule:         #dbe4d6;
+    --rule-soft:    #e6ece1;
+    --accent:       #067045;
+    --accent-hi:    #12b96e;
+    --accent-soft:  #e3f9ed;
+    --floor:        #c9761a;
+    --grid:         #e6ece1;
+
+    --common:       #55917a;  --common-tint:    #eff5f2;
+    --rare:         #3b82f6;  --rare-tint:      #ecf3ff;
+    --epic:         #8b5cf6;  --epic-tint:      #f3edff;
+    --legendary:    #e59413;  --legendary-tint: #fff5e4;
+
+    --ui:      "Outfit", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display: "Fraunces", Georgia, "Times New Roman", serif;
+    --mono:    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--ui);
+    font-size: 15px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 44px 28px 90px; }
+
+  h1, h2, h3, h4 { font-family: var(--display); text-wrap: balance; font-weight: 600; color: var(--ink); }
+  h1 { font-size: 42px; line-height: 1.08; margin: 0 0 12px; letter-spacing: -0.02em; }
+  h2 { font-size: 26px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  h3 { font-size: 17px; margin: 0 0 6px; }
+  h4 { font-size: 14.5px; margin: 0 0 4px; font-family: var(--ui); font-weight: 600; }
+  p { margin: 0 0 12px; max-width: 70ch; }
+  .lede { font-size: 17.5px; color: var(--ink-2); max-width: 68ch; margin-bottom: 4px; font-weight: 300; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 14px;
+  }
+  code, .mono { font-family: var(--mono); font-size: 0.92em; }
+  a { color: var(--accent); }
+  em.sp { font-style: italic; }
+
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 28px; margin-bottom: 8px; }
+
+  /* --- part dividers ------------------------------------------------ */
+  .part {
+    margin: 54px 0 0; padding: 22px 0 0; border-top: 2px solid var(--ink);
+  }
+  .part-no {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 6px;
+  }
+  .part h2 { font-size: 31px; margin-bottom: 8px; }
+  .part > p { color: var(--ink-2); }
+
+  section.stage { border-top: 1px solid var(--rule); padding-top: 26px; margin-top: 30px; }
+  .stage-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 2px; flex-wrap: wrap; }
+  .tag {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 5px; padding: 2px 7px; white-space: nowrap;
+  }
+  .question { font-style: italic; color: var(--ink-2); font-family: var(--display); font-size: 17px; margin: 0 0 14px; }
+
+  .body-2col { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 28px; align-items: start; }
+  @media (max-width: 840px) { .body-2col { grid-template-columns: minmax(0,1fr); } }
+
+  .card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 12px 12px 8px; }
+  .chart-title { font-size: 12px; color: var(--ink-2); margin: 0 0 2px 4px; font-weight: 500; }
+  .chart-read {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-3);
+    margin: 2px 0 0 4px; min-height: 17px; font-variant-numeric: tabular-nums;
+  }
+  svg { display: block; width: 100%; height: auto; }
+
+  figure { margin: 22px 0; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 16px 18px 12px; }
+  figure svg { margin-bottom: 6px; }
+  figcaption { font-size: 12.5px; color: var(--ink-3); max-width: 78ch; }
+  figcaption b { color: var(--ink-2); font-weight: 500; }
+
+  .eq { font-family: var(--mono); font-size: 13.5px; background: var(--surface-2);
+        border-left: 2px solid var(--accent-hi); border-radius: 0 6px 6px 0;
+        padding: 10px 14px; margin: 0 0 14px; overflow-x: auto; white-space: pre; color: var(--ink); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin: 0 0 4px; }
+  th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
+  th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-3); font-weight: 600; }
+  td.num, th.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  tr.total td { border-top: 1px solid var(--rule); border-bottom: none; font-weight: 600; }
+  .tbl-wrap { overflow-x: auto; }
+
+  .measured { font-size: 12.5px; color: var(--ink-3); margin-top: 10px; }
+  .measured b { color: var(--ink-2); font-weight: 500; font-family: var(--mono); }
+
+  .callout { background: var(--surface); border: 1px solid var(--rule); border-left: 3px solid var(--accent-hi);
+             border-radius: 0 10px 10px 0; padding: 16px 18px; margin: 20px 0; }
+  .callout.warn { border-left-color: var(--floor); }
+  .callout h3 { margin-bottom: 6px; }
+  .callout p:last-child { margin-bottom: 0; }
+  .floor-key { color: var(--floor); font-weight: 500; }
+
+  .glossary { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 14px 26px; margin: 10px 0 0; }
+  .glossary > div { break-inside: avoid; }
+  .glossary dt { font-family: var(--mono); font-size: 12.5px; color: var(--accent); margin: 0 0 1px; }
+  .glossary dd { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+  .chip { font-size: 11.5px; font-family: var(--mono); padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--surface); }
+  .chip.common    { color: var(--common);    background: var(--common-tint);    border-color: transparent; }
+  .chip.rare      { color: var(--rare);      background: var(--rare-tint);      border-color: transparent; }
+  .chip.epic      { color: var(--epic);      background: var(--epic-tint);      border-color: transparent; }
+  .chip.legendary { color: #a86a06;          background: var(--legendary-tint); border-color: transparent; }
+
+  ol.steps { margin: 0 0 14px; padding-left: 20px; }
+  ol.steps li { margin-bottom: 6px; max-width: 68ch; }
+  ul.tight { margin: 0 0 14px; padding-left: 20px; }
+  ul.tight li { margin-bottom: 5px; max-width: 68ch; }
+
+  footer { border-top: 1px solid var(--rule); margin-top: 46px; padding-top: 18px; font-size: 12.5px; color: var(--ink-3); }
+  footer p { max-width: 78ch; }
+
+  /* ---- phones ----------------------------------------------------------
+     The wide figures keep a minimum width and scroll inside their own frame:
+     scaled down to a 360 px screen their annotations stop being legible, and
+     a diagram nobody can read is worse than one that needs a swipe. Tables
+     already scroll the same way. Nothing else changes but the type scale and
+     the gutters. */
+  .scroller { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .swipe-hint { display: none; }
+
+  @media (max-width: 760px) {
+    body { font-size: 15.5px; }
+    .wrap { padding: 26px 16px 60px; }
+    h1 { font-size: 31px; }
+    h2 { font-size: 22px; }
+    .part h2 { font-size: 25px; }
+    .lede { font-size: 16.5px; }
+    .part { margin-top: 40px; }
+    section.stage { margin-top: 24px; padding-top: 22px; }
+    figure { padding: 12px 12px 10px; margin: 18px -4px; border-radius: 8px; }
+    figure .scroller > svg { min-width: 660px; }
+    .swipe-hint {
+      display: block; font-family: var(--mono); font-size: 10px;
+      letter-spacing: 0.05em; color: var(--ink-3); margin: 0 0 6px;
+    }
+    .stage-head { gap: 8px; }
+    .eq { font-size: 12.5px; padding: 10px 12px; }
+    .glossary { gap: 12px 0; }
+    table { font-size: 12.5px; }
+    th, td { padding: 6px 8px 6px 0; white-space: nowrap; }
+    th:first-child, td:first-child { white-space: normal; min-width: 8.5em; }
+    .tbl-wrap { margin: 0 -4px; padding: 0 4px; }
+    ol.steps, ul.tight { padding-left: 18px; }
+    .callout { padding: 14px 14px; margin: 16px 0; }
+    .card { padding: 14px; }
+  }
+  @media (max-width: 420px) {
+    .wrap { padding: 22px 13px 56px; }
+    h1 { font-size: 27px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Mapped Missions v2 · the whole path</p>
+  <h1>From raster to mission</h1>
+  <p class="lede">A species distribution model outputs a probability surface. A player opens the map and sees a dozen pins, each with a grade. This is everything that happens in between — how a peak is found, how it is scored, how the day's missions are drawn from those scores, and why the grade on the pin is a different number from the score that put it there.</p>
+</header>
+
+<figure>
+  <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div class="scroller">
+    <svg viewBox="0 0 900 232" role="img" aria-label="The pipeline: batch stages B1 to B8 run offline, request stages R1 to R4 run per viewport">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#7b8d82"/>
+        </marker>
+      </defs>
+      <text x="8" y="16" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.2" fill="#7b8d82">BATCH — ONCE PER REGION, OFFLINE, HOURS</text>
+      <rect x="6" y="24" width="888" height="74" rx="9" fill="#f3f7f0" stroke="#dbe4d6"/>
+      <g font-family="Outfit, sans-serif" font-size="11.5" text-anchor="middle">
+        <g id="batchrow"></g>
+      </g>
+      <text x="8" y="140" font-family="IBM Plex Mono, monospace" font-size="10.5" letter-spacing="1.2" fill="#7b8d82">REQUEST — PER VIEWPORT, MILLISECONDS</text>
+      <rect x="6" y="148" width="888" height="74" rx="9" fill="#e3f9ed" stroke="#bfe8d3"/>
+      <g font-family="Outfit, sans-serif" font-size="11.5" text-anchor="middle">
+        <g id="reqrow"></g>
+      </g>
+      <path d="M450 100 L450 146" stroke="#7b8d82" stroke-width="1.2" fill="none" marker-end="url(#ar)"/>
+      <text x="458" y="126" font-family="IBM Plex Mono, monospace" font-size="10" fill="#7b8d82">the catalogue — descriptors, no polygons</text>
+    </svg>
+  </div>
+  <figcaption>The split is the point of v2. <b>Where a mission can be</b> is decided once, offline, by B1–B8, and never reconsidered. <b>Which of those places you are offered today</b> is decided per request, by R1–R4, and turns over daily. Nothing in the scoring can move a pin; nothing in the detection knows what a pin is worth.</figcaption>
+</figure>
+
+<section class="stage" id="vocabulary">
+  <div class="stage-head"><h2>Vocabulary</h2><span class="tag">read this first</span></div>
+  <p>Everything below is written in these terms. <code>B1</code>–<code>B8</code> and <code>R1</code>–<code>R4</code> are the design document's names for the pipeline stages in the diagram above, and they are used throughout as ordinary nouns.</p>
+  <dl class="glossary">
+    <div><dt>raster</dt><dd>One species' predicted-suitability surface, served as map tiles. One raster = one species.</dd></div>
+    <div><dt>p</dt><dd>The model's probability at a pixel, 0.1913–1.0. Below 0.1913 the service returns nothing.</dd></div>
+    <div><dt>level (z6–z11)</dt><dd>A zoom level of the tile pyramid. Coarse z6 covers ~1.7 km per pixel; fine z11 covers ~52 m.</dd></div>
+    <div><dt>σ (sigma)</dt><dd>The Gaussian smoothing width, fixed at <b>4 pixels</b> at every level. Because the pyramid supplies the scale, one constant covers the whole ladder.</dd></div>
+    <div><dt>blob radius r</dt><dd><code>r = √2·σ</code> in ground metres — the natural size of a feature at that level, and the mission's size. 296 m at z11, 9.5 km at z6.</dd></div>
+    <div><dt>valid / censored / absent</dt><dd>The three states a pixel can be in: above the floor; below it (the model asserted <em>low</em>); or never modelled at all.</dd></div>
+    <div><dt>contrast</dt><dd>How much a peak stands above its own surroundings, measured over a 2σ neighbourhood. The shape statistic.</dd></div>
+    <div><dt>prominence</dt><dd>Height above the saddle where a peak merges with a higher one. Computed as a diagnostic, deliberately never scored.</dd></div>
+    <div><dt>candidate</dt><dd>One surviving peak in the catalogue: a species, a level, a coordinate, and its scores. Not yet a mission.</dd></div>
+    <div><dt>interest</dt><dd>The five-term product in Part II. Decides the <em>order</em> of the draw, and nothing else.</dd></div>
+    <div><dt>grade</dt><dd>The tier shown on the pin — <span class="chip common">Routine</span> to <span class="chip legendary">Critical</span>. A different formula answering a different question; Part IV.</dd></div>
+    <div><dt>zone</dt><dd>The polygon around the pin the player has to stand in. A level set of the smoothed surface, rebuilt on demand.</dd></div>
+  </dl>
+</section>
+
+<div class="part">
+  <p class="part-no">Part I</p>
+  <h2>Finding the peaks</h2>
+  <p>Eight batch stages turn ~1,000 species rasters into a catalogue of scoreable places. Every number quoted in this part is measured on the <strong>Thun region build</strong> — a 15 km box, 881 native species, levels z6–z11, 9,366 surviving candidates.</p>
+</div>
+
+<section class="stage" id="b1">
+  <div class="stage-head"><h2>Species selection</h2><span class="tag">B1</span></div>
+  <p class="question">Which species are even eligible?</p>
+  <p>The only hard gate in the entire pipeline. Everything downstream is a weight, never a cut.</p>
+  <ol class="steps">
+    <li>Enumerate the region's species catalogue → <code>{binomial: raster_id}</code>.</li>
+    <li><strong>Native only</strong> — the model's positive <code>native</code> flag, not "anything not flagged introduced". The two are not complements: measured at Lausanne, 218 species split 116 native / 60 introduced / <strong>42 flagged neither</strong>, and that third bucket is the garden catalogue (Paulownia, Nerium, Cercis, Hyacinthus). Species carrying no trait data at all pass rather than being silently dropped.</li>
+    <li><strong>Poaceae excluded</strong> — grasses are not a photographable mission.</li>
+    <li>Duplicate raster ids collapse: one raster, one species.</li>
+  </ol>
+  <p>This runs once per region rather than once per request, which is what deletes v1's per-request model call and its cache entirely.</p>
+  <p class="measured">Thun — <b>881</b> species with a raster inside the box.</p>
+</section>
+
+<section class="stage" id="b2">
+  <div class="stage-head"><h2>The scale ladder</h2><span class="tag">B2</span></div>
+  <p class="question">How big is a mission?</p>
+  <p>Hold σ constant in <strong>pixels</strong> and let the pyramid supply the scale. One octave per zoom level, so the detector, the smoothing width and the reference annulus are literally identical code at every level — only the ground distance they cover changes. Every scale-dependent quantity in the whole system falls out of this one table.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Level</th><th class="num">m / px</th><th class="num">σ ground</th>
+      <th class="num">blob radius r</th><th class="num">zone target area</th>
+      <th class="num">exclusion radius</th><th class="num">draw weight</th>
+    </tr></thead>
+    <tbody>
+      <tr><td class="mono">z11</td><td class="num">52.3</td><td class="num">209 m</td><td class="num">296 m</td><td class="num">27.6 ha</td><td class="num">444 m</td><td class="num">1</td></tr>
+      <tr><td class="mono">z10</td><td class="num">105</td><td class="num">419 m</td><td class="num">592 m</td><td class="num">110 ha</td><td class="num">889 m</td><td class="num">4</td></tr>
+      <tr><td class="mono">z9</td><td class="num">209</td><td class="num">837 m</td><td class="num">1.19 km</td><td class="num">441 ha</td><td class="num">1.78 km</td><td class="num">16</td></tr>
+      <tr><td class="mono">z8</td><td class="num">419</td><td class="num">1.67 km</td><td class="num">2.37 km</td><td class="num">17.6 km²</td><td class="num">3.56 km</td><td class="num">64</td></tr>
+      <tr><td class="mono">z7</td><td class="num">837</td><td class="num">3.35 km</td><td class="num">4.74 km</td><td class="num">70.6 km²</td><td class="num">7.11 km</td><td class="num">256</td></tr>
+      <tr><td class="mono">z6</td><td class="num">1674</td><td class="num">6.70 km</td><td class="num">9.48 km</td><td class="num">282 km²</td><td class="num">14.2 km</td><td class="num">1024</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">At latitude 46.76. <b>r = √2·σ</b>, target area <b>= πr²</b>, exclusion <b>= 1.5·r</b> (R3), draw weight <b>= (σ/σ<sub>z11</sub>)²</b>.</p>
+  <p>The whole ladder is built, but a query hands out <strong>z8–z11</strong> by default. z6 and z7 exist because the cascade needs something to test finer peaks against — and because a 282 km² zone is a region to explore, not a mission to walk to. They are available behind <code>?large_scale=true</code>.</p>
+</section>
+
+<section class="stage" id="b3">
+  <div class="stage-head"><h2>Surface preparation</h2><span class="tag">B3</span></div>
+  <p class="question">What is actually being measured — and where is there nothing to measure?</p>
+  <p><strong>Nodata is filled with 0.0, everywhere, at every stage.</strong> Detection, connectivity, level sets and shape statistics all run on one surface; a statistic computed on a differently-filled surface than the one its peak was detected on is not a statistic of that peak. So there is no dual-fill scheme and no per-stage exception.</p>
+  <p>Nodata here means "the model's output fell below 0.1913" — a <em>censored low value</em>, not a missing measurement. Excluding those pixels from any average biases it upward, badly so for narrow-range species. v1 filled with 0.20 instead, purely to protect gradient-based operators from the cliff at the range boundary. v2 uses no gradient operator on the raw surface: peak detection and level sets care only about ordering and connectivity, for which a cliff is harmless. <strong>The constraint that forced the 0.20 fill does not exist here.</strong></p>
+
+  <h3>Three states, not two</h3>
+  <p>A pixel can be empty because the model said <em>low</em>, or because nobody ever asked. Those are opposite claims and a naive mask collapses them into one.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>State</th><th>Meaning</th><th>Filled with</th><th>Real ground?</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">valid</td><td>Tile served, pixel above the 0.1913 floor</td><td class="mono">decoded p</td><td>yes</td><td>peaks may sit only here; fragment test; quantiles</td></tr>
+      <tr><td class="mono">censored</td><td>Tile served, pixel below the floor — the model asserted "low"</td><td class="mono">0.0</td><td><strong>yes</strong></td><td>counted in contrast's reference mean</td></tr>
+      <tr><td class="mono">absent</td><td>Outside the model's domain, or never fetched</td><td class="mono">0.0</td><td>no</td><td>excluded from every reference region</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Range edges are signal, not artefact.</strong> A peak whose surroundings fall below the floor genuinely <em>is</em> more distinct: the model is asserting the species stops there, and the one patch of suitable ground in an otherwise unsuitable valley is a good mission. No correction is applied to range-edge peaks and none should be — any scheme that "de-biases" them deletes the very signal that makes them worth visiting. What must be handled is the <em>mosaic</em> edge, which is not the range edge: the window is extended by a <strong>12 px (3σ) apron</strong> so every candidate inside the region has its full reference annulus over real model output.</p>
+
+  <h3>Two smoothings of the same surface</h3>
+  <p>This is the subtlest thing in B3 and it exists because of one measured failure.</p>
+  <div class="eq">smoothed    = gaussian(filled, σ=4px)              ← peaks are found and shaped on this
+smoothed_nc = gaussian(p·valid) / gaussian(valid)  ← probabilities are read from this</div>
+  <p>The second is a <em>normalised convolution</em>: it averages only real ground. On <em class="sp">Asplenium ruta-muraria</em>, whose range covers about 1% of its window, blurring across the 0-fill read <strong>0.008</strong> at peaks whose real probability is <strong>0.40</strong> — a 50× error, scaling with how fragmented the range is, which scrambled the uncertainty term across species. Detection legitimately wants the 0-filled surface (the fill is what makes a range-edge peak sharp); the absolute reading of <em>how sure is the model here</em> must not touch it. Same pixel, two readings, kept apart on purpose.</p>
+</section>
+
+<section class="stage" id="b4">
+  <div class="stage-head"><h2>Peak detection</h2><span class="tag">B4</span></div>
+  <p class="question">Where are the local maxima, and which of them mean anything?</p>
+  <ol class="steps">
+    <li><strong>Strict local maxima</strong> of <code>smoothed</code>, 8-connected, restricted to <code>valid</code> pixels. Probability is quantised to 201 levels, so smoothed plateaus are common: each connected plateau collapses to one point at its centroid, snapped to the nearest actual member for concave shapes. Deterministic, so a rebuild reproduces the catalogue exactly.</li>
+    <li><strong>The fragment test.</strong> Keep a peak only if the connected component of <code>valid</code> pixels containing it has area ≥ <code>2πσ² ≈ 101 px</code>.</li>
+    <li><strong>The absolute noise floor</strong> on contrast — specified, implemented, and currently switched off. See below.</li>
+    <li>Record <code>p_peak</code> from <code>smoothed_nc</code> and <code>contrast_raw</code> from the contrast field.</li>
+  </ol>
+
+  <figure>
+    <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div id="fig-surface" class="scroller"></div>
+    <figcaption>A 1-D section through a species surface, drawn with the real operators at the real σ ratios. The raw prediction (thin) is Gaussian-smoothed at σ = 4 px (thick); pixels below <b>0.1913</b> are censored and enter every average at 0.0. Two strict local maxima survive; the marked one shows <b>contrast</b> — the peak against the mean of its own 2σ neighbourhood, the horizontal rule beneath it. The small bump on the isolated island at the right is a strict local maximum too, and is what the fragment test exists to remove.</figcaption>
+  </figure>
+
+  <h3>Why the fragment test is not a quality filter</h3>
+  <p>A shape statistic measured on a patch smaller than the operator measuring it reports the patch's <em>existence</em>, not its shape. A three-pixel <code>valid</code> island at p = 0.25 has, at σ = 4 px, a contrast of roughly its full height — clearing any plausible noise floor by an order of magnitude, permanently, however marginal it is. Note that the fraction of <em>valid</em> ground in the annulus cannot detect this: a genuine range-edge peak inside a large range and a peak on a tiny island can have identical valid fractions. The discriminator is the size of the component, nothing else.</p>
+  <p>Because σ is constant in pixels, the threshold is <strong>one level-independent constant</strong>. And it removes almost nothing — it <em>re-files</em>: a fragment carrying 25 px at z10 carries 100 px at z11, so a candidate that fails at one level passes one level finer, hosting its mission at the scale where its shape is measurable. It is the cascade's own logic applied to the domain instead of to the surface.</p>
+
+  <div class="callout">
+    <h3>Why the noise floor is measured and reported rather than enforced</h3>
+    <p>The h-maxima transform is an absolute threshold in probability units, and it is the one test that asks whether a peak's height above its surroundings exceeds what noise alone produces. It is implemented in full: phase-randomise the surface's Fourier spectrum — same texture, no features — rerun the identical detect-and-measure pipeline on that surrogate, and take the 99th percentile of its contrast distribution as <code>h</code>. It ships behind <code>H_MAXIMA_ENABLED</code>, off by default, because of what it measures when it is turned on.</p>
+    <p>On Thun the fitted floor came out at a median of <strong>0.10</strong>, against real peak contrasts with a median of 0.025 and a 90th percentile of 0.059 — <em>above the 90th percentile of real peaks</em>, removing <strong>19,394 of 20,121</strong>.</p>
+    <p>That is the surrogate working correctly, not failing. These surfaces are smoothed random fields, so a faithful phase-randomised surrogate resembles the real surface, and the 99th percentile of such a null keeps about 1% of peaks by construction however good they are. The expected magnitude quoted alongside the rule — 0.005–0.02, from <code>s / (2σ√π)</code> — is a white-noise argument, and these surfaces are correlated, which is why the fitted value lands two decades away from it.</p>
+    <p><strong>So the surrogate is kept as a diagnostic and the gating is done structurally instead</strong>, by the fragment test above and the cascade below: both ask "is this a feature at the scale it claims" without needing a threshold in probability units. <code>H_MAXIMA_FIXED</code> is available for a small absolute floor (~0.008) if a build wants one, and <code>h</code> is written to the side table on every build so the question stays auditable after the fact.</p>
+  </div>
+</section>
+
+<section class="stage" id="b5">
+  <div class="stage-head"><h2>The cascade filter</h2><span class="tag">B5</span></div>
+  <p class="question">Does this peak survive an octave of blur?</p>
+  <p>One rule: <strong>a peak at level z is kept only if a raw peak exists at level z−1 — one octave coarser — within <code>d = σ_coarse / 2</code>.</strong> This is the minimal scale-space persistence criterion. A feature that vanishes when you step back once was never a feature.</p>
+
+  <figure>
+    <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div id="fig-cascade" class="scroller"></div>
+    <figcaption>The same ground at three levels of the ladder. Each level's peaks are tested against the <b>raw, unfiltered</b> peak set one octave coarser, within the match radius <em>d</em> (the shaded band). A fine peak with support is kept (green); one with no coarser peak within <em>d</em> is dropped (grey), however tall it is locally. Note the isolated fragment at the far right: it <em>passes</em> at z11, because a z10 peak supports it, and is itself dropped at z10 for lack of z9 support. Removals do not cascade, so its z11 candidate survives — which is why the fragment test at B4, not this stage, is what handles fragments.</figcaption>
+  </figure>
+
+  <ul class="tight">
+    <li><strong>Each level is tested against the raw coarser set</strong>, before that level's own filtering. Removals do not cascade, so every level's filter is independent of every other and the whole stage is embarrassingly parallel.</li>
+    <li><strong>Match on distance to the coarser summit, never on basin containment.</strong> Basins approximately partition the plane, so a containment test passes everything.</li>
+    <li><strong>Density gradation survives.</strong> Requiring one octave rather than full scale-space lifetime keeps fine peaks far more numerous than coarse ones — which is exactly right: small missions should be dense, large ones sparse.</li>
+    <li>The coarsest level has no coarser neighbour and is kept unconditionally.</li>
+  </ul>
+  <p>The arithmetic: z10 peak density is 0.222/km², so a pure-noise z11 peak lands within <em>d</em> of a coarse peak by accident about <strong>3%</strong> of the time at <code>d = σ_coarse/2 = 210 m</code> — roughly a 30× noise reduction. It is a strong filter, not elimination; at looser radii half the surviving fine peaks could still be noise.</p>
+</section>
+
+<section class="stage" id="b6">
+  <div class="stage-head"><h2>Shape statistics</h2><span class="tag">B6</span></div>
+  <p class="question">How sharp is this peak, compared to what?</p>
+  <h3>Contrast</h3>
+  <div class="eq">contrast = smoothed − ref
+ref      = Σ(w·p·d) / Σ(w·d)     over a 2σ box,  d = 1 on valid|censored, 0 on absent</div>
+  <p>The reference is a normalised convolution over the <em>domain</em> mask. <code>censored</code> pixels are included at their fill value of 0.0 — they are the model asserting low suitability, and dropping them would erase the range-edge signal B3 keeps on purpose. <code>absent</code> pixels are excluded because nothing was asserted there.</p>
+
+  <h3>Normalisation — within species <em>and</em> within level</h3>
+  <p>Contrast is converted to a rank inside its own (species × level) group, and <strong>never compared across either</strong>.</p>
+  <ul class="tight">
+    <li><em>Within species</em>, because with nodata filled at 0 a peak on an isolated range fragment measures its height against the fill, while a peak inside a continuous range measures against real ground. Systematically, fragmented-range species would outrank continuous-range ones on shape alone — double-counting rarity, which is already an interest term, and losing the sharp-peak-in-a-widespread-species case, which is exactly the mission type worth having.</li>
+    <li><em>Within level</em>, because there are ~16,000× more candidates at the finest level than the coarsest. A pooled distribution is ~99% fine candidates, and a coarse candidate's percentile would be a rank against a population it does not belong to.</li>
+  </ul>
+  <p>The rank uses the plotting position <code>(k+1)/(n+1)</code>, strictly inside (0, 1) — not <code>k/(n−1)</code>, which assigns exactly 0.0 to the worst candidate of every group. Part II explains why an exact zero is catastrophic rather than merely low. A group of one maps to 0.5, unremarkable rather than penalised, which falls out of the formula with no special case.</p>
+
+  <h3>Prominence — measured, stored, never scored</h3>
+  <p>Prominence is reference-free, which makes it the obvious candidate to carry an absolute floor. It cannot, for a structural reason: <strong>with nodata filled at 0, a peak on an isolated fragment merges only through the fill, so its prominence equals its full height.</strong> For those candidates prominence stops being an independent statistic and becomes a copy of <code>p_peak</code> — which is ≥ 0.1913 by construction and so exceeds any plausible noise floor by an order of magnitude. A floor carried by prominence would be structurally incapable of rejecting exactly the candidates most in need of rejecting.</p>
+  <p>This is not an argument against the 0-fill, and the fragment peak is not mis-measured — it really is the highest thing for miles. It is a statement about what the number <em>means</em>: prominence measures topological isolation, and on a fragmented range that isolation is a property of the domain rather than of the surface. Scoring it would duplicate contrast on a continuous range and duplicate <code>p_peak</code> on a fragmented one. It is computed only behind a flag (it is the build's CPU bottleneck) and is absent from the shipped catalogue.</p>
+
+  <h3>Retention</h3>
+  <p>Keep the <strong>top 20 per species per level</strong> by normalised contrast. This is a budget, not a quality bar — it bounds the catalogue and re-ranks nothing.</p>
+</section>
+
+<section class="stage" id="b7">
+  <div class="stage-head"><h2>Delimitation</h2><span class="tag">B7</span></div>
+  <p class="question">Where exactly does the player have to stand?</p>
+  <p>The zone is a level set of the smoothed surface at the peak's own level, seeded at the peak, and the threshold is bisected so the delivered polygon hits <strong>the level's own target area, πr²</strong> — 27.6 ha at z11, 441 ha at z9. Zones are never stored: they are a deterministic function of (species, level, peak position), rebuilt on demand from the mission id and cached to disk.</p>
+  <ol class="steps">
+    <li>Close the mask so the zone is not a kidney with a bite out of it.</li>
+    <li>Bisect the threshold 20 times on <code>[0, p_peak·0.98]</code>, keeping the highest threshold whose closed, peak-containing component still meets the target area — clamped to [0.3×, 3×] that target, per level.</li>
+    <li>Union with a 60 m disc around the peak, re-take the component, fill holes.</li>
+    <li>Take the <strong>convex hull</strong>, then vectorise: edge tracing → Douglas-Peucker → Chaikin ×2 → Douglas-Peucker.</li>
+  </ol>
+  <p>Two decisions worth recording. <strong>There is no radial decay.</strong> v1 multiplied the field by a Gaussian centred on the pin, which is already at 0.685 by the target radius — a 31% radial gradient that swamps the real variation in a smoothed surface, so every zone came out a circle: a contour of the decay, not of the data. Here the field is left alone and extent is bounded by a hard clip at 2.5r, generous enough that the target area is ~16% of the clip disc. <strong>The hull is taken because a raw level set is a blob with inlets and islands</strong>, and the client tests its own GPS position against every zone locally — the hull guarantees a single ring with no holes, so that test stays one loop. The threshold is bisected on the hull's area, not the level set's, so hulling does not overshoot the target.</p>
+</section>
+
+<section class="stage" id="b8">
+  <div class="stage-head"><h2>The catalogue</h2><span class="tag">B8</span></div>
+  <p class="question">What survives to disk?</p>
+  <p><strong>Descriptors, not polygons.</strong> One row per candidate: species, raster id, level, lat/lon at 5 dp, <code>p_peak</code>, <code>contrast_raw</code>, <code>contrast_norm</code>, the fraction of the reference annulus that was valid, the fragment's area, the global occurrence count, and the five interest terms with their product. Plus a <strong>side table with one row per (species × level)</strong> holding <code>p_q50</code> and <code>p_q90</code> — the two quantiles the species-relative interest term needs — and the candidate counts at every filter stage.</p>
+  <p>That side table is what makes a species-relative score free at request time: two floats per species-level rather than one per candidate.</p>
+  <div class="eq">mission id = gpn3:&lt;area&gt;:&lt;raster_id&gt;:&lt;level&gt;:&lt;lat_e5&gt;:&lt;lon_e5&gt;</div>
+  <p>Everything needed to rebuild the zone is in the id, so the detail endpoint is stateless and old ids stay resolvable as long as their catalogue version is retained.</p>
+</section>
+
+<section class="stage" id="funnel">
+  <h2>What the funnel actually removes</h2>
+  <p>Measured on Thun: 881 species × 6 levels, every stage counted.</p>
+  <figure>
+    <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div id="fig-funnel" class="scroller"></div>
+    <figcaption>Every strict local maximum found, and what is left after each stage. The fragment test removes <b>46%</b>; the cascade plus the region clip removes <b>89%</b> of what remains; the top-20 retention budget removes a further 30%, almost all of it at z11.</figcaption>
+  </figure>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Level</th><th class="num">local maxima</th><th class="num">after fragment test</th><th class="num">after cascade + clip</th><th class="num">retained</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">z6</td><td class="num">4,608</td><td class="num">2,972</td><td class="num">78</td><td class="num">78</td></tr>
+      <tr><td class="mono">z7</td><td class="num">11,810</td><td class="num">6,967</td><td class="num">20</td><td class="num">20</td></tr>
+      <tr><td class="mono">z8</td><td class="num">29,737</td><td class="num">17,265</td><td class="num">196</td><td class="num">196</td></tr>
+      <tr><td class="mono">z9</td><td class="num">16,329</td><td class="num">8,482</td><td class="num">767</td><td class="num">767</td></tr>
+      <tr><td class="mono">z10</td><td class="num">43,526</td><td class="num">22,579</td><td class="num">3,024</td><td class="num">3,011</td></tr>
+      <tr><td class="mono">z11</td><td class="num">119,066</td><td class="num">62,639</td><td class="num">9,318</td><td class="num">5,294</td></tr>
+      <tr class="total"><td>total</td><td class="num">225,076</td><td class="num">120,904</td><td class="num">13,403</td><td class="num">9,366</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">z8 shows more raw maxima than z9 because levels z6–z8 read a window <b>2.5×</b> wider than the region they serve — at z6 a 15 km region is barely 2σ across, so the cascade would have nothing to match against. Only candidates inside the region proper are kept, which is why the coarse levels lose so heavily in the third column.</p>
+</section>
+
+<div class="part">
+  <p class="part-no">Part II</p>
+  <h2>The interest score</h2>
+  <p>Five terms decide how interesting a candidate is. None of them decides <em>where</em> it goes — placement was settled upstream by B1–B8 before this runs. Keeping those two questions apart is the whole point of the redesign.</p>
+
+  <div class="card" style="margin:24px 0 8px; overflow-x:auto;">
+    <div style="font-family:var(--mono); font-size:17px; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; white-space:nowrap;">
+      <span style="font-weight:500;">interest =</span>
+      <a class="fterm" href="#modesty">modesty</a><span style="color:var(--ink-3)">(p_peak)</span>
+      <span style="color:var(--ink-3)">×</span>
+      <a class="fterm" href="#worth">worth</a><span style="color:var(--ink-3)">(n_global)</span>
+      <span style="color:var(--ink-3)">×</span>
+      <a class="fterm" href="#stronghold">stronghold</a><span style="color:var(--ink-3)">(n_local)</span>
+      <span style="color:var(--ink-3)">×</span>
+      <a class="fterm" href="#distinct">distinct</a><span style="color:var(--ink-3)">(contrast_norm)</span>
+      <span style="color:var(--ink-3)">×</span>
+      <a class="fterm" href="#rel_height">rel_height</a><span style="color:var(--ink-3)">(p_peak; species)</span>
+    </div>
+    <p class="measured" style="margin-top:14px; max-width:72ch;">Multiplicative, each factor roughly 0–1. A product means every term can veto — but none may veto <em>absolutely</em>, which is why each carries a floor above zero. Measured across the Thun catalogue: 9,366 candidates, interest from 1.2×10⁻⁵ to 0.43, median 0.0047.</p>
+  </div>
+</div>
+
+<section class="stage" id="modesty">
+  <div class="stage-head"><h2>Model uncertainty</h2><span class="tag">modesty(p_peak)</span></div>
+  <p class="question">How sure is the model here?</p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">modesty(p) = exp(−½ · ((p − 0.50) / 0.15)²)</div>
+      <p>A Gaussian centred where the model is genuinely undecided. It falls away toward 0.9, where the species is a confident stronghold and there is little to learn, and toward 0.2, where the prediction is too faint to find on the ground.</p>
+      <p><code>p</code> is used <strong>absolutely, never percentile-normalised</strong>. A species the model is confident about everywhere <em>should</em> score low here; normalising would falsely promote its best peak to "most uncertain" and destroy the signal.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">MODESTY_CENTRE</td><td class="num">0.50</td><td>was 0.45 in v1</td></tr>
+          <tr><td class="mono">MODESTY_SIGMA</td><td class="num">0.15</td><td>carried over</td></tr>
+          <tr><td class="mono">UNCERTAIN_P_MAX</td><td class="num">—</td><td>deleted; would zero most peaks</td></tr>
+        </tbody>
+      </table></div>
+      <p class="measured">Measured across the catalogue — min <b>0.006</b> · median <b>0.813</b> · max <b>1.000</b></p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Response to probability at the peak</p>
+      <div data-chart="modesty"></div>
+      <p class="chart-read" data-read="modesty">Hover the curve to read values</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="worth">
+  <div class="stage-head"><h2>Species scarcity</h2><span class="tag">worth(n_global)</span></div>
+  <p class="question">Is this species worth anyone's walk?</p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">worth(n) = floor + (1 − floor) / (1 + (n / 60000)^1.0)</div>
+      <p>A logistic in log space over the global occurrence count. It keeps falling well past the point a player would notice: 20k records → 0.75, 200k → 0.24, 1.6M → 0.05. A ubiquitous tree and a locally uncommon herb must not both score zero — that is how <em class="sp">Fagus sylvatica</em> came to sit beside <em class="sp">Gentiana lutea</em> in v1.</p>
+      <p>The floor is the entire difference between this term and the gate it replaces. <em class="sp">Urtica dioica</em> scores near it, which after the draw exponent is odds of hundreds of thousands to one against — never in practice, without ever being never.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">WORTH_FLOOR</td><td class="num">0.01</td><td class="floor-key">floor</td></tr>
+          <tr><td class="mono">RARITY_PIVOT</td><td class="num">60,000</td><td>half-way point</td></tr>
+          <tr><td class="mono">RARITY_SLOPE</td><td class="num">1.0</td><td></td></tr>
+        </tbody>
+      </table></div>
+      <p class="measured">Measured — min <b>0.036</b> · median <b>0.178</b> · max <b>0.901</b>. An unknown count returns <b>0.5</b>: neither a recommendation nor a penalty.</p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Response to global records (log scale)</p>
+      <div data-chart="worth"></div>
+      <p class="chart-read" data-read="worth">Hover the curve to read values</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="stronghold">
+  <div class="stage-head"><h2>Unverified stronghold</h2><span class="tag">stronghold(n_local)</span></div>
+  <p class="question">Is the model extrapolating here, rather than remembering?</p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">stronghold(n) = 0.15 + 0.85 / (1 + n / 10)</div>
+      <p>High prediction, few or no records nearby. Deliberately a <strong>separate term from uncertainty</strong>: local occurrence density is sampling effort — biased toward roads, towns and popular trails — and must never be read as model doubt.</p>
+      <p>The local count comes from one occurrence-facet query per 20 km square, answered for every species at once. That response is <em>truncated</em>, so a species missing from it has fewer records than the cutoff, which is not the same as none. Reading it as zero is the strongest possible rarity signal and is wrong, so unknown maps to <span class="mono">0.65</span> rather than to 1.0.</p>
+      <p class="measured" style="margin-top:0">Caveat to carry forward: "no records" correlates with "remote", which correlates with "hard to reach".</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Parameter</th><th class="num">Value</th><th>Note</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">STRONGHOLD_PIVOT</td><td class="num">10</td><td>records in a 20 km square</td></tr>
+          <tr><td class="mono">STRONGHOLD_FLOOR</td><td class="num">0.15</td><td class="floor-key">floor</td></tr>
+          <tr><td class="mono">STRONGHOLD_UNKNOWN</td><td class="num">0.65</td><td>facet truncated</td></tr>
+        </tbody>
+      </table></div>
+      <p class="measured">Measured — min <b>0.155</b> · median <b>0.186</b> · max <b>0.650</b></p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Response to nearby records (log scale)</p>
+      <div data-chart="stronghold"></div>
+      <p class="chart-read" data-read="stronghold">Hover the curve to read values</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="distinct">
+  <div class="stage-head"><h2>Peak distinctness</h2><span class="tag">distinct(contrast_norm)</span></div>
+  <p class="question">Is this one of the <em>sharpest</em> places for this species?</p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">distinct(c) = 0.01 + 0.99 · c
+c = rank of contrast within (species × level),
+    as (k + 1) / (n + 1)</div>
+      <p>Contrast is the peak measured against its own surroundings at 2σ, normalised <strong>within the species and within the level</strong> and never compared across either — for the reasons B6 gives.</p>
+      <p>Note what this term honestly answers. "Sharpest" is not "best" — but the ladder absorbs most of the gap, because a broad optimum is never penalised for being broad, it is simply detected as a high-contrast peak at a coarser level, where the zone size follows the level.</p>
+      <p>The rank uses the plotting position <span class="mono">(k+1)/(n+1)</span>, not <span class="mono">k/(n−1)</span>. The latter assigns exactly 0.0 to the worst candidate of every group — see the floors section below.</p>
+      <p class="measured">Measured — min <b>0.057</b> · median <b>0.629</b> · max <b>0.988</b></p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Response to within-group contrast rank</p>
+      <div data-chart="distinct"></div>
+      <p class="chart-read" data-read="distinct">Hover the curve to read values</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage" id="rel_height">
+  <div class="stage-head"><h2>Placement quality</h2><span class="tag">rel_height(p_peak; species)</span></div>
+  <p class="question">Is this a good place <em>for this species</em>?</p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">rel_height = 0.05 + 0.95 · clip((p − q50) / (q90 − q50), 0, 1)
+
+q50, q90 = quantiles of p over that species'
+           valid pixels at that level</div>
+      <p>Every other height signal in the score is either absolute (<code>modesty</code>) or pure shape (<code>distinct</code>). Nothing else asks how a peak compares to <em>this species' own</em> ground. A <em class="sp">Gentiana</em> peak at 0.85 is exceptional; a <em class="sp">Fagus</em> peak at 0.85 is ordinary. Without this term the score cannot tell them apart.</p>
+      <p><strong>It saturates instead of scaling.</strong> <code>modesty</code> penalises p → 0.9; a linear reward here would pull the other way, and in a product the fight would be settled by whichever curve happened to be steeper — an accident, not a design. Clipping at q90 makes this a <em>floor on placement quality</em>: don't send a player to a peak that is mediocre for its species. It is flat everywhere <code>modesty</code> is doing its work.</p>
+      <p>The quantiles are taken from <code>smoothed_nc</code>, the same surface <code>p_peak</code> is read from. Taking them from the raw surface compares two different distributions: on <em class="sp">Gentiana acaulis</em> (fragmented, alpine) the raw median was 0.445 against a smoothed median of 0.287, so 86% of its peaks fell below the raw median and collapsed onto the floor — while <em class="sp">Fagus sylvatica</em>, whose range is continuous, lost only 21%. The bias fell hardest on exactly the alpine species the catalogue exists to surface.</p>
+      <p class="measured">Measured — min <b>0.05</b> · median <b>0.706</b> · max <b>1.000</b></p>
+    </div>
+    <div class="chart-card">
+      <p class="chart-title">Response to height within the species' own range</p>
+      <div data-chart="relheight"></div>
+      <p class="chart-read" data-read="relheight">Hover the curve to read values</p>
+    </div>
+  </div>
+</section>
+
+<section class="stage">
+  <h2>Three readings of height</h2>
+  <p>Three of the five terms read the same probability surface, and each asks a different question of it. Fusing any two is the error that produced v1's habitat-edge pathology.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Reading</th><th>Quantity</th><th>Question</th><th>Term</th></tr></thead>
+    <tbody>
+      <tr><td>Absolute</td><td class="mono">p_peak</td><td>How sure is the model here?</td><td class="mono">modesty</td></tr>
+      <tr><td>Local-relative</td><td class="mono">contrast at 2σ</td><td>Is this a peak, and how distinct?</td><td class="mono">distinct</td></tr>
+      <tr><td>Species-relative</td><td class="mono">p_peak vs q50/q90</td><td>Is this good ground <em>for this species</em>?</td><td class="mono">rel_height</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">Each carries its own normalisation: none, within species × level, and against the species' own surface respectively.</p>
+</section>
+
+<section class="stage">
+  <h2>Why every term has a floor</h2>
+  <div class="callout">
+    <h3>A zero is not a low score — it is a gate</h3>
+    <p>The draw takes <span class="mono">log(weight)</span>, so a single exact <span class="mono">0.0</span> anywhere in the product does not make a mission unlikely. It makes it unreachable. That contradicts the design's own rule that nothing after the species filter is a cut: a poor mission must be <em>unlikely rather than impossible</em>.</p>
+    <p>Two terms produced hard zeros by construction. <span class="mono">rel_height</span> clipped at 0 — and <span class="mono">q50</span> is a median, so by definition about half of all candidates landed on or below it. <span class="mono">distinct</span> gave exactly 0 to the worst candidate of every group. Together they zeroed <strong>54.9%</strong> of the catalogue.</p>
+    <p>Both now floor above zero, following the pattern <span class="mono">WORTH_FLOOR</span> already set. At the floor the odds after the draw exponent are roughly 160,000:1 against — never in practice, without ever being never.</p>
+    <p>The same trap is one <code>round()</code> away at the storage layer: the score is a product of five sub-unit terms, so a legitimate value can sit at 1e−6 and <code>round(x, 5)</code> would write it back as exactly 0.0, reintroducing by rounding the gate the floors just removed. The catalogue stores interest to six <em>significant digits</em> for that reason.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Term</th><th class="num">Floor</th><th>Zeros before</th><th>Zeros now</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">modesty</td><td class="num">—</td><td>0</td><td>0</td></tr>
+      <tr><td class="mono">worth</td><td class="num">0.01</td><td>0</td><td>0</td></tr>
+      <tr><td class="mono">stronghold</td><td class="num">0.15</td><td>0</td><td>0</td></tr>
+      <tr><td class="mono">distinct</td><td class="num">0.01</td><td>789 (8.4%)</td><td>0</td></tr>
+      <tr><td class="mono">rel_height</td><td class="num">0.05</td><td>4,709 (50.3%)</td><td>0</td></tr>
+      <tr><td class="mono">interest</td><td class="num">1e−9</td><td><strong>5,141 (54.9%)</strong></td><td><strong>0</strong></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="stage">
+  <h2>Worked examples</h2>
+  <p>Four real candidates from the Thun catalogue, best mission per species.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Species</th><th class="num">z</th><th class="num">p_peak</th>
+      <th class="num">modesty</th><th class="num">worth</th><th class="num">strong.</th>
+      <th class="num">distinct</th><th class="num">rel_ht</th><th class="num">interest</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><em class="sp">Asperula taurina</em></td><td class="num">11</td><td class="num">0.562</td><td class="num">0.918</td><td class="num">0.897</td><td class="num">0.650</td><td class="num">0.876</td><td class="num">0.922</td><td class="num"><strong>0.4323</strong></td></tr>
+      <tr><td><em class="sp">Tozzia alpina</em></td><td class="num">11</td><td class="num">0.605</td><td class="num">0.782</td><td class="num">0.890</td><td class="num">0.650</td><td class="num">0.945</td><td class="num">1.000</td><td class="num">0.4273</td></tr>
+      <tr><td><em class="sp">Potentilla sterilis</em></td><td class="num">11</td><td class="num">0.539</td><td class="num">0.967</td><td class="num">0.178</td><td class="num">0.167</td><td class="num">0.948</td><td class="num">1.000</td><td class="num">0.0273</td></tr>
+      <tr><td><em class="sp">Silene vulgaris</em></td><td class="num">10</td><td class="num">0.757</td><td class="num">0.231</td><td class="num">0.112</td><td class="num">0.169</td><td class="num">0.914</td><td class="num">0.799</td><td class="num">0.0032</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured"><em class="sp">Potentilla</em> is near-perfect on shape and placement and still scores 16× below the top: it is a common plant the model is sure about locally, and two terms say so. That is the product doing its job.</p>
+
+  <h3 style="margin-top:26px">Does the score discriminate?</h3>
+  <p>Median term values for the top and bottom 300 candidates by interest. Every term separates in the direction it is meant to.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Group</th><th class="num">p_peak</th><th class="num">modesty</th><th class="num">worth</th><th class="num">stronghold</th><th class="num">distinct</th><th class="num">rel_height</th></tr></thead>
+    <tbody>
+      <tr><td>Top 300</td><td class="num">0.555</td><td class="num">0.919</td><td class="num">0.641</td><td class="num">0.650</td><td class="num">0.670</td><td class="num">1.000</td></tr>
+      <tr><td>Bottom 300</td><td class="num">0.751</td><td class="num">0.247</td><td class="num">0.073</td><td class="num">0.168</td><td class="num">0.230</td><td class="num">0.086</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">Top-ranked missions sit near p = 0.5 — uncertain — while the bottom sits at 0.75, where the model is already confident. That relationship was inverted until <code>p_peak</code> was corrected to read from the normalised convolution over valid ground rather than across the 0-fill.</p>
+</section>
+
+<div class="part">
+  <p class="part-no">Part III</p>
+  <h2>How the day's missions are drawn</h2>
+  <p>The catalogue is static. Only the draw turns over. Everything in this part happens per request, in milliseconds, over rows already loaded from disk — no tiles are read, no external service is called.</p>
+</div>
+
+<section class="stage" id="r1">
+  <div class="stage-head"><h2>The query</h2><span class="tag">R1</span></div>
+  <p>A spatial lookup for candidates near the viewport, widened by the largest blob radius in play so a mission whose zone reaches the screen is not missed because its peak sits just off it. Levels z8–z11 by default. Expect a few hundred rows.</p>
+  <p class="measured">Measured at the Thun centre, 2 km radius: <b>544</b> candidates in range.</p>
+</section>
+
+<section class="stage" id="r3">
+  <div class="stage-head"><h2>The weighted draw</h2><span class="tag">R3</span></div>
+  <p class="question">Of everything nearby, which do you get offered today?</p>
+  <div class="eq">weight[i] = interest[i] × scale_weight(level[i])
+key[i]    = DRAW_EXPONENT · log(weight[i]) + Gumbel(id[i], day)
+order     = sort by key, descending</div>
+  <p>This is <strong>Gumbel-top-k</strong>: adding an independent Gumbel-distributed number to each log-weight and sorting is exact weighted sampling without replacement, in one sort and no rejection loop.</p>
+  <p><code>DRAW_EXPONENT = 4</code> multiplies the log, so the whole weight — interest and scale together — is raised to the fourth power. Two consequences follow, and both are visible in what the map serves.</p>
+  <ul class="tight">
+    <li><strong>Interest separates hard.</strong> A candidate sitting at a term floor is not merely unlikely, it is on the order of 10⁵-to-1 against the median.</li>
+    <li><strong>Coarse levels are strongly favoured.</strong> <code>scale_weight</code> spans 1 to 1024 across the ladder, and the exponent carries that to 1 : 10¹². Fine candidates outnumber coarse ones by roughly the same order, so the two effects work against each other — the net result on a Thun viewport is a first twenty of 2×z11, 6×z10, 8×z9 and 4×z8, a spread of scales rather than a wall of the finest level.</li>
+  </ul>
+
+  <h3>The noise is a property of the candidate, not of the array</h3>
+  <p>The Gumbel value for each candidate is derived from a hash of <code>day:mission_id</code>, never from its position in the array. A position-based random draw hands out noise by index, so the same peak would get a different value depending on which other candidates happened to share its request — two overlapping viewports would disagree about it, and panning the map would reshuffle missions instead of revealing more of them. Hashing the id makes the accept/reject outcome a property of the ground and the date alone.</p>
+  <p>The same logic governs the seed itself: <code>daily_seed</code> depends on the day and nothing else. A mission is a property of the ground, so the seed must not know where the player is standing.</p>
+
+  <h3>Exclusion is derived from scale</h3>
+  <p>Walking the order, a candidate is rejected if it sits too close to one already accepted:</p>
+  <div class="eq">same species:      distance &lt; 1.5 · max(r_i, r_j)      ← the larger of the two blob radii
+different species: distance &lt; 50 m                    ← pins must not overlap visually</div>
+  <figure>
+    <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div id="fig-exclusion" class="scroller"></div>
+    <figcaption>Why <b>max</b> is load-bearing. A fine z11 candidate 500 m from an accepted z10 peak passes a test against its own radius (1.5 × 296 = 444 m) while sitting well inside the coarse mission's zone — a mission nested inside another mission. Taking the larger radius gives 888 m and excludes it correctly, with no cross-scale linking and no feature trees.</figcaption>
+  </figure>
+  <p>This single rule replaces v1's cell quotas, per-cell species caps and fixed 400 m species gap, and it delivers three things those constants could not:</p>
+  <ul class="tight">
+    <li><strong>Density scales correctly.</strong> A 592 m-radius mission permits another of the same species a kilometre away; a 9.5 km one does not.</li>
+    <li><strong>Nested duplicates fall out of the same test</strong>, with no separate machinery.</li>
+    <li><strong>Scale variety emerges free.</strong> Because the order is seeded per day, some days a coarse candidate wins first and blocks the fine ones beneath it; other days a fine one wins and the coarse one is blocked. The same species appears at a different size on different days.</li>
+  </ul>
+
+  <h3>Then a coverage pass, then a spread</h3>
+  <p>The weighted draw concentrates missions where interest is high, which is correct for ranking and wrong for a map: a player standing in a dull valley should still have somewhere to walk to. Two corrections follow, and neither one re-ranks anything.</p>
+  <ol class="steps">
+    <li><strong>Coverage.</strong> Any 1.5 km cell that holds candidates but won nothing gets its best one — walking the <em>same</em> seeded order, under the <em>same</em> exclusion rules, so what fills a hole is still the day's best candidate there. A cell stays empty when its only candidates sit inside an accepted mission's zone, which is the right outcome.</li>
+    <li><strong>Spread.</strong> The viewport asks for ~20 missions and the draw usually accepts hundreds. Truncating by rank would put every pin on the best ground in the frame — which is the "nothing to do around here" complaint seen from anywhere else in it. Instead the budget is spent round-robin over coverage cells, visiting cells in the rank order of their best mission. Quality still decides which cell fills first and which mission represents it; the budget is simply spent covering ground before it is spent stacking one cell.</li>
+  </ol>
+
+  <h3>What that produces</h3>
+  <p>One real request: Thun centre, 2 km radius, z8–z11, limit 20.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Stage</th><th class="num">Missions</th><th class="num">Median interest</th><th class="num">Median modesty</th><th class="num">Median worth</th></tr></thead>
+    <tbody>
+      <tr><td>Candidates in the viewport</td><td class="num">544</td><td class="num">0.0029</td><td class="num">0.836</td><td class="num">0.140</td></tr>
+      <tr><td>Accepted by the draw</td><td class="num">419</td><td class="num">0.0030</td><td class="num">—</td><td class="num">—</td></tr>
+      <tr><td><strong>Shown to the player</strong></td><td class="num"><strong>20</strong></td><td class="num"><strong>0.0407</strong></td><td class="num"><strong>0.909</strong></td><td class="num"><strong>0.391</strong></td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">The exclusion rule accepts most of what it sees — it is a same-species anti-clustering rule, not a quality filter — so the interest score's real work is done in the <b>ordering</b>, and the limit is what converts that order into selection. The 20 shown have <b>14×</b> the median interest of the ground they were drawn from, sit at nearly the top of the uncertainty curve, and are <b>2.8×</b> scarcer as species. They cover 16 distinct species and all four levels (7×z9, 7×z10, 5×z11, 1×z8).</p>
+  <p class="measured">Day-to-day, <b>60–80%</b> of the 20 carry over and the rest turn over — measured across seven consecutive daily seeds on the same viewport. Half the shown set is also in the top 20 by raw interest; the other half is the Gumbel noise and the spread doing their jobs.</p>
+
+  <div class="callout">
+    <h3>Where the scale balance actually lives</h3>
+    <p>Only one place in the system decides how many coarse missions a viewport gets: the exponentiated <code>scale_weight</code> in this ordering. Nothing upstream compensates for it — B6 normalises contrast <em>within</em> a level precisely so that scale balance is not smuggled into the shape statistics, and the exclusion rule spaces missions apart without preferring a size.</p>
+    <p>That makes the draw the single knob for it, and a sensitive one: because the exponent applies to the whole weight, halving <code>DRAW_EXPONENT</code> or applying it to <code>interest</code> alone changes the level mix substantially. Applied to interest alone, the same viewport's first twenty becomes 8×z11, 8×z10, 3×z9 and 1×z8, with a median interest of 0.056 against the current 0.039. Both are defensible maps; they are not the same map, and the choice is made here.</p>
+  </div>
+</section>
+
+<section class="stage" id="r4">
+  <div class="stage-head"><h2>Pin placement</h2><span class="tag">R4</span></div>
+  <p>Deliberately minimal, because the pin is a visual marker: what actually matters is the <em>zone</em>, and the app lists the missions whose zone contains the player. The pin snaps to the nearest walkable path point to the peak, clamped to stay inside the zone; if no path intersects the zone, it stays on the peak itself. Zones are rebuilt from the mission id on demand and cached to disk, so a nightly warm-up and a live request share the work rather than each paying for it.</p>
+</section>
+
+<div class="part">
+  <p class="part-no">Part IV</p>
+  <h2>The grade</h2>
+  <p>The tier on the pin — <span class="chip common">Mission: Routine</span> <span class="chip rare">Important</span> <span class="chip epic">Major</span> <span class="chip legendary">Critical</span> — is <strong>not</strong> the interest score, is not a rescaling of it, and does not rank the same way. It answers a different question, and the two are kept apart on purpose.</p>
+  <p class="measured">The four tiers are named <span class="mono">common</span>, <span class="mono">rare</span>, <span class="mono">epic</span> and <span class="mono">legendary</span> in the API and in <span class="mono">params.py</span>; the app shows them as <strong>Routine</strong>, <strong>Important</strong>, <strong>Major</strong> and <strong>Critical</strong>. This page uses the names the player sees, and gives the internal key where the code is being quoted.</p>
+</div>
+
+<section class="stage">
+  <h2>Three questions, three numbers</h2>
+  <p>It is worth stating all three together, because conflating any two of them is the failure mode this separation exists to prevent.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Number</th><th>Question</th><th>Settled</th><th>Shape</th><th>Visible to the player?</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">interest</td><td>Of everything here, which should we <em>offer</em>?</td><td>Before anyone goes anywhere</td><td>Product of 5 terms, 0–1</td><td>No — it only orders the draw</td></tr>
+      <tr><td class="mono">grade</td><td>How much would this observation <em>teach us</em>?</td><td>Before anyone goes anywhere</td><td>Mean of 2 factors → 4 tiers</td><td><strong>Yes</strong> — on the pin</td></tr>
+      <tr><td class="mono">points</td><td>What did the player <em>actually record</em>?</td><td>Afterwards, from the observation</td><td>Separate system entirely</td><td>Yes</td></tr>
+    </tbody>
+  </table></div>
+  <p>The grade and the points system must never share a formula, or tuning one would silently move the other. The grade and the interest score share <em>inputs</em> — both read the model's confidence and the species' global record count — but combine them differently and to different ends.</p>
+</section>
+
+<section class="stage">
+  <h2>Two factors, weighed equally</h2>
+  <p>Each factor is the same question asked of a different source: <em>how much would this observation teach us?</em></p>
+  <div class="body-2col">
+    <div>
+      <div class="eq">Model uncertainty = 1 − exp(−modesty / 0.35)
+Rare worldwide    = clip( log(200000 / n) / log(200000 / 50), 0, 1 )
+
+score = mean of the factors that could be measured
+tier  = first tier whose floor the score clears</div>
+      <p><strong>Model uncertainty saturates rather than clips.</strong> In v1 its input was an unbounded surface anomaly, and a handful of enormous values would otherwise have compressed every ordinary mission into the bottom of the scale. In v2 the input is <code>modesty</code> — already 0–1 — so the exponential mostly serves to expand the low end: modesty 0.1 → 0.25, modesty 0.5 → 0.76, modesty 1.0 → 0.94. That ceiling of 0.943 is structural: no mission can score higher on this axis.</p>
+      <p><strong>Rare worldwide is log-scaled</strong>, because occurrence counts span six orders of magnitude. Linear in the count is what the observation points system does, and there a species with a thousand records and one with fifty score within a percent of each other. On a log scale they are 0.64 and 1.00. It saturates at both ends: 50 records or fewer is a full 1.0, 200,000 or more is a flat 0.0.</p>
+      <p><strong>A factor that cannot be measured is left out of the average</strong>, never counted as zero. Where the local occurrence facet is truncated that is every mission in the region at once, and counting it as zero once turned a whole viewport <span class="chip common">Routine</span>.</p>
+      <p><strong>No single factor can reach the top tier alone.</strong> That is the point: a globally rare species the model is confident about, in a well-surveyed spot, is a nice find but not a discovery, and the grade should say so.</p>
+    </div>
+    <div>
+      <div class="chart-card" style="margin-bottom:12px">
+        <p class="chart-title">Model uncertainty — response to modesty</p>
+        <div data-chart="gradeUncertainty"></div>
+        <p class="chart-read" data-read="gradeUncertainty">Hover the curve to read values</p>
+      </div>
+      <div class="chart-card">
+        <p class="chart-title">Rare worldwide — response to records</p>
+        <div data-chart="gradeRarity"></div>
+        <p class="chart-read" data-read="gradeRarity">Hover the curve to read values</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stage">
+  <h2>The tiers, and why v2 had to recalibrate them</h2>
+  <p>The <em>factors</em> are v1's, unchanged. Only the cut-offs are v2's, and they had to move for a specific reason: v1 fed Model uncertainty an unbounded band-pass anomaly, while v2 feeds it <code>modesty</code> — which is bounded at 1, and which <em>the draw actively selects to be near 1</em>. Missions arriving at the grade are therefore pre-filtered to score high on one of its two axes. On v1's cut-offs, <strong>84.6%</strong> of a Thun draw graded Critical; over a 1,200-mission sample it was 96%. A grade that says "Critical" nine times out of ten is not a grade.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr>
+      <th>Tier · API key</th><th class="num">v1 floor</th><th class="num">v2 floor</th>
+      <th class="num">intended share</th><th class="num">measured share</th><th>What it takes, in practice</th>
+    </tr></thead>
+    <tbody>
+      <tr><td><span class="chip legendary">Critical</span> <span class="mono" style="color:var(--ink-3)">legendary</span></td><td class="num">0.30</td><td class="num">0.58</td><td class="num">~5%</td><td class="num">3.1%</td><td>High uncertainty <em>and</em> under ~28,000 records worldwide</td></tr>
+      <tr><td><span class="chip epic">Major</span> <span class="mono" style="color:var(--ink-3)">epic</span></td><td class="num">0.19</td><td class="num">0.55</td><td class="num">~10%</td><td class="num">6.9%</td><td>High uncertainty <em>and</em> under ~46,000 records</td></tr>
+      <tr><td><span class="chip rare">Important</span> <span class="mono" style="color:var(--ink-3)">rare</span></td><td class="num">0.10</td><td class="num">0.48</td><td class="num">~35%</td><td class="num">22.9%</td><td>High uncertainty <em>and</em> under ~147,000 records</td></tr>
+      <tr><td><span class="chip common">Routine</span> <span class="mono" style="color:var(--ink-3)">common</span></td><td class="num">0.00</td><td class="num">0.00</td><td class="num">—</td><td class="num">77.1%</td><td>Everything else</td></tr>
+    </tbody>
+  </table></div>
+  <p class="measured">Shares are cumulative and measured over 6,387 drawn Thun missions. The "in practice" column assumes a typical drawn mission's modesty of 0.9; a mission the model is less undecided about needs a scarcer species to reach the same tier.</p>
+
+  <figure>
+    <p class="swipe-hint">swipe the diagram sideways →</p>
+  <div id="fig-tiermap" class="scroller"></div>
+    <figcaption>The whole grade in one picture: every mission's tier as a function of its two inputs. The bands are near-vertical at the top and bend hard as modesty falls, which is the two-factor mean doing what it is meant to — neither axis alone reaches the top. The marker is the median drawn mission from Thun (modesty 0.91, ~294,000 records), which lands in <b>Routine</b> and stays there whatever its interest score.</figcaption>
+  </figure>
+</section>
+
+<section class="stage">
+  <h2>What the grade is actually measuring right now</h2>
+  <p>Two measured facts sit awkwardly together, and both are worth knowing before reading any grade.</p>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Measured over 6,387 drawn Thun missions</th><th class="num">min</th><th class="num">median</th><th class="num">max</th></tr></thead>
+    <tbody>
+      <tr><td>Model uncertainty</td><td class="num">0.018</td><td class="num">0.906</td><td class="num">0.943</td></tr>
+      <tr><td>Rare worldwide</td><td class="num">0.000</td><td class="num"><strong>0.000</strong></td><td class="num">0.410</td></tr>
+      <tr><td>score (the mean of the two)</td><td class="num">0.011</td><td class="num">0.461</td><td class="num">0.676</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>The Rare worldwide axis is flat for most missions.</strong> 60% of catalogue rows belong to species with more than 200,000 global records, where that factor saturates at exactly zero — so for the median mission the grade is simply half of Model uncertainty. Across the drawn set, the score correlates with Model uncertainty at <strong>0.94</strong> and with Rare worldwide at <strong>0.30</strong>.</p>
+  <p><strong>And yet scarcity is what promotes.</strong> Because Model uncertainty is capped at 0.943 and the draw pushes most missions near that cap, no mission can clear the 0.58 Critical floor on uncertainty alone — the top of that axis contributes at most 0.47. Every Critical mission is a scarce species. The two statements are both true: uncertainty moves the score across its whole range, scarcity decides who reaches the top of it.</p>
+  <p><strong>Interest and grade agree only loosely</strong> — they correlate at <strong>0.33</strong> across the drawn set. That is by design and is the reason both exist: interest asks what is worth <em>offering</em> (and knows about peak sharpness, local sampling effort and placement quality, none of which the grade sees), while the grade asks what would be worth <em>learning</em>. A dense cluster of well-surveyed common species can be a perfectly good walk and still, correctly, grade Routine.</p>
+  <div class="callout">
+    <h3>The third axis the grade is built for</h3>
+    <p>The grade's design describes three factors weighed equally — Model uncertainty, Rare worldwide, and <strong>Unrecorded nearby</strong>: few records in the area, so the prediction here is an extrapolation rather than a memory. The app carries the label for all three; <span class="mono">grade.localRarity</span> → "Unrecorded nearby" sits in every translation file, ready for a response that includes it.</p>
+    <p>What ships today computes two, and the average is taken over what was measured — which is the same rule that already governs a truncated occurrence facet. The third number is not missing from the system, only from the grade: <code>stronghold</code> computes exactly it for the interest score, from the same facet query, and is stored on every catalogue row. Two missions that today grade identically — the remote extrapolation and the roadside stronghold — are already distinguished by the catalogue; the grade simply does not read that column yet.</p>
+  </div>
+</section>
+
+<div class="part">
+  <p class="part-no">Part V</p>
+  <h2>Reference</h2>
+</div>
+
+<section class="stage">
+  <h2>Every constant, in one place</h2>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Stage</th><th>Parameter</th><th class="num">Value</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">B2</td><td class="mono">LEVELS</td><td class="num">z6–z11</td><td>The ladder that is built; z8–z11 is what a query serves</td></tr>
+      <tr><td class="mono">B2</td><td class="mono">SIGMA_PX</td><td class="num">4.0</td><td>Smoothing width, constant in pixels at every level</td></tr>
+      <tr><td class="mono">B3</td><td class="mono">PROB_FLOOR</td><td class="num">0.1913</td><td>Below this the model returns nothing — the censored/valid boundary</td></tr>
+      <tr><td class="mono">B3</td><td class="mono">NODATA_FILL</td><td class="num">0.0</td><td>One fill, every stage</td></tr>
+      <tr><td class="mono">B3</td><td class="mono">DOMAIN_APRON_PX</td><td class="num">12</td><td>3σ of context beyond the region, so the mosaic edge is not a range edge</td></tr>
+      <tr><td class="mono">B4</td><td class="mono">CONNECTIVITY</td><td class="num">8</td><td>Neighbourhood for the local-maximum test</td></tr>
+      <tr><td class="mono">B4</td><td class="mono">FRAGMENT_MIN_FRAC</td><td class="num">1.0</td><td>Valid component must reach 1.0 × 2πσ² ≈ 101 px</td></tr>
+      <tr><td class="mono">B4</td><td class="mono">H_MAXIMA_ENABLED</td><td class="num">False</td><td class="floor-key">The absolute noise floor — off; see B4</td></tr>
+      <tr><td class="mono">B5</td><td class="mono">SUPPORT_OCTAVES</td><td class="num">1</td><td>How far up the ladder a peak must survive</td></tr>
+      <tr><td class="mono">B5</td><td class="mono">MATCH_RADIUS_FACTOR</td><td class="num">0.5</td><td>d = σ_coarse × 0.5 — ~3% false-pass rate</td></tr>
+      <tr><td class="mono">B6</td><td class="mono">CONTRAST_REFERENCE_SIGMA_FACTOR</td><td class="num">2.0</td><td>Reference radius for contrast, in σ</td></tr>
+      <tr><td class="mono">B6</td><td class="mono">KEEP_PER_SPECIES_PER_LEVEL</td><td class="num">20</td><td>Retention budget — a bound, not a quality bar</td></tr>
+      <tr><td class="mono">B6</td><td class="mono">PROMINENCE_ENABLED</td><td class="num">False</td><td class="floor-key">Diagnostics only, and the build's CPU bottleneck</td></tr>
+      <tr><td class="mono">B7</td><td class="mono">ZONE_MIN/MAX_FACTOR</td><td class="num">0.3 / 3.0</td><td>Clamp around the level's own target area</td></tr>
+      <tr><td class="mono">B7</td><td class="mono">ZONE_MAX_RADIUS_FACTOR</td><td class="num">2.5</td><td>Hard clip on reach, in blob radii — a bound on extent, not on shape</td></tr>
+      <tr><td class="mono">B7</td><td class="mono">ZONE_HEADROOM</td><td class="num">0.02</td><td>Keeps the bisection's ceiling just below p_peak</td></tr>
+      <tr><td class="mono">R2</td><td class="mono">MODESTY_CENTRE / SIGMA</td><td class="num">0.50 / 0.15</td><td>Where the model counts as undecided, and how sharply</td></tr>
+      <tr><td class="mono">R2</td><td class="mono">RARITY_PIVOT / SLOPE</td><td class="num">60,000 / 1.0</td><td>Half-way point of the scarcity logistic</td></tr>
+      <tr><td class="mono">R2</td><td class="mono">STRONGHOLD_PIVOT</td><td class="num">10</td><td>Records in a 20 km square at which the term halves</td></tr>
+      <tr><td class="mono">R2</td><td class="mono">STRONGHOLD_UNKNOWN</td><td class="num">0.65</td><td>Missing from a truncated facet ≠ zero records</td></tr>
+      <tr><td class="mono">R2</td><td class="mono">WORTH / STRONGHOLD / DISTINCT / REL_HEIGHT floors</td><td class="num">0.01 / 0.15 / 0.01 / 0.05</td><td class="floor-key">No term may veto absolutely</td></tr>
+      <tr><td class="mono">R3</td><td class="mono">DRAW_EXPONENT</td><td class="num">4.0</td><td>Sharpens the weighted draw</td></tr>
+      <tr><td class="mono">R3</td><td class="mono">EXCLUSION_K</td><td class="num">1.5</td><td>Same-species spacing, in the larger blob radius</td></tr>
+      <tr><td class="mono">R3</td><td class="mono">MIN_PIN_GAP_M</td><td class="num">50</td><td>Different-species pin separation</td></tr>
+      <tr><td class="mono">R3</td><td class="mono">COVERAGE_CELL_M</td><td class="num">1,500</td><td>Cell that must hold at least one mission if it holds any candidate</td></tr>
+      <tr><td class="mono">grade</td><td class="mono">UNCERTAINTY_SCALE</td><td class="num">0.35</td><td>Saturation of Model uncertainty</td></tr>
+      <tr><td class="mono">grade</td><td class="mono">GLOBAL_RARE_AT / COMMON_AT</td><td class="num">50 / 200,000</td><td>Where Rare worldwide saturates at each end</td></tr>
+      <tr><td class="mono">grade</td><td class="mono">GRADE_TIERS</td><td class="num">0.58 / 0.55 / 0.48</td><td>Critical / Major / Important cut-offs</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="stage">
+  <h2>Potential issues</h2>
+  <p>Everything above describes the pipeline as it runs today. This section is the other list: six places where a choice is worth revisiting, a specification and the code have drifted apart, or a number was calibrated on evidence thinner than it will eventually need. None of them is hidden — each is visible in the source, and each is quoted here with what it would take to settle it.</p>
+
+  <h3 style="margin-top:22px">1 · There is no absolute test of whether a peak is real</h3>
+  <p>The design calls the h-maxima floor <em>required, not an optional prefilter</em>, on the grounds that nothing else in the pipeline asks the question. It is switched off, for the measured reason given in B4 — the surrogate fit landed above the 90th percentile of real peaks — so detection rests on the fragment test and the cascade, both of which ask about <em>scale</em> rather than about <em>height above noise</em>. The cascade's own arithmetic puts the residual false-pass rate near 3% per level, which is a strong filter and not a proof. <em>To settle:</em> either fit the null on a surface model that is not itself a smoothed random field, or set <code>H_MAXIMA_FIXED</code> from the observed contrast distribution's bulk and measure what it removes.</p>
+
+  <h3 style="margin-top:22px">2 · The draw exponent applies to the scale weight as well as to interest</h3>
+  <p>The design writes the weight as <code>interest⁴ × scale_weight</code>; the code computes <code>4 · log(interest × scale_weight)</code>, which is <code>(interest × scale_weight)⁴</code>. The coarse-to-fine ratio at z6 is therefore 10¹²:1 rather than 1024:1. The map this produces is a reasonable one — see Part III for the measured level mix — but it is reasonable by cancellation between two large numbers rather than by the balance the design set out, and the two diverge if either the ladder or the exponent is ever changed. <em>To settle:</em> decide which form is wanted, then re-measure the level mix and the median interest of what a viewport shows.</p>
+
+  <h3 style="margin-top:22px">3 · The grade runs on two of its three factors</h3>
+  <p>Unrecorded nearby is specified, labelled in every translation file, and computed on every catalogue row as <code>stronghold</code> — but not read by the grade. Its absence is not neutral: with Rare worldwide saturated at zero for 60% of rows, the grade is effectively one-dimensional for the median mission, and the remote extrapolation grades the same as the roadside stronghold. <em>To settle:</em> adding it moves every cut-off in the tier table, so it needs the re-measurement the v2 tiers already got.</p>
+
+  <h3 style="margin-top:22px">4 · The grade tiers under-deliver their intended shares</h3>
+  <p>The cut-offs were chosen to restore roughly the top 5 / 10 / 35%. Measured on Thun they give <strong>3.1 / 6.9 / 22.9%</strong>, and they were calibrated on that one region. <em>To settle:</em> re-measure the score distribution on the national build before treating the tiers as final.</p>
+
+  <h3 style="margin-top:22px">5 · Prominence is absent from the shipped catalogue</h3>
+  <p><code>PROMINENCE_ENABLED</code> is off because the union-find pass is the build's CPU bottleneck at ~1,000 species, and prominence is not scored. The cost is diagnostic rather than functional: <code>saddle_p</code> — the field that says whether a peak merged over a real col or through the 0-fill, and so whether a candidate is a fragment — is null everywhere, which is exactly the reasoning B6 wanted kept auditable. <em>To settle:</em> run it once per region rather than never, or compute <code>saddle_p</code> alone.</p>
+
+  <h3 style="margin-top:22px">6 · The regional builder approximates the domain mask</h3>
+  <p>B3's three states are meant to come from the model's published footprint polygon. The regional builder infers them from tile responses instead: served-but-empty is read as <em>censored</em>, a failed fetch as <em>absent</em>. Inland the two agree almost everywhere; they diverge precisely at the region's edges, which is where the apron exists to protect the statistics. <em>To settle:</em> fetch each species' footprint at build time, or measure how many candidates carry a <code>valid_frac_2sigma</code> low enough for the distinction to matter.</p>
+</section>
+
+<footer>
+  <p>Mapped Missions v2. Batch stages implemented in <span class="mono">plantgo/raster/missions_v2/</span> — <span class="mono">species_select.py</span>, <span class="mono">ladder.py</span>, <span class="mono">domain.py</span>, <span class="mono">peaks.py</span>, <span class="mono">cascade.py</span>, <span class="mono">shape_stats.py</span>, <span class="mono">delimit.py</span>, <span class="mono">catalogue.py</span>; scoring in <span class="mono">score.py</span>, the draw in <span class="mono">draw.py</span>, every constant in <span class="mono">params.py</span>. The grade's factors live in <span class="mono">plantgo/scoring/mission_grade.py</span> and its v2 tiers in <span class="mono">params.py</span>; the request path is <span class="mono">plantgo/api/routes_v2.py</span>.</p>
+  <p>All measured figures come from the Thun regional build: 15 km radius, 881 native species, levels z6–z11, 225,076 raw local maxima, 9,366 catalogue candidates. Draw and grade distributions are measured over that catalogue at a fixed daily seed. Diagrams are drawn with the real operators and the real σ ratios on a synthetic 1-D profile, except the funnel and the tier map, which are drawn from the measured data itself.</p>
+</footer>
+</div>
+
+<style>
+  .fterm { color: var(--accent); font-weight: 500; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  .fterm:hover { background: var(--accent-soft); }
+</style>
+
+<script>
+(function () {
+"use strict";
+const NS = "http://www.w3.org/2000/svg";
+const C = {
+  ink: "#16241c", ink2: "#4a5f54", ink3: "#7b8d82",
+  rule: "#dbe4d6", grid: "#e6ece1", surface: "#ffffff", surface2: "#f3f7f0",
+  accent: "#067045", accentHi: "#12b96e", soft: "#e3f9ed",
+  floor: "#c9761a", censor: "#fbf1e0", censorInk: "#a8792f",
+  common: "#55917a", rare: "#3b82f6", epic: "#8b5cf6", legendary: "#e59413",
+  commonT: "#dfe9e4", rareT: "#d9e8ff", epicT: "#e8dffc", legendaryT: "#ffe9c0",
+};
+const MONO = "IBM Plex Mono, monospace", UI = "Outfit, sans-serif";
+
+function el(tag, attrs, text) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (text != null) n.textContent = text;
+  return n;
+}
+function svgIn(host, w, h, label) {
+  const s = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img", "aria-label": label });
+  (typeof host === "string" ? document.getElementById(host) : host).appendChild(s);
+  return s;
+}
+const fmtInt = n => n.toLocaleString("en-US");
+
+/* ==================================================================
+   The pipeline diagram in the header
+   ================================================================== */
+(function pipeline() {
+  const batch = [["B1", "species"], ["B2", "ladder"], ["B3", "surface"], ["B4", "peaks"],
+                 ["B5", "cascade"], ["B6", "shape"], ["B7", "zones"], ["B8", "catalogue"]];
+  const req = [["R1", "query"], ["R2", "interest score"], ["R3", "the draw"], ["R4", "pin"]];
+  function row(gid, items, y, fill, stroke) {
+    const g = document.getElementById(gid);
+    if (!g) return;
+    const x0 = 18, span = 864, gap = 8;
+    const w = (span - gap * (items.length - 1)) / items.length;
+    items.forEach(([tag, name], i) => {
+      const x = x0 + i * (w + gap);
+      g.appendChild(el("rect", { x, y, width: w, height: 50, rx: 7, fill, stroke }));
+      g.appendChild(el("text", { x: x + w / 2, y: y + 20, "font-family": MONO,
+        "font-size": 11, fill: C.accent, "text-anchor": "middle" }, tag));
+      g.appendChild(el("text", { x: x + w / 2, y: y + 37, "font-size": 12,
+        fill: C.ink, "text-anchor": "middle" }, name));
+    });
+  }
+  row("batchrow", batch, 36, C.surface, C.rule);
+  row("reqrow", req, 160, C.surface, "#bfe8d3");
+})();
+
+/* ==================================================================
+   Generic response-curve charts
+   ================================================================== */
+const F = {
+  modesty:    p => Math.exp(-0.5 * Math.pow((p - 0.50) / 0.15, 2)),
+  worth:      n => 0.01 + 0.99 / (1 + Math.pow(n / 60000, 1.0)),
+  stronghold: n => 0.15 + 0.85 / (1 + Math.max(n, 0) / 10),
+  distinct:   c => 0.01 + 0.99 * c,
+  relheight:  f => 0.05 + 0.95 * Math.min(Math.max(f, 0), 1),
+  gradeUncertainty: m => Math.min(Math.max(1 - Math.exp(-Math.max(m, 0) / 0.35), 0), 1),
+  gradeRarity: n => Math.min(Math.max(Math.log(200000 / Math.max(n, 1)) / Math.log(200000 / 50), 0), 1),
+};
+
+const SPECS = {
+  modesty: {
+    fn: F.modesty, xMin: 0.1913, xMax: 1.0, log: false,
+    xTicks: [0.2, 0.4, 0.5, 0.6, 0.8, 1.0], xFmt: v => v.toFixed(1),
+    xLabel: "p at peak", marker: { x: 0.5, label: "centre 0.50" },
+  },
+  worth: {
+    fn: F.worth, xMin: 100, xMax: 2000000, log: true,
+    xTicks: [100, 1000, 10000, 100000, 1000000],
+    xFmt: v => v >= 1e6 ? (v / 1e6) + "M" : v >= 1000 ? (v / 1000) + "k" : String(v),
+    xLabel: "global records", floor: 0.01, floorSide: "left",
+    marker: { x: 60000, label: "pivot 60k" },
+  },
+  stronghold: {
+    fn: F.stronghold, xMin: 0, xMax: 1000, log: true,
+    xTicks: [0, 1, 10, 100, 1000], xFmt: v => String(v),
+    xLabel: "records within 20 km", floor: 0.15, floorSide: "left",
+    marker: { x: 10, label: "pivot 10" },
+  },
+  distinct: {
+    fn: F.distinct, xMin: 0, xMax: 1, log: false,
+    xTicks: [0, 0.25, 0.5, 0.75, 1], xFmt: v => v.toFixed(2),
+    xLabel: "contrast rank within species × level", floor: 0.01, floorSide: "right",
+  },
+  relheight: {
+    fn: F.relheight, xMin: 0, xMax: 1.4, log: false,
+    xTicks: [0, 0.5, 1.0, 1.4],
+    xFmt: v => v === 0 ? "q50" : v === 1 ? "q90" : v.toFixed(1),
+    xLabel: "(p − q50) / (q90 − q50)", floor: 0.05, floorSide: "right",
+    marker: { x: 1.0, label: "saturates at q90" },
+  },
+  gradeUncertainty: {
+    fn: F.gradeUncertainty, xMin: 0, xMax: 1, log: false,
+    xTicks: [0, 0.25, 0.5, 0.75, 1], xFmt: v => v.toFixed(2),
+    xLabel: "modesty", floor: 0.943, floorSide: "left", floorLabel: "ceiling 0.943",
+    marker: { x: 0.906, label: "median drawn" },
+  },
+  gradeRarity: {
+    fn: F.gradeRarity, xMin: 10, xMax: 2000000, log: true,
+    xTicks: [10, 1000, 100000, 1000000],
+    xFmt: v => v >= 1e6 ? (v / 1e6) + "M" : v >= 1000 ? (v / 1000) + "k" : String(v),
+    xLabel: "global records",
+    marker: { x: 200000, label: "zero from 200k" },
+  },
+};
+
+const W = 372, H = 196, PAD = { l: 36, r: 14, t: 12, b: 34 };
+const PW = W - PAD.l - PAD.r, PH = H - PAD.t - PAD.b;
+
+function makeScales(s) {
+  const lx = v => Math.log10(Math.max(v, 1) + (s.xMin === 0 ? 1 : 0));
+  const x0 = s.log ? lx(s.xMin) : s.xMin;
+  const x1 = s.log ? lx(s.xMax) : s.xMax;
+  return {
+    x: v => PAD.l + ((s.log ? lx(v) : v) - x0) / (x1 - x0) * PW,
+    y: v => PAD.t + (1 - v) * PH,
+    xInv: px => {
+      const t = (px - PAD.l) / PW;
+      const v = x0 + t * (x1 - x0);
+      return s.log ? Math.pow(10, v) - (s.xMin === 0 ? 1 : 0) : v;
+    },
+  };
+}
+
+function drawCurveChart(host, key) {
+  const s = SPECS[key], sc = makeScales(s);
+  const svg = svgIn(host, W, H, key + " response curve");
+
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => {
+    svg.appendChild(el("line", { x1: PAD.l, x2: PAD.l + PW, y1: sc.y(v), y2: sc.y(v),
+      stroke: C.grid, "stroke-width": 1, fill: "none" }));
+    svg.appendChild(el("text", { x: PAD.l - 7, y: sc.y(v) + 3.5, "text-anchor": "end",
+      fill: C.ink3, "font-size": 9.5, "font-family": MONO },
+      v.toFixed(2).replace("0.00", "0").replace("1.00", "1")));
+  });
+
+  s.xTicks.forEach(v => {
+    const px = sc.x(v);
+    svg.appendChild(el("line", { x1: px, x2: px, y1: PAD.t + PH, y2: PAD.t + PH + 4,
+      stroke: C.rule, "stroke-width": 1, fill: "none" }));
+    svg.appendChild(el("text", { x: px, y: PAD.t + PH + 15, "text-anchor": "middle",
+      fill: C.ink3, "font-size": 9.5, "font-family": MONO }, s.xFmt(v)));
+  });
+  svg.appendChild(el("text", { x: PAD.l + PW / 2, y: H - 4, "text-anchor": "middle",
+    fill: C.ink3, "font-size": 10, "font-family": UI }, s.xLabel));
+
+  if (s.floor != null) {
+    svg.appendChild(el("line", { x1: PAD.l, x2: PAD.l + PW, y1: sc.y(s.floor), y2: sc.y(s.floor),
+      stroke: C.floor, "stroke-width": 1.5, "stroke-dasharray": "3 3", fill: "none" }));
+    const left = s.floorSide === "left";
+    svg.appendChild(el("text", {
+      x: left ? PAD.l + 4 : PAD.l + PW - 2, y: sc.y(s.floor) + 12,
+      "text-anchor": left ? "start" : "end",
+      fill: C.floor, "font-size": 9.5, "font-family": MONO },
+      s.floorLabel || ("floor " + s.floor)));
+  }
+
+  if (s.marker) {
+    const px = sc.x(s.marker.x);
+    svg.appendChild(el("line", { x1: px, x2: px, y1: PAD.t, y2: PAD.t + PH,
+      stroke: C.ink3, "stroke-width": 1, "stroke-dasharray": "2 4", fill: "none" }));
+    svg.appendChild(el("text", { x: px + 4, y: PAD.t + PH - 6, "text-anchor": "start",
+      fill: C.ink3, "font-size": 9.5, "font-family": MONO }, s.marker.label));
+  }
+
+  const N = 240;
+  let d = "";
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const xv = s.log ? sc.xInv(PAD.l + t * PW) : s.xMin + t * (s.xMax - s.xMin);
+    d += (i ? "L" : "M") + sc.x(xv).toFixed(2) + " " + sc.y(s.fn(xv)).toFixed(2);
+  }
+  svg.appendChild(el("path", { d, fill: "none", stroke: C.accent, "stroke-width": 2,
+    "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+  svg.appendChild(el("line", { x1: PAD.l, x2: PAD.l, y1: PAD.t, y2: PAD.t + PH,
+    stroke: C.rule, "stroke-width": 1, fill: "none" }));
+  svg.appendChild(el("line", { x1: PAD.l, x2: PAD.l + PW, y1: PAD.t + PH, y2: PAD.t + PH,
+    stroke: C.rule, "stroke-width": 1, fill: "none" }));
+
+  const hoverLine = el("line", { x1: 0, x2: 0, y1: PAD.t, y2: PAD.t + PH,
+    stroke: C.ink3, "stroke-width": 1, fill: "none", opacity: 0 });
+  const hoverDot = el("circle", { r: 4, fill: C.accent, stroke: C.surface,
+    "stroke-width": 2, opacity: 0 });
+  svg.appendChild(hoverLine); svg.appendChild(hoverDot);
+
+  const hit = el("rect", { x: PAD.l, y: PAD.t, width: PW, height: PH,
+    fill: "transparent", style: "cursor:crosshair" });
+  svg.appendChild(hit);
+
+  const readout = document.querySelector(`[data-read="${key}"]`);
+  const rest = readout ? readout.textContent : "";
+  hit.addEventListener("mousemove", ev => {
+    const box = svg.getBoundingClientRect();
+    const cx = Math.min(Math.max(PAD.l + (ev.clientX - box.left) / box.width * W, PAD.l), PAD.l + PW);
+    const xv = sc.xInv(cx), yv = s.fn(xv);
+    hoverLine.setAttribute("x1", cx); hoverLine.setAttribute("x2", cx);
+    hoverLine.setAttribute("opacity", 1);
+    hoverDot.setAttribute("cx", cx); hoverDot.setAttribute("cy", sc.y(yv));
+    hoverDot.setAttribute("opacity", 1);
+    if (readout) {
+      const xs = s.log ? Math.round(xv).toLocaleString("en-US") : xv.toFixed(3);
+      readout.textContent = `${s.xLabel.split(" ")[0]} = ${xs}   →   ${yv.toFixed(4)}`;
+    }
+  });
+  hit.addEventListener("mouseleave", () => {
+    hoverLine.setAttribute("opacity", 0);
+    hoverDot.setAttribute("opacity", 0);
+    if (readout) readout.textContent = rest;
+  });
+}
+
+document.querySelectorAll("[data-chart]").forEach(host => {
+  const k = host.getAttribute("data-chart");
+  if (SPECS[k]) drawCurveChart(host, k);
+});
+
+/* ==================================================================
+   A synthetic 1-D species surface, run through the real operators
+   ================================================================== */
+const N1 = 220, FLOOR_P = 0.1913, SIGMA = 4, REF_R = 2 * SIGMA, FRAG_MIN = 101;
+function gaus(x, mu, s) { return Math.exp(-0.5 * Math.pow((x - mu) / s, 2)); }
+
+const RAW = [];
+for (let x = 0; x < N1; x++) {
+  RAW.push(0.085
+    + 0.55 * gaus(x, 48, 15)     // a broad optimum
+    + 0.44 * gaus(x, 104, 13)    // a second, sharper one
+    + 0.50 * gaus(x, 158, 15)    // a third
+    + 0.36 * gaus(x, 200, 3.0)   // an isolated fragment
+    + 0.13 * gaus(x, 129, 2.5)   // fine-scale structure with no coarse support
+    + 0.018 * Math.sin(x * 0.8) + 0.011 * Math.sin(x * 1.9 + 1.0));
+}
+const VALID = RAW.map(v => v >= FLOOR_P);
+const FILLED = RAW.map((v, i) => VALID[i] ? v : 0.0);
+
+function smooth1d(a, s) {
+  const r = Math.ceil(3 * s), k = [];
+  let tot = 0;
+  for (let i = -r; i <= r; i++) { const w = Math.exp(-0.5 * (i / s) * (i / s)); k.push(w); tot += w; }
+  return a.map((_, i) => {
+    let acc = 0;
+    for (let j = 0; j < k.length; j++) {
+      const idx = Math.min(Math.max(i + j - r, 0), a.length - 1);
+      acc += a[idx] * k[j] / tot;
+    }
+    return acc;
+  });
+}
+function localMax(a) {
+  const out = [];
+  for (let i = 1; i < a.length - 1; i++) {
+    if (a[i] >= a[i - 1] && a[i] >= a[i + 1] && VALID[i]) out.push(i);
+  }
+  return out;
+}
+function componentSpans() {
+  const spans = [];
+  let s = null;
+  for (let i = 0; i < N1; i++) {
+    if (VALID[i] && s === null) s = i;
+    if (!VALID[i] && s !== null) { spans.push([s, i - 1]); s = null; }
+  }
+  if (s !== null) spans.push([s, N1 - 1]);
+  return spans;
+}
+function spanOf(i) { return componentSpans().find(([a, b]) => i >= a && i <= b); }
+function refMean(i, r) {
+  const lo = Math.max(0, i - r), hi = Math.min(N1 - 1, i + r);
+  let acc = 0;
+  for (let j = lo; j <= hi; j++) acc += FILLED[j];
+  return acc / (hi - lo + 1);
+}
+
+const SM = smooth1d(FILLED, SIGMA);
+
+/* ---------- Figure: the surface, its peaks and their contrast ---------- */
+(function figSurface() {
+  const host = document.getElementById("fig-surface");
+  if (!host) return;
+  const w = 860, h = 286, p = { l: 46, r: 16, t: 18, b: 58 };
+  const pw = w - p.l - p.r, ph = h - p.t - p.b, ymax = 0.72;
+  const X = i => p.l + i / (N1 - 1) * pw;
+  const Y = v => p.t + (1 - v / ymax) * ph;
+  const svg = svgIn(host, w, h, "A 1-D section through a species surface with its detected peaks");
+
+  componentSpans();
+  // censored stretches
+  let run = null;
+  for (let i = 0; i <= N1; i++) {
+    const cens = i < N1 && !VALID[i];
+    if (cens && run === null) run = i;
+    if (!cens && run !== null) {
+      svg.appendChild(el("rect", { x: X(run), y: p.t, width: Math.max(X(i - 1) - X(run), 1),
+        height: ph, fill: C.censor }));
+      run = null;
+    }
+  }
+  svg.appendChild(el("text", { x: p.l + 4, y: p.t + 12, "font-family": MONO,
+    "font-size": 9.5, fill: C.censorInk, "text-anchor": "start" },
+    "shaded: censored — enters every mean at 0.0"));
+
+  [0, 0.2, 0.4, 0.6].forEach(v => {
+    svg.appendChild(el("line", { x1: p.l, x2: p.l + pw, y1: Y(v), y2: Y(v),
+      stroke: C.grid, "stroke-width": 1 }));
+    svg.appendChild(el("text", { x: p.l - 7, y: Y(v) + 3.5, "text-anchor": "end",
+      "font-family": MONO, "font-size": 9.5, fill: C.ink3 }, v.toFixed(1)));
+  });
+  // the probability floor
+  svg.appendChild(el("line", { x1: p.l, x2: p.l + pw, y1: Y(FLOOR_P), y2: Y(FLOOR_P),
+    stroke: C.floor, "stroke-width": 1.4, "stroke-dasharray": "4 3" }));
+  svg.appendChild(el("text", { x: X(100), y: Y(FLOOR_P) + 16, "font-family": MONO,
+    "font-size": 9.5, fill: C.floor, "text-anchor": "middle" },
+    "p = 0.1913 — below this the model returns nothing"));
+
+  const path = (arr, attrs) => {
+    let d = "";
+    arr.forEach((v, i) => { d += (i ? "L" : "M") + X(i).toFixed(2) + " " + Y(v).toFixed(2); });
+    svg.appendChild(el("path", Object.assign({ d, fill: "none" }, attrs)));
+  };
+  path(RAW, { stroke: C.ink3, "stroke-width": 1, opacity: 0.5 });
+  path(SM, { stroke: C.accent, "stroke-width": 2.2, "stroke-linejoin": "round" });
+
+  // legend
+  svg.appendChild(el("line", { x1: p.l + pw - 196, x2: p.l + pw - 176, y1: p.t + 8, y2: p.t + 8,
+    stroke: C.ink3, "stroke-width": 1, opacity: 0.5 }));
+  svg.appendChild(el("text", { x: p.l + pw - 172, y: p.t + 11, "font-size": 10, fill: C.ink3,
+    "font-family": UI }, "raw prediction"));
+  svg.appendChild(el("line", { x1: p.l + pw - 196, x2: p.l + pw - 176, y1: p.t + 24, y2: p.t + 24,
+    stroke: C.accent, "stroke-width": 2.2 }));
+  svg.appendChild(el("text", { x: p.l + pw - 172, y: p.t + 27, "font-size": 10, fill: C.ink2,
+    "font-family": UI }, "smoothed at σ = 4 px"));
+
+  // peaks
+  const peaks = localMax(SM);
+  peaks.forEach(i => {
+    const span = spanOf(i), area = span[1] - span[0] + 1;
+    const ok = area >= FRAG_MIN;
+    svg.appendChild(el("circle", { cx: X(i), cy: Y(SM[i]), r: 4.5,
+      fill: ok ? C.accent : C.floor, stroke: C.surface, "stroke-width": 1.6 }));
+  });
+
+  // contrast annotation on a real peak and on the fragment
+  function annotate(i, dy, side) {
+    const ref = refMean(i, REF_R), c = SM[i] - ref;
+    svg.appendChild(el("line", { x1: X(i - REF_R), x2: X(i + REF_R), y1: Y(ref), y2: Y(ref),
+      stroke: C.floor, "stroke-width": 1.6 }));
+    svg.appendChild(el("line", { x1: X(i), x2: X(i), y1: Y(ref), y2: Y(SM[i]),
+      stroke: C.floor, "stroke-width": 1.2, "stroke-dasharray": "2 2" }));
+    svg.appendChild(el("text", { x: X(i), y: side === "foot" ? p.t + ph - 6 : Y(ref) + dy,
+      "font-family": MONO, "font-size": 9.5, fill: C.floor,
+      "text-anchor": "middle" }, "contrast " + c.toFixed(3)));
+  }
+  annotate(104, 17);
+  annotate(200, 0, "foot");
+  const fineBump = peaks.find(i => i > 115 && i < 145);
+  if (fineBump != null) {
+    svg.appendChild(el("text", { x: X(fineBump), y: Y(SM[fineBump]) - 13, "font-family": UI,
+      "font-size": 10, fill: C.ink3, "text-anchor": "middle" }, "fine-scale structure"));
+  }
+
+  // valid-component bars under the axis
+  const yBar = p.t + ph + 14;
+  componentSpans().forEach(([a, b]) => {
+    const area = b - a + 1, ok = area >= FRAG_MIN;
+    svg.appendChild(el("line", { x1: X(a), x2: X(b), y1: yBar, y2: yBar,
+      stroke: ok ? C.accentHi : C.floor, "stroke-width": 4, "stroke-linecap": "round" }));
+    if (area > 6) {
+      const mid = (X(a) + X(b)) / 2, near = mid > p.l + pw - 130;
+      svg.appendChild(el("text", { x: near ? p.l + pw : mid, y: yBar + 15, "font-family": MONO,
+        "font-size": 9.5, fill: ok ? C.ink2 : C.floor,
+        "text-anchor": near ? "end" : "middle" },
+        ok ? ("valid component " + area + " px ✓") : (area + " px ✗ — needs 101")));
+    }
+  });
+  svg.appendChild(el("text", { x: p.l, y: h - 6, "font-size": 10, "font-family": UI,
+    fill: C.ink3 }, "raster pixels →"));
+  svg.appendChild(el("text", { x: X(200), y: Y(SM[200]) - 12, "font-family": UI, "font-size": 10,
+    fill: C.floor, "text-anchor": "middle" }, "the fragment"));
+})();
+
+/* ---------- Figure: the cascade across three levels ---------- */
+(function figCascade() {
+  const host = document.getElementById("fig-cascade");
+  if (!host) return;
+  const w = 860, h = 330, p = { l: 82, r: 16, t: 14, b: 30 };
+  const rowH = 84, gap = 14;
+  const pw = w - p.l - p.r;
+  const X = i => p.l + i / (N1 - 1) * pw;
+  const svg = svgIn(host, w, h, "The same ground detected at three levels of the scale ladder");
+
+  const rows = [
+    { label: "coarse  z9", sigma: 16 },
+    { label: "z10", sigma: 8 },
+    { label: "fine  z11", sigma: 4 },
+  ];
+  rows.forEach((r, ri) => {
+    r.arr = smooth1d(FILLED, r.sigma);
+    r.peaks = localMax(r.arr);
+    r.top = p.t + ri * (rowH + gap);
+    const ymax = Math.max.apply(null, r.arr) * 1.16;
+    r.Y = v => r.top + (1 - v / ymax) * rowH;
+  });
+
+  // 1. panels
+  rows.forEach((r, ri) => {
+    svg.appendChild(el("rect", { x: p.l, y: r.top, width: pw, height: rowH, rx: 6,
+      fill: ri === 0 ? C.surface2 : C.surface, stroke: C.grid }));
+  });
+  // 2. match bands, projected from each level onto the one below
+  rows.forEach((r, ri) => {
+    if (ri === rows.length - 1) return;
+    const d = r.sigma / 2, below = rows[ri + 1];
+    r.peaks.forEach(i => {
+      const x1 = X(Math.max(i - d, 0)), x2 = X(Math.min(i + d, N1 - 1));
+      svg.appendChild(el("rect", { x: x1, y: below.top + 1, width: Math.max(x2 - x1, 2),
+        height: rowH - 2, fill: C.soft }));
+    });
+  });
+  // 3. curves, peaks and verdicts
+  rows.forEach((r, ri) => {
+    svg.appendChild(el("text", { x: p.l - 10, y: r.top + rowH / 2 - 3, "text-anchor": "end",
+      "font-family": UI, "font-size": 11.5, fill: C.ink }, r.label));
+    svg.appendChild(el("text", { x: p.l - 10, y: r.top + rowH / 2 + 11, "text-anchor": "end",
+      "font-family": MONO, "font-size": 9.5, fill: C.ink3 }, "σ × " + (r.sigma / 4)));
+
+    let d = "";
+    r.arr.forEach((v, i) => { d += (i ? "L" : "M") + X(i).toFixed(2) + " " + r.Y(v).toFixed(2); });
+    svg.appendChild(el("path", { d, fill: "none", stroke: C.accent, "stroke-width": 1.9,
+      "stroke-linejoin": "round" }));
+
+    const coarser = ri > 0 ? rows[ri - 1] : null;
+    r.peaks.forEach(i => {
+      const px = X(i), py = r.Y(r.arr[i]);
+      let kept = true, dm = 0;
+      if (coarser) {
+        dm = coarser.sigma / 2;
+        kept = coarser.peaks.reduce((m, j) => Math.min(m, Math.abs(i - j)), 1e9) <= dm;
+      }
+      svg.appendChild(el("circle", { cx: px, cy: py, r: 4.2,
+        fill: kept ? C.accent : "#ffffff", stroke: kept ? C.surface : C.ink3,
+        "stroke-width": kept ? 1.5 : 1.4 }));
+      if (kept) return;
+      svg.appendChild(el("path", {
+        d: `M${(px - 3).toFixed(1)} ${(py - 3).toFixed(1)} L${(px + 3).toFixed(1)} ${(py + 3).toFixed(1)} ` +
+           `M${(px + 3).toFixed(1)} ${(py - 3).toFixed(1)} L${(px - 3).toFixed(1)} ${(py + 3).toFixed(1)}`,
+        stroke: C.ink3, "stroke-width": 1.4, fill: "none" }));
+      const right = px < p.l + pw - 250;
+      svg.appendChild(el("text", { x: right ? px + 9 : px - 9, y: py + 17,
+        "text-anchor": right ? "start" : "end", "font-family": MONO, "font-size": 9.5,
+        fill: C.ink3 }, "dropped — nothing within d = " + dm + " px"));
+    });
+  });
+
+  svg.appendChild(el("text", { x: p.l, y: h - 8, "font-size": 10, "font-family": UI, fill: C.ink3 },
+    "Shaded: the match radius d = σ_coarse / 2 around each peak, projected onto the level below."));
+})();
+
+/* ---------- Figure: the measured funnel ---------- */
+(function figFunnel() {
+  const host = document.getElementById("fig-funnel");
+  if (!host) return;
+  const data = [
+    ["strict local maxima", 225076],
+    ["after the fragment test", 120904],
+    ["after cascade + region clip", 13403],
+    ["retained in the catalogue", 9366],
+  ];
+  const w = 860, h = 196, p = { l: 208, r: 128, t: 16, b: 14 };
+  const pw = w - p.l - p.r, barH = 26, step = 42;
+  const svg = svgIn(host, w, h, "Candidate counts at each stage of the detection funnel");
+  const max = data[0][1];
+  data.forEach(([label, n], i) => {
+    const y = p.t + i * step;
+    svg.appendChild(el("text", { x: p.l - 12, y: y + barH / 2 + 4, "text-anchor": "end",
+      "font-size": 12.5, "font-family": UI, fill: C.ink }, label));
+    svg.appendChild(el("rect", { x: p.l, y, width: pw, height: barH, rx: 4, fill: C.surface2 }));
+    svg.appendChild(el("rect", { x: p.l, y, width: Math.max(pw * n / max, 2), height: barH, rx: 4,
+      fill: i === data.length - 1 ? C.accent : C.accentHi, opacity: i === data.length - 1 ? 1 : 0.78 }));
+    svg.appendChild(el("text", { x: p.l + pw + 10, y: y + barH / 2 + 4, "font-family": MONO,
+      "font-size": 11.5, fill: C.ink2 }, fmtInt(n) + "  ·  " + (100 * n / max).toFixed(1) + "%"));
+  });
+})();
+
+/* ---------- Figure: scale-aware exclusion ---------- */
+(function figExclusion() {
+  const host = document.getElementById("fig-exclusion");
+  if (!host) return;
+  const w = 860, h = 316, M_PER_PX = 7;
+  const m = v => v / M_PER_PX;
+  const svg = svgIn(host, w, h, "Exclusion radii derived from the larger of two blob radii");
+
+  const cx = 236, cy = 140;
+  const fx = cx + m(500), fy = cy;
+
+  svg.appendChild(el("circle", { cx, cy, r: m(888), fill: C.soft,
+    stroke: C.accent, "stroke-width": 1.3, "stroke-dasharray": "5 4" }));
+  svg.appendChild(el("circle", { cx, cy, r: m(592), fill: C.accentHi, opacity: 0.24,
+    stroke: C.accent, "stroke-width": 1.1 }));
+  svg.appendChild(el("circle", { cx: fx, cy: fy, r: m(444), fill: "none",
+    stroke: C.ink3, "stroke-width": 1.2, "stroke-dasharray": "3 3" }));
+
+  svg.appendChild(el("line", { x1: cx, x2: fx, y1: cy, y2: fy, stroke: C.floor, "stroke-width": 1.4 }));
+  svg.appendChild(el("circle", { cx, cy, r: 5, fill: C.accent, stroke: "#fff", "stroke-width": 1.6 }));
+  svg.appendChild(el("circle", { cx: fx, cy: fy, r: 4.5, fill: "#ffffff", stroke: C.floor, "stroke-width": 2 }));
+
+  const lab = (x, y, text, color, anchor, font, size) =>
+    svg.appendChild(el("text", { x, y, "text-anchor": anchor || "start", fill: color,
+      "font-size": size || 11, "font-family": font || UI }, text));
+
+  lab(cx, cy + 19, "accepted z10 peak", C.ink, "middle");
+  lab(cx, cy + m(592) - 10, "its zone — r = 592 m", C.accent, "middle", MONO, 10);
+  lab(cx, cy + m(888) + 15, "exclusion 1.5 · r = 888 m", C.accent, "middle", MONO, 10);
+  lab((cx + fx) / 2, cy - 8, "500 m", C.floor, "middle", MONO, 10.5);
+  lab(fx - 6, fy - m(444) - 20, "z11 candidate", C.floor, "end");
+  lab(fx - 6, fy - m(444) - 6, "own exclusion 444 m", C.ink3, "end", MONO, 10);
+  svg.appendChild(el("line", { x1: fx, x2: fx, y1: fy - m(444) - 2, y2: fy - 8,
+    stroke: C.floor, "stroke-width": 0.9, "stroke-dasharray": "2 3" }));
+
+  const bx = 520;
+  svg.appendChild(el("rect", { x: bx, y: 56, width: 300, height: 104, rx: 8,
+    fill: C.surface2, stroke: C.rule }));
+  lab(bx + 16, 80, "tested against its own radius", C.ink2);
+  lab(bx + 16, 99, "500 m > 444 m  →  accepted", "#b3261e", "start", MONO, 11.5);
+  lab(bx + 16, 124, "tested against max(r_i, r_j)", C.ink2);
+  lab(bx + 16, 143, "500 m < 888 m  →  rejected", C.accent, "start", MONO, 11.5);
+  lab(bx, 184, "The first outcome puts a mission inside", C.ink2);
+  lab(bx, 201, "another mission's zone — the exact case", C.ink2);
+  lab(bx, 218, "the rule claims to eliminate.", C.ink2);
+
+  svg.appendChild(el("line", { x1: 26, x2: 26 + m(1000), y1: 26, y2: 26,
+    stroke: C.ink2, "stroke-width": 1.3 }));
+  [26, 26 + m(1000)].forEach(x =>
+    svg.appendChild(el("line", { x1: x, x2: x, y1: 22, y2: 30, stroke: C.ink2, "stroke-width": 1.3 })));
+  lab(26 + m(500), 42, "1 km", C.ink2, "middle", MONO, 10);
+})();
+
+/* ---------- Figure: the grade as a map of its two inputs ---------- */
+(function figTierMap() {
+  const host = document.getElementById("fig-tiermap");
+  if (!host) return;
+  const w = 860, h = 336, p = { l: 58, r: 152, t: 16, b: 46 };
+  const pw = w - p.l - p.r, ph = h - p.t - p.b;
+  const LX0 = 2, LX1 = 6.3;   // log10 global records
+  const X = ln => p.l + (ln - LX0) / (LX1 - LX0) * pw;
+  const Y = mo => p.t + (1 - mo) * ph;
+  const svg = svgIn(host, w, h, "Grade tier as a function of modesty and global record count");
+
+  const TIERS = [["Critical", 0.58, C.legendaryT, C.legendary],
+                 ["Major", 0.55, C.epicT, C.epic],
+                 ["Important", 0.48, C.rareT, C.rare],
+                 ["Routine", 0.0, C.commonT, C.common]];
+
+  // Each tier's region is everything above the curve where the mean of the two
+  // factors exactly equals its floor. Solving for modesty gives a closed form,
+  // so the boundaries are drawn as curves rather than as a stepped grid.
+  function modestyAt(floorScore, n) {
+    const u = 2 * floorScore - F.gradeRarity(n);
+    if (u <= 0) return 0;                 // whole column clears this floor
+    if (u >= 1 - 1e-9) return Infinity;   // unreachable at any modesty
+    return -0.35 * Math.log(1 - u);
+  }
+  svg.appendChild(el("rect", { x: p.l, y: p.t, width: pw, height: ph, fill: C.commonT }));
+  [3, 2, 1, 0].forEach(ti => {
+    const [, floorScore, tint] = TIERS[ti];
+    if (floorScore <= 0) return;
+    const STEPS = 260;
+    let d = "", open = false, dd = "";
+    for (let k = 0; k <= STEPS; k++) {
+      const ln = LX0 + k / STEPS * (LX1 - LX0);
+      const mo = modestyAt(floorScore, Math.pow(10, ln));
+      if (mo > 1) {                       // region absent in this column
+        if (open) { d += dd + `L${X(ln).toFixed(1)} ${p.t}Z`; dd = ""; open = false; }
+        continue;
+      }
+      if (!open) { d += `M${X(ln).toFixed(1)} ${p.t}`; open = true; dd = ""; }
+      dd += `L${X(ln).toFixed(1)} ${Y(Math.min(mo, 1)).toFixed(1)}`;
+    }
+    if (open) d += dd + `L${X(LX1).toFixed(1)} ${p.t}Z`;
+    if (d) svg.appendChild(el("path", { d, fill: tint }));
+  });
+  svg.appendChild(el("rect", { x: p.l, y: p.t, width: pw, height: ph, fill: "none", stroke: C.rule }));
+
+  // axes
+  [2, 3, 4, 5, 6].forEach(ln => {
+    svg.appendChild(el("line", { x1: X(ln), x2: X(ln), y1: p.t + ph, y2: p.t + ph + 4,
+      stroke: C.rule }));
+    const n = Math.pow(10, ln);
+    svg.appendChild(el("text", { x: X(ln), y: p.t + ph + 16, "text-anchor": "middle",
+      "font-family": MONO, "font-size": 9.5, fill: C.ink3 },
+      n >= 1e6 ? "1M" : n >= 1000 ? (n / 1000) + "k" : String(n)));
+  });
+  svg.appendChild(el("text", { x: p.l + pw / 2, y: h - 12, "text-anchor": "middle",
+    "font-size": 10.5, "font-family": UI, fill: C.ink3 }, "global occurrence records (log scale)"));
+  [0, 0.25, 0.5, 0.75, 1].forEach(mo => {
+    svg.appendChild(el("text", { x: p.l - 8, y: Y(mo) + 3.5, "text-anchor": "end",
+      "font-family": MONO, "font-size": 9.5, fill: C.ink3 }, mo.toFixed(2).replace("0.00","0").replace("1.00","1")));
+  });
+  svg.appendChild(el("text", { x: 14, y: p.t + ph / 2, "text-anchor": "middle",
+    "font-size": 10.5, "font-family": UI, fill: C.ink3,
+    transform: `rotate(-90 14 ${p.t + ph / 2})` }, "modesty  (model uncertainty)"));
+
+  // in-plot tier labels
+  const put = (n, mo, text, color) =>
+    svg.appendChild(el("text", { x: X(Math.log10(n)), y: Y(mo), "font-family": MONO,
+      "font-size": 11, fill: color, "text-anchor": "middle" }, text));
+  put(1400, 0.86, "Critical", "#8a5a06");
+  put(800000, 0.66, "Routine", "#2f5e4d");
+
+  // The two middle bands are only a fraction of a decade wide, so they are
+  // called out from the open ground on their right rather than labelled in
+  // place. The leader lands on the band's own midpoint at that modesty,
+  // found by scanning, so it stays correct if a cut-off ever moves.
+  function bandMid(name, mo) {
+    let lo = null, hi = null;
+    for (let k = 0; k <= 600; k++) {
+      const ln = LX0 + k / 600 * (LX1 - LX0);
+      const sc = (F.gradeUncertainty(mo) + F.gradeRarity(Math.pow(10, ln))) / 2;
+      if (TIERS.find(t => sc >= t[1])[0] === name) { if (lo === null) lo = ln; hi = ln; }
+    }
+    return lo === null ? null : (lo + hi) / 2;
+  }
+  function callout(name, mo, labelN, color) {
+    const mid = bandMid(name, mo);
+    if (mid === null) return;
+    const tx = X(Math.log10(labelN)), ty = Y(mo);
+    svg.appendChild(el("line", { x1: X(mid), x2: tx - 7, y1: ty, y2: ty,
+      stroke: color, "stroke-width": 0.9, opacity: 0.75 }));
+    svg.appendChild(el("circle", { cx: X(mid), cy: ty, r: 2, fill: color }));
+    svg.appendChild(el("text", { x: tx, y: ty + 3.5, "font-family": MONO, "font-size": 11,
+      fill: color, "text-anchor": "start" }, name));
+  }
+  callout("Major", 0.40, 70000, "#5b3bb0");
+  callout("Important", 0.24, 70000, "#215ec4");
+
+  // the median drawn mission
+  const mx = X(Math.log10(293546)), my = Y(0.906);
+  svg.appendChild(el("circle", { cx: mx, cy: my, r: 5, fill: C.ink, stroke: "#fff", "stroke-width": 1.8 }));
+  svg.appendChild(el("line", { x1: mx, x2: mx - 10, y1: my, y2: my + 14, stroke: C.ink, "stroke-width": 1 }));
+  svg.appendChild(el("text", { x: mx - 14, y: my + 21, "text-anchor": "end", "font-family": UI,
+    "font-size": 10.5, fill: C.ink }, "median drawn mission"));
+  svg.appendChild(el("text", { x: mx - 14, y: my + 34, "text-anchor": "end", "font-family": MONO,
+    "font-size": 9.5, fill: C.ink2 }, "modesty 0.91 · 294k records · Routine"));
+
+  // legend
+  const lx = p.l + pw + 22;
+  svg.appendChild(el("text", { x: lx, y: p.t + 12, "font-family": MONO, "font-size": 9.5,
+    fill: C.ink3, "letter-spacing": "0.08em" }, "TIER · FLOOR"));
+  TIERS.forEach((t, i) => {
+    const y = p.t + 28 + i * 26;
+    svg.appendChild(el("rect", { x: lx, y: y - 9, width: 16, height: 12, rx: 3, fill: t[2],
+      stroke: t[3], "stroke-width": 0.8 }));
+    svg.appendChild(el("text", { x: lx + 23, y, "font-size": 11.5, "font-family": UI, fill: C.ink }, t[0]));
+    svg.appendChild(el("text", { x: lx + 23, y: y + 12, "font-family": MONO, "font-size": 9.5,
+      fill: C.ink3 }, "score ≥ " + t[1].toFixed(2)));
+  });
+  svg.appendChild(el("text", { x: lx, y: p.t + 152, "font-family": MONO, "font-size": 9.5,
+    fill: C.ink3 }, "score ="));
+  svg.appendChild(el("text", { x: lx, y: p.t + 165, "font-family": MONO, "font-size": 9.5,
+    fill: C.ink3 }, "  (uncertainty"));
+  svg.appendChild(el("text", { x: lx, y: p.t + 178, "font-family": MONO, "font-size": 9.5,
+    fill: C.ink3 }, "   + rarity) / 2"));
+})();
+
+})();
+</script>

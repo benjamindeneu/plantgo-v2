@@ -293,6 +293,7 @@
   "map.info.missions.how2": "Esta planta é pouco observada na região, ou em geral. Cada observação adicional é valiosa.",
   "map.info.missions.how3": "Esta planta é característica deste local e raramente, ou nunca, é encontrada noutros locais.",
   "map.info.missions.note": "As missões baseiam-se, por definição, na incerteza quanto à presença de uma planta neste local. Algumas podem estar presentes mas ser difíceis de encontrar, e outras também podem revelar-se ausentes.",
+  "map.info.missions.doc": "Ver o procedimento científico detalhado (em inglês)",
   "map.info.around.title": "À minha volta",
   "map.info.around.intro": "As plantas consideradas mais prováveis nas proximidades, com base nas previsões do modelo.",
   "map.info.around.how": "A previsão baseia-se nas condições locais — clima, estação e relevo — combinadas com imagens de satélite, comparadas com os locais onde cada planta já foi registada.",

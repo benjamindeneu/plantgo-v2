@@ -1867,6 +1867,34 @@
   color: var(--mp-ink);
 }
 
+/* The way out of the sheet for anyone who wants the whole method rather than
+   the summary. An <a> because it navigates, so the button rules elsewhere do
+   not reach it; dressed to match the point cards above it and given the
+   sheet's own bottom margin so it reads as the last thing on the page. */
+.map-page .mp-info__doc {
+  display: block;
+  margin: 18px 0 0;
+  padding: 13px 15px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  font-family: var(--mp-ui);
+  font-size: .89rem;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  color: var(--mp-ink);
+}
+.map-page .mp-info__doc[hidden] { display: none; }
+.map-page .mp-info__doc:hover,
+.map-page .mp-info__doc:focus-visible {
+  background: var(--mp-soft);
+  border-color: var(--mp-brand-hi);
+  color: var(--mp-brand-text);
+}
+.map-page .mp-info__doc span { opacity: .7; }
+
 @media (min-width: 900px) {
   /* The page paints into a 580px column, so the explainer stays inside it
      rather than spilling across a desktop screen. Offset rather than

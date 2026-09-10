@@ -9,6 +9,13 @@ import { t } from "../../language/i18n.js";
  * of plain language, not a tooltip. It covers the map so there is nothing to
  * read past.
  */
+// The full write-up of how a mission is detected, scored, drawn and graded —
+// the long answer to the short one this sheet gives. Document-relative on
+// purpose: every page of the app sits at the site root, so the link resolves
+// whether the app is served from a domain root or from a project sub-path.
+// English only for now, which the label says in every other language.
+const PIPELINE_DOC_URL = "mission-pipeline.html";
+
 const CONTENT = {
   missions: {
     titleKey: "map.info.missions.title",
@@ -21,6 +28,8 @@ const CONTENT = {
       { icon: "📍", key: "map.info.missions.how3" },
     ],
     noteKey: "map.info.missions.note",
+    docKey: "map.info.missions.doc",
+    docUrl: PIPELINE_DOC_URL,
   },
   around: {
     titleKey: "map.info.around.title",
@@ -52,6 +61,7 @@ export function createInfoSheet(kind) {
       <h3 class="mp-info__how" hidden></h3>
       <ul class="mp-info__points"></ul>
       <p class="mp-info__note"></p>
+      <a class="mp-info__doc" target="_blank" rel="noopener noreferrer" hidden></a>
     </div>
   `;
 
@@ -64,6 +74,16 @@ export function createInfoSheet(kind) {
   if (spec.howTitleKey) {
     how.hidden = false;
     how.textContent = t(spec.howTitleKey);
+  }
+
+  const doc = root.querySelector(".mp-info__doc");
+  if (spec.docKey) {
+    doc.hidden = false;
+    doc.href = spec.docUrl;
+    doc.textContent = t(spec.docKey);
+    doc.appendChild(Object.assign(document.createElement("span"), {
+      textContent: "\u00a0↗", ariaHidden: "true",
+    }));
   }
 
   const list = root.querySelector(".mp-info__points");
